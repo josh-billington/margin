@@ -774,14 +774,19 @@ input[type='checkbox']:focus-visible {
 	border-radius: var(--radius-xs);
 }
 
+.setup-panel {
+	width: min(var(--sheet-w), calc(100% - 40px));
+	padding: var(--sheet-inset);
+	gap: var(--space-6);
+}
 .setup-panel:focus {
 	outline: none;
 }
 .setup-group {
 	display: grid;
 	grid-template-columns: max-content minmax(0, 1fr);
-	column-gap: var(--space-5);
-	padding: 0 var(--space-5);
+	column-gap: var(--space-7);
+	padding: 0 var(--space-6);
 	background: var(--surface);
 	border: var(--stroke-hairline) solid var(--hairline);
 	border-radius: var(--radius-md);
@@ -791,7 +796,7 @@ input[type='checkbox']:focus-visible {
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
 	align-items: center;
-	min-height: calc(var(--control-h) + var(--space-7));
+	min-height: var(--sheet-row-h);
 	padding: var(--space-4) 0;
 }
 .setup-row + .setup-row {
@@ -801,21 +806,25 @@ input[type='checkbox']:focus-visible {
 .setup-folder {
 	display: flex;
 	align-items: center;
-	gap: var(--space-4);
 	min-width: 0;
+}
+.setup-folder-control {
+	gap: var(--space-5);
 }
 .setup-folder {
 	flex: 1;
+	gap: var(--space-4);
 }
 .setup-folder > svg {
-	color: var(--text-muted);
+	flex-shrink: 0;
 }
 .setup-folder-text {
+	display: grid;
+	gap: var(--space-1);
 	min-width: 0;
 }
 .setup-folder-name,
 .setup-location {
-	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -834,5 +843,9 @@ input[type='checkbox']:focus-visible {
 	text-overflow: ellipsis;
 }
 .setup-footnote {
+	padding: 0 var(--space-6);
 	font-size: var(--text-sm);
+}
+.setup-panel > .dialog-actions {
+	margin-top: var(--space-2);
 }

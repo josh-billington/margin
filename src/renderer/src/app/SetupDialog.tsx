@@ -1,9 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
-import { Folder } from 'lucide-react'
 import { translationIdSchema } from '@shared/bible/types'
 import { translationNames } from '../insertion/labels'
-import { iconLg } from '../lib/icons'
 import { usePrefs } from '../lib/usePrefs'
 import { chooseLibrary, completeSetup, useStudySession } from '../study/session'
 import { report } from '../study/state'
@@ -57,7 +55,7 @@ export function SetupDialog() {
 							<span id="setup-folder-label">Study folder</span>
 							<div className="setup-folder-control">
 								<div className="setup-folder" title={path} aria-labelledby="setup-folder-label">
-									<Folder {...iconLg} aria-hidden="true" />
+									<FolderGlyph />
 									<div className="setup-folder-text">
 										<span className="setup-folder-name">{folder?.name}</span>
 										{folder?.location && (
@@ -103,5 +101,14 @@ export function SetupDialog() {
 				</Dialog.Content>
 			</Dialog.Portal>
 		</Dialog.Root>
+	)
+}
+
+function FolderGlyph() {
+	return (
+		<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true">
+			<path fill="var(--folder-back)" d="M1 3a2 2 0 0 1 2-2h6l2 2h10a2 2 0 0 1 2 2v6H1Z" />
+			<rect fill="var(--folder-front)" x="1" y="5" width="22" height="14" rx="2" />
+		</svg>
 	)
 }
