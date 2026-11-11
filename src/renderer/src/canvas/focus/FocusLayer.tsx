@@ -17,7 +17,6 @@ const OTHER_VERSE = 0.25
 export function FocusLayer() {
 	const editor = useEditor()
 	const scope = useId()
-	const owned = useFocus((state) => state.editor === editor)
 	const target = useFocus((state) => (state.editor === editor ? state.target : null))
 	useEffect(() => {
 		const container = editor.getContainer()
@@ -44,9 +43,14 @@ export function FocusLayer() {
 	const rules = useValue(
 		'focus rules',
 		() => {
-			if (!target || gone) return ''
-			const bright = computeBrightSet(dimModel(editor), target)
 			const prefix = `[data-focus-scope="${scope}"]`
+			const still =
+				'@media (prefers-reduced-motion: reduce){' +
+				`${prefix} .tl-shape,${prefix} .scripture-verse{transition:none}}`
+			// Kept after focus ends so the undim fades too, a little faster than the dim.
+			if (!target || gone)
+				return `${prefix} .tl-shape,${prefix} .scripture-verse{transition:opacity 150ms ease-out}\n${still}`
+			const bright = computeBrightSet(dimModel(editor), target)
 			const out = [`${prefix} .tl-shape{transition:opacity 200ms ease-out}`]
 			for (const shape of editor.getCurrentPageShapes())
 				if (!bright.has(shape.id))
@@ -55,10 +59,7 @@ export function FocusLayer() {
 				out.push(
 					`${prefix} [data-shape-id="${target.passageId}"] .scripture-verse:not([data-verse-key="${verseKey(target.verse)}"]){opacity:${OTHER_VERSE}}`,
 				)
-			out.push(
-				'@media (prefers-reduced-motion: reduce){' +
-					`${prefix} .tl-shape,${prefix} .scripture-verse{transition:none}}`,
-			)
+			out.push(still)
 			return out.join('\n')
 		},
 		[editor, target, gone, scope],
@@ -91,7 +92,7 @@ export function FocusLayer() {
 	)
 	return (
 		<>
-			{owned && rules && <style>{rules}</style>}
+			<style>{rules}</style>
 			{connectors.length > 0 && (
 				<svg
 					className="pull-out-connectors"

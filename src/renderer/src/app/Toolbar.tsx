@@ -9,13 +9,20 @@ import {
 	Plus,
 	Tag,
 } from 'lucide-react'
-import { useValue } from 'tldraw'
+import { EASINGS, useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
 import { runCommand, shortcutFor } from './commands'
 import { requestTagSelection } from '../canvas/highlights/tagging'
 import { ToolButton } from './ToolButton'
 import { noteFromSelection } from '../canvas/tools/noteFromSelection'
 import { iconLg } from '../lib/icons'
+import { prefersReducedMotion } from '../canvas/focus/camera'
+
+// Clicks animate so the reader keeps their place; ⌘+ / ⌘− stay instant.
+const zoomMotion = () =>
+	prefersReducedMotion()
+		? undefined
+		: { animation: { duration: 200, easing: EASINGS.easeOutCubic } }
 
 interface ToolbarProps {
 	editor: Editor | null
@@ -84,18 +91,18 @@ export function Toolbar({ editor }: ToolbarProps) {
 				<BookOpen {...iconLg} />
 			</ToolButton>
 			<span className="toolbar-divider" aria-hidden="true" />
-			<ToolButton label="Zoom out" onClick={() => editor?.zoomOut()}>
+			<ToolButton label="Zoom out" onClick={() => editor?.zoomOut(undefined, zoomMotion())}>
 				<Minus {...iconLg} />
 			</ToolButton>
 			<ToolButton
 				label="Reset zoom to 100%"
 				shortcut="⌘1"
 				className="zoom-button"
-				onClick={() => editor?.resetZoom()}
+				onClick={() => editor?.resetZoom(undefined, zoomMotion())}
 			>
 				{zoom}%
 			</ToolButton>
-			<ToolButton label="Zoom in" onClick={() => editor?.zoomIn()}>
+			<ToolButton label="Zoom in" onClick={() => editor?.zoomIn(undefined, zoomMotion())}>
 				<Plus {...iconLg} />
 			</ToolButton>
 		</div>
