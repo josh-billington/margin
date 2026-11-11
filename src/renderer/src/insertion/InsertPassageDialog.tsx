@@ -166,7 +166,9 @@ export function InsertPassageDialog({
 								))}
 							</div>
 						</div>
-						<PreviewBody state={state} onPick={setQuery} />
+						<div className="insert-feedback">
+							<PreviewBody state={state} onPick={setQuery} />
+						</div>
 						<div className="insert-actions">
 							<button type="button" className="button" onClick={() => onOpenChange(false)}>
 								Cancel
