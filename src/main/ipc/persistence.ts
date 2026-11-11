@@ -1,5 +1,5 @@
 import { app, dialog, ipcMain, type BrowserWindow } from 'electron'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { hostname, homedir } from 'node:os'
 import { z } from 'zod'
@@ -7,7 +7,21 @@ import { AppDataStore } from '../appData/store'
 import { Library } from '../library/library'
 import { migrateStudy } from '../../shared/study/migrations'
 import { ipcContract } from '../../shared/ipc/contract'
-import type { Preferences } from '../../shared/ipc/contract'
+import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
+
+export function describeFolder(path: string, home = homedir()): LibraryFolder {
+	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
+	const abbreviate = (value: string) => {
+		if (value === cloud) return 'iCloud Drive'
+		if (value.startsWith(cloud + '/')) return 'iCloud Drive' + value.slice(cloud.length)
+		if (value === home) return '~'
+		if (value === join(home, 'Documents')) return 'Documents'
+		return value.startsWith(home + '/') ? '~' + value.slice(home.length) : value
+	}
+	if (path === home || path === cloud || path === '/')
+		return { name: abbreviate(path), location: '' }
+	return { name: basename(path), location: abbreviate(dirname(path)) }
+}
 
 export async function registerPersistence(
 	getWindow: () => BrowserWindow | null,
@@ -29,12 +43,7 @@ export async function registerPersistence(
 	// Only a lock from another computer is surfaced; a live same-host owner stays a plain read-only open.
 	const describe = () => ({
 		path: library.path,
-		displayPath:
-			library.path === homedir()
-				? '~'
-				: library.path.startsWith(homedir() + '/')
-					? '~' + library.path.slice(homedir().length)
-					: library.path,
+		folder: describeFolder(library.path),
 		setup: data.setup,
 		readOnly: library.readOnly,
 		lock:

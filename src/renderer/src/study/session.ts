@@ -27,7 +27,8 @@ export async function initializeStudies() {
 		const library = unwrap(await window.margin.library.getLibrary())
 		useStudySession.setState({
 			setup: library?.setup ?? 'done',
-			libraryPath: library?.displayPath ?? '',
+			libraryPath: library?.path ?? '',
+			libraryFolder: library?.folder ?? null,
 			readOnly: library?.readOnly ?? true,
 			lock: library?.lock ?? null,
 			ready: true,
@@ -303,7 +304,8 @@ export async function chooseLibrary() {
 				sessions: {},
 				currentId: null,
 				setup: result.setup,
-				libraryPath: result.displayPath,
+				libraryPath: result.path,
+				libraryFolder: result.folder,
 				readOnly: result.readOnly,
 				lock: result.lock,
 			})

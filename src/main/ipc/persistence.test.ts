@@ -20,7 +20,7 @@ vi.mock('electron', () => ({
 	},
 }))
 import { Library } from '../library/library'
-import { registerPersistence } from './persistence'
+import { describeFolder, registerPersistence } from './persistence'
 
 let root: string
 let closeLibrary: (() => Promise<unknown>) | undefined
@@ -58,4 +58,26 @@ it('defers the default folder and creates no study when switching during setup',
 	await expect(readdir(join(root, 'chosen', 'studies'))).resolves.toEqual([])
 	await expect(access(join(root, 'default'))).rejects.toThrow()
 	await invoke(ipcContract.library.completeSetup)
+})
+
+const home = '/Users/reader'
+it.each([
+	[home, { name: '~', location: '' }],
+	[`${home}/Documents`, { name: 'Documents', location: '~' }],
+	[`${home}/Documents/Margin`, { name: 'Margin', location: 'Documents' }],
+	[`${home}/Projects/Margin`, { name: 'Margin', location: '~/Projects' }],
+	[`${home}/Library/Mobile Documents/com~apple~CloudDocs`, { name: 'iCloud Drive', location: '' }],
+	[
+		`${home}/Library/Mobile Documents/com~apple~CloudDocs/Margin`,
+		{ name: 'Margin', location: 'iCloud Drive' },
+	],
+	[
+		`${home}/Library/Mobile Documents/com~apple~CloudDocs/Studies/Margin`,
+		{ name: 'Margin', location: 'iCloud Drive/Studies' },
+	],
+	['/Volumes/Shared/Margin', { name: 'Margin', location: '/Volumes/Shared' }],
+	['/Users/reader-other/Margin', { name: 'Margin', location: '/Users/reader-other' }],
+	['/', { name: '/', location: '' }],
+])('describes folder %s', (path, folder) => {
+	expect(describeFolder(path, home)).toEqual(folder)
 })

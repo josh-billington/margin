@@ -66,6 +66,7 @@
 	--text-lg: 15px;
 
 	/* Space, size and radius scale (compact macOS density). */
+	--stroke-hairline: 1px;
 	--space-1: 2px;
 	--space-2: 4px;
 	--space-3: 6px;
