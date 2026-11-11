@@ -50,4 +50,4 @@ export type LookupResult = z.infer<typeof lookupResultSchema>
  */
 export const dictionaryName = (entry: LexiconEntry) => entry.source.split(' · ')[0] ?? entry.source
 export const entryCitation = (entry: LexiconEntry) =>
-	`${entry.lemma} (${entry.transliteration}, ${entry.id}) — ${entry.definition}\n${dictionaryName(entry)} · ${entry.id}`
+	`${entry.lemma} (${entry.transliteration}, ${entry.id})\n${entry.definition}\n${dictionaryName(entry)} · ${entry.id}`

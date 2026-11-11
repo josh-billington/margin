@@ -61,7 +61,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 				>
 					<Dialog.Title className="sr-only">Commands</Dialog.Title>
 					<Dialog.Description id="command-description" className="sr-only">
-						Type a reference to add verses, or search for a command.
+						Enter a Bible reference or search for a command.
 					</Dialog.Description>
 					<Command label="Commands">
 						<div className="command-search">
@@ -69,9 +69,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 							<Command.Input
 								value={search}
 								onValueChange={setSearch}
-								placeholder="Type a reference or a command…"
+								placeholder="Enter a reference or command…"
 							/>
-							<kbd aria-hidden="true">esc</kbd>
+							<kbd aria-hidden="true">Esc</kbd>
 						</div>
 						<Command.List>
 							<Command.Empty>No matching commands.</Command.Empty>

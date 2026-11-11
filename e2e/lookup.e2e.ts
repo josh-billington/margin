@@ -75,7 +75,7 @@ test('right-click in every tool, transient lookup, dark/light popover, note + bo
 		}
 		expect(
 			await app.evaluate(() => (globalThis as { lookupMenuLabel?: string }).lookupMenuLabel),
-		).toBe('Look up “created”')
+		).toBe('Look up "created"')
 		await page.waitForTimeout(1000)
 		expect(await readFile(file, 'utf8')).toBe(before)
 		await created(page).click({ button: 'right' })
@@ -172,8 +172,10 @@ test('selection shortcut and palette, phrase chooser, supplied words, manual IDs
 			.filter({ hasText: /^was$/ })
 			.last()
 		await supplied.click({ button: 'right' })
-		await expect(lookup(page)).toContainText('No source word — added in translation')
-		await lookup(page).getByLabel('Strong’s number').fill('1254')
+		await expect(lookup(page)).toContainText(
+			'The translators added this word. It has no Hebrew or Greek source word.',
+		)
+		await lookup(page).getByLabel("Strong's number").fill('1254')
 		await lookup(page).getByRole('button', { name: 'Look up number' }).click()
 		await expect(lookup(page).getByRole('alert')).toContainText('Choose Hebrew or Greek')
 		await lookup(page)
@@ -225,7 +227,7 @@ test('multi-word source choices, replacement, copy citation and click-outside di
 		await lookup(page)
 			.getByRole('button', { name: /created.*H1254/ })
 			.click()
-		await lookup(page).getByRole('button', { name: 'Copy', exact: true }).click()
+		await lookup(page).getByRole('button', { name: 'Copy definition', exact: true }).click()
 		await expect
 			.poll(() => app.evaluate(({ clipboard }) => clipboard.readText()))
 			.toContain("Strong's Hebrew Dictionary · H1254")

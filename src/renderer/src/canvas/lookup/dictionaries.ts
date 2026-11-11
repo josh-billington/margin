@@ -32,7 +32,7 @@ export interface Dictionary {
 
 const strongs: Dictionary = {
 	id: 'strongs',
-	label: 'Strong’s',
+	label: "Strong's",
 	appliesTo: () => true,
 	name: dictionaryName,
 	Body: StrongsEntry,

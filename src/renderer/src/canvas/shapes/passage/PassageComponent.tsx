@@ -238,7 +238,7 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 					ref={textRoot}
 					className="passage-text"
 					tabIndex={0}
-					aria-label="Scripture. Arrow keys select words; Shift extends; then use Tag selection."
+					aria-label="Bible verses. Use the arrow keys to select words. Hold Shift to extend the selection."
 					aria-description={
 						tags.length && props.highlights.some((h) => h.tagId)
 							? `Tags in this text: ${[...new Set(props.highlights.map((h) => tags.find((t) => t.id === h.tagId)?.name).filter(Boolean))].join(', ')}`

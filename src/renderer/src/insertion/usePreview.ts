@@ -54,7 +54,8 @@ export function usePreview(
 				if (current)
 					setState({ status: 'resolved', preview, equivalent: mapped.ok ? mapped.data : null })
 			})().catch(() => {
-				if (current) setState({ status: 'failed', message: 'Scripture could not be read.' })
+				if (current)
+					setState({ status: 'failed', message: "Margin couldn't load these verses. Try again." })
 			})
 		}, delay)
 		return () => {

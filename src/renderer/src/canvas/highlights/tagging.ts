@@ -54,7 +54,7 @@ export function requestTagSelection(editor: Editor) {
 	const request = readTextSelection(editor) ?? useTagging.getState().captured
 	useTagging.setState({ captured: null })
 	if (!request || !editor.getShape(request.passageId as TLShapeId)) {
-		toast.info('Select some scripture words first, then choose Tag selected words.')
+		toast.info('Select words in a verse, then choose Tag selected words.')
 		return false
 	}
 	useTagging.setState({ request })

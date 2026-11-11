@@ -11,10 +11,16 @@ import { blockNoun, blockTitle } from '../../../insertion/labels'
 import { verseKey } from '../../highlights/ranges'
 import { pagePassages } from '../../tags/tagOps'
 import type { NoteShape } from '../types'
-import { noteSizes } from './NoteShapeUtil'
+import type { noteSizes } from './NoteShapeUtil'
 import { iconLg } from '../../../lib/icons'
 
 const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 2) / 2
+const sizeLabels = {
+	S: 'Small',
+	M: 'Medium',
+	L: 'Large',
+	XL: 'Extra large',
+} satisfies Record<keyof typeof noteSizes, string>
 
 export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShape }) {
 	const [rotation, setRotation] = useState(degrees(shape.rotation))
@@ -53,9 +59,13 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 								size && update({ size: notePropsSchema.shape.size.parse(size) })
 							}
 						>
-							{Object.keys(noteSizes).map((size) => (
-								<ToggleGroup.Item key={size} value={size} aria-label={`Size ${size}`}>
-									{size}
+							{Object.entries(sizeLabels).map(([size, label]) => (
+								<ToggleGroup.Item
+									key={size}
+									value={size}
+									aria-label={`Note size ${label.toLowerCase()}`}
+								>
+									{label}
 								</ToggleGroup.Item>
 							))}
 						</ToggleGroup.Root>
@@ -71,11 +81,11 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 							}
 						>
 							<ToggleGroup.Item value="handwritten">Handwritten</ToggleGroup.Item>
-							<ToggleGroup.Item value="plain">Plain</ToggleGroup.Item>
+							<ToggleGroup.Item value="plain">System</ToggleGroup.Item>
 						</ToggleGroup.Root>
 					</div>
-					<div role="group" aria-label="Color">
-						<span>Color</span>
+					<div role="group" aria-label="Colour">
+						<span>Colour</span>
 						<div className="color-choices">
 							{notePropsSchema.shape.color.options.map((color) => (
 								<button
@@ -89,7 +99,7 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 						</div>
 					</div>
 					<label>
-						Rotation: {rotation}°
+						Rotation {rotation}°
 						<Slider.Root
 							className="slider-root"
 							min={-6}

@@ -66,7 +66,7 @@ export function SetupDialog() {
 									</div>
 								</div>
 								<button className="button" disabled={busy} onClick={() => void run(chooseLibrary)}>
-									Choose…
+									Choose a folder…
 								</button>
 							</div>
 						</div>

@@ -65,7 +65,7 @@ export function installAppMenu(
 				{ role: 'paste' },
 				{ role: 'selectAll' },
 				{ type: 'separator' },
-				command('Look up word', 'word.lookup', 'Ctrl+Cmd+D'),
+				command('Look Up Word', 'word.lookup', 'Ctrl+Cmd+D'),
 				command('Command Palette…', 'palette.toggle', 'Cmd+K'),
 			],
 		},

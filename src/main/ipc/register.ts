@@ -16,7 +16,11 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
 				) {
 					return operation.response.parse({
 						ok: false,
-						error: { code: 'FORBIDDEN', message: 'Untrusted IPC sender.' },
+						error: {
+							code: 'FORBIDDEN',
+							message:
+								'Margin blocked a request from another window. Try again in the main window.',
+						},
 					})
 				}
 				const parsed = operation.request.safeParse(payload)
@@ -25,7 +29,7 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
 						ok: false,
 						error: {
 							code: 'INVALID_REQUEST',
-							message: 'The request did not match the IPC schema.',
+							message: "Margin couldn't read this request. Try again.",
 						},
 					})
 				}
@@ -37,7 +41,7 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
 					ok: false,
 					error: {
 						code: 'NOT_IMPLEMENTED',
-						message: `${operation.channel} is not implemented yet.`,
+						message: 'Margin cannot use this command yet. Choose another command.',
 					},
 				})
 			})

@@ -22,7 +22,7 @@ export function StrongsEntry({ entry, follow }: DictionaryBodyProps) {
 			<p className="lookup-definition">
 				{entry.definition
 					? withReferences(tidy(entry.definition), follow)
-					: 'No definition recorded in this dictionary.'}
+					: 'This dictionary has no definition for this word.'}
 			</p>
 			{(parts?.renderings || entry.derivation || parts?.related) && (
 				<dl className="lookup-facts">

@@ -38,7 +38,7 @@ export function requestWordLookup(editor: Editor) {
 		useTagging.getState().captured
 	useLookup.setState({ captured: null })
 	if (!request || !editor.getCurrentPageShapes().some((shape) => shape.id === request.passageId)) {
-		toast.info('Select a scripture word first, then choose Look up word.')
+		toast.info('Select a word in a verse, then choose Look up word.')
 		return
 	}
 	useTagging.setState({ request: null })

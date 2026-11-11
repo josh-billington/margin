@@ -1,6 +1,7 @@
 import { validateLoadedAnnotations } from '../canvas/annotations/recovery'
 import { loadSnapshot, type Editor } from 'tldraw'
 import { toast } from 'sonner'
+import { UserFacingError } from '@shared/errors'
 import type { PersistedStudy } from '@shared/study/migrations'
 import type { LibraryEvent } from '@shared/ipc/contract'
 import { attachEditor, snapshot, studySnapshot } from './editor'
@@ -34,7 +35,7 @@ export async function initializeStudies() {
 			ready: true,
 		})
 		if (library?.setup === 'done' && library.readOnly && !library.lock)
-			toast.info('This library is open read-only in another Margin process.')
+			toast.info('Another copy of Margin has this library open. Close it to save changes here.')
 		await refreshStudies()
 		await ensureStudyOpen()
 	} catch (error) {
@@ -75,7 +76,9 @@ export async function flushStudies() {
 		for (const id of pendingDocumentChanges) changed(id)
 		for (const [id, session] of Object.entries(useStudySession.getState().sessions)) {
 			if (session.state === 'error')
-				throw new Error('Save failed. Retry or save a copy before closing or switching studies.')
+				throw new UserFacingError(
+					"Margin couldn't save your changes. Try again or save a copy before closing or switching studies.",
+				)
 			await autosaves.get(id)?.flush()
 			if (useStudySession.getState().sessions[id]?.state === 'unsaved') await save(id)
 		}
@@ -154,7 +157,9 @@ async function save(id: string) {
 	const session = useStudySession.getState().sessions[id]
 	if (!session || session.state === 'saved') return
 	if (session.blocked)
-		throw new Error('This file changed or was deleted. Save a copy or close the study.')
+		throw new UserFacingError(
+			'This study changed outside Margin or its file is missing. Save a copy or close the study.',
+		)
 	update(id, { state: 'saving' })
 	try {
 		const result = unwrap(
@@ -199,7 +204,7 @@ function changed(id: string) {
 		.then((result) => {
 			if (!result.ok) {
 				update(id, { state: 'error' })
-				report(result.error.message)
+				report(new UserFacingError(result.error.message))
 			}
 		})
 		.catch(report)
@@ -323,7 +328,7 @@ export async function takeOverLibrary() {
 		for (const editor of editors.values())
 			editor.updateInstanceState({ isReadonly: library.readOnly })
 		await refreshStudies()
-		toast.success('Library unlocked. This computer can now save.')
+		toast.success('Margin can now save changes to this library.')
 	} catch (error) {
 		report(error)
 	}
@@ -369,7 +374,9 @@ async function externalReload(study: PersistedStudy) {
 			reload(study)
 			install(copy)
 			await refreshStudies()
-			toast.warning('Your latest edits were preserved in a conflict copy.')
+			toast.warning(
+				'Margin kept the changes from outside the app. Margin saved your edits in a conflict copy.',
+			)
 		} catch (error) {
 			update(study.id, { state: 'error', blocked: true })
 			throw error
@@ -413,7 +420,9 @@ async function applyConflict(copy: PersistedStudy, originalId: string) {
 	}
 	if (preferredCopy.id !== copy.id) install(preferredCopy)
 	editor?.updateInstanceState({ isReadonly: useStudySession.getState().readOnly })
-	toast.warning('External changes were kept. Your edits are in a conflict copy.')
+	toast.warning(
+		'Margin kept the changes from outside the app. Margin saved your edits in a conflict copy.',
+	)
 }
 export function handleLibraryEvent(event: LibraryEvent) {
 	return (async () => {
@@ -423,7 +432,9 @@ export function handleLibraryEvent(event: LibraryEvent) {
 				break
 			case 'reload':
 				await externalReload(event.study)
-				toast.info('Study reloaded after an external change. Undo history was reset.')
+				toast.info(
+					'Margin reloaded this study after a change outside the app. You can no longer undo earlier edits.',
+				)
 				break
 			case 'conflict':
 				await conflict(event.study, event.originalId)
@@ -432,16 +443,19 @@ export function handleLibraryEvent(event: LibraryEvent) {
 			case 'deleted':
 				autosaves.get(event.studyId)?.cancel()
 				update(event.studyId, { state: 'error', blocked: true })
-				toast.warning('This study was deleted outside Margin.', {
-					action: {
-						label: 'Save a copy',
-						onClick: () => {
-							useStudySession.setState({ currentId: event.studyId })
-							void saveCopy()
+				toast.warning(
+					"Margin can no longer find this study's file. Save a copy or close the study.",
+					{
+						action: {
+							label: 'Save a copy',
+							onClick: () => {
+								useStudySession.setState({ currentId: event.studyId })
+								void saveCopy()
+							},
 						},
+						cancel: { label: 'Close', onClick: () => closeMissing(event.studyId) },
 					},
-					cancel: { label: 'Close', onClick: () => closeMissing(event.studyId) },
-				})
+				)
 				break
 			case 'error':
 				autosaves.get(event.studyId)?.cancel()
@@ -449,9 +463,9 @@ export function handleLibraryEvent(event: LibraryEvent) {
 				toast.error(event.message)
 				break
 			case 'recovery':
-				toast.info('A newer recovery version is available.', {
+				toast.info('Margin found a newer recovery copy of this study.', {
 					action: {
-						label: 'Save recovery copy',
+						label: 'Save the recovery copy',
 						onClick: () => {
 							void window.margin.library
 								.createStudy({

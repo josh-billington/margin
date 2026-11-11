@@ -13,13 +13,13 @@ export function ManualLookup({ lookup }: { lookup: (id: string) => void }) {
 				event.preventDefault()
 				if (bare && !namespace) return setError('Choose Hebrew or Greek for this number.')
 				const parsed = strongIdSchema.safeParse(bare ? namespace + value.trim() : value)
-				if (!parsed.success) return setError('Enter a Strong’s number, such as H1254 or G3056.')
+				if (!parsed.success) return setError("Enter a Strong's number, such as H1254 or G3056.")
 				setError('')
 				lookup(parsed.data)
 			}}
 		>
 			<label>
-				Strong’s number
+				Strong's number
 				<input
 					value={value}
 					onChange={(event) => {

@@ -56,9 +56,9 @@ export function PassageList({ editor }: { editor: Editor | null }) {
 				<h2 id="verses-heading">Verses</h2>
 			</div>
 			{items.length === 0 ? (
-				<p className="sidebar-hint">Verses you add appear here in scripture order.</p>
+				<p className="sidebar-hint">Verses you add appear here in Bible order.</p>
 			) : (
-				<ol className="passage-list" aria-label="Verses in scripture order">
+				<ol className="passage-list" aria-label="Verses in Bible order">
 					{items.map((item) => (
 						<li key={item.id} className="passage-list-row">
 							<button className="row-button" onClick={() => pan(item.id)}>

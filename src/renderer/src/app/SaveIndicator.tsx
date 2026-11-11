@@ -7,7 +7,7 @@ const states = {
 	saved: { label: 'Saved', icon: Check },
 	saving: { label: 'Saving…', icon: LoaderCircle },
 	unsaved: { label: 'Unsaved changes', icon: Circle },
-	error: { label: 'Save failed', icon: TriangleAlert },
+	error: { label: "Margin couldn't save", icon: TriangleAlert },
 }
 
 /** Fast saves never flash "Saving": it only shows once a save has been pending for a moment. */
@@ -43,7 +43,7 @@ export function SaveIndicator({
 			{shown === 'error' && (
 				<>
 					<button className="text-button" onClick={onRetry}>
-						Retry
+						Try again
 					</button>
 					<button className="text-button" onClick={onSaveCopy}>
 						Save a copy

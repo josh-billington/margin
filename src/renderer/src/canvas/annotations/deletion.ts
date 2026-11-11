@@ -67,8 +67,10 @@ export function describeImpact(counts: DeletionPlan['counts']) {
 	if (counts.highlights) parts.push(noun(counts.highlights, 'highlight'))
 	if (counts.arrows) parts.push(noun(counts.arrows, 'arrow'))
 	const list = new Intl.ListFormat('en', { type: 'conjunction' }).format(parts)
-	const lines = [`This removes ${list}.`]
+	const lines = [`Margin will delete ${list}.`]
 	if (counts.clearedAssociations)
-		lines.push(`${noun(counts.clearedAssociations, 'note')} will stay, no longer kept with verses.`)
+		lines.push(
+			`Margin will keep ${noun(counts.clearedAssociations, 'note')} without a link to the verses.`,
+		)
 	return lines.join(' ')
 }

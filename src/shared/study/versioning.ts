@@ -1,9 +1,10 @@
 import { z } from 'zod'
+import { UserFacingError } from '../errors'
 
-export class UnsupportedStudyVersion extends Error {
+export class UnsupportedStudyVersion extends UserFacingError {
 	constructor(public readonly requiredVersion: number) {
 		super(
-			`This study requires Margin study schema ${requiredVersion}; this app supports 1. Update Margin to open it.`,
+			'Margin cannot open this study because it needs a newer version of the app. Update Margin and try again.',
 		)
 	}
 }
@@ -23,10 +24,15 @@ export function migrateVersioned(
 	if (next > current) throw new UnsupportedStudyVersion(next)
 	while (next < current) {
 		const migrate = migrations.get(next)
-		if (!migrate) throw new Error(`No migration is available for study schema ${next}.`)
+		if (!migrate)
+			throw new UserFacingError(
+				"Margin couldn't update this study's file format. Update Margin and try again.",
+			)
 		result = migrate(result)
 		if (version(result) !== next + 1)
-			throw new Error('A study migration must advance exactly one schema version.')
+			throw new UserFacingError(
+				"Margin couldn't update this study's file format. Update Margin and try again.",
+			)
 		next++
 	}
 	return result

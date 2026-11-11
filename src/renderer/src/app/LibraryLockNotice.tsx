@@ -17,7 +17,8 @@ export function LibraryLockNotice({ lock }: { lock: LockNotice }) {
 		<div className="library-lock-notice" role="status">
 			<Lock {...iconMd} aria-hidden="true" />
 			<p>
-				Read-only. {lock.host} has had this library open since {formatSince(lock.since)}.
+				Margin cannot save changes here. {lock.host} has this library open. It opened the library at{' '}
+				{formatSince(lock.since)}.
 			</p>
 			<AlertDialog.Root>
 				<AlertDialog.Trigger asChild>
@@ -28,8 +29,8 @@ export function LibraryLockNotice({ lock }: { lock: LockNotice }) {
 					<AlertDialog.Content className="dialog-panel">
 						<AlertDialog.Title>Take over this library?</AlertDialog.Title>
 						<AlertDialog.Description>
-							Only take over if {lock.host} is no longer running Margin. If it is still open, both
-							computers may write the same study files.
+							Close Margin on {lock.host} before you take over. Otherwise, both computers could
+							overwrite your changes.
 						</AlertDialog.Description>
 						<div className="dialog-actions">
 							<AlertDialog.Cancel asChild>

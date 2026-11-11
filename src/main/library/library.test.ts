@@ -138,7 +138,7 @@ describe('library persistence', () => {
 	it('rejects flush when staged edits have not been saved', async () => {
 		const study = await library.create('Initial', document)
 		library.stage({ ...study, title: 'Not yet saved' }, 1)
-		await expect(library.flush()).rejects.toThrow('Unsaved document changes')
+		await expect(library.flush()).rejects.toThrow("Margin couldn't save your changes")
 		await library.save({ ...study, title: 'Not yet saved' }, 1)
 		await expect(library.flush()).resolves.toBeUndefined()
 	})
@@ -219,7 +219,7 @@ describe('library persistence', () => {
 		await library.externalChange(study.id)
 		expect(events).toContainEqual({ kind: 'deleted', studyId: study.id })
 		await expect(library.save({ ...study, title: 'Local' }, 1)).rejects.toThrow(
-			'deleted externally',
+			"Margin can no longer find this study's file",
 		)
 		await expect(readFile(library.file(study.id))).rejects.toThrow()
 	})
@@ -344,7 +344,9 @@ describe('library persistence', () => {
 		const other = await new Library(library.path, join(root, 'private-2')).initialize(false)
 		try {
 			expect(other.readOnly).toBe(true)
-			await expect(other.create('Forbidden', document)).rejects.toThrow('read-only')
+			await expect(other.create('Forbidden', document)).rejects.toThrow(
+				'Another copy of Margin has this library open',
+			)
 		} finally {
 			await other.close()
 		}
@@ -373,7 +375,9 @@ describe('library persistence', () => {
 		library.onEvent = (event) => events.push(event)
 		expect(library.readOnly).toBe(true)
 		expect(library.lockOwner).toEqual({ pid: 4242, hostname: 'studio-mac', acquiredAt })
-		await expect(library.create('Forbidden', document)).rejects.toThrow('read-only')
+		await expect(library.create('Forbidden', document)).rejects.toThrow(
+			'Another copy of Margin has this library open',
+		)
 		await library.takeOver()
 		expect(library.readOnly).toBe(false)
 		expect(library.lockOwner).toBeNull()
@@ -396,7 +400,7 @@ describe('library persistence', () => {
 		library = await new Library(join(root, 'library'), join(root, 'private')).initialize(false)
 		expect(library.readOnly).toBe(true)
 		expect(library.lockOwner).toMatchObject({ hostname: hostname() })
-		await expect(library.takeOver()).rejects.toThrow('not locked by another computer')
+		await expect(library.takeOver()).rejects.toThrow('No other computer has this library open')
 		expect(JSON.parse(await readFile(lockPath, 'utf8'))).toMatchObject({ pid: process.pid })
 	})
 	it('reclaims a dead lock from this host without a takeover', async () => {

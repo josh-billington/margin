@@ -126,13 +126,14 @@ function LookupPopover({
 			const response = await window.margin.lexicon.getEntry({ id })
 			if (ticket !== sequence.current) return
 			if (!response.ok) setError(response.error.message)
-			else if (!response.data) setError(`No bundled entry for ${id}. Try another Strong’s number.`)
+			else if (!response.data)
+				setError(`This dictionary has no entry for ${id}. Try another Strong's number.`)
 			else {
 				if (from) setTrail((trail) => [...trail, from])
 				setEntry(response.data)
 			}
 		} catch {
-			if (ticket === sequence.current) setError('The dictionary could not be read. Try again.')
+			if (ticket === sequence.current) setError("Margin couldn't read the dictionary. Try again.")
 		} finally {
 			if (ticket === sequence.current) setBusy(false)
 		}
@@ -160,7 +161,7 @@ function LookupPopover({
 			.catch(() => {
 				if (active) {
 					setBusy(false)
-					setError('The dictionary could not be read. Try again.')
+					setError("Margin couldn't read the dictionary. Try again.")
 				}
 			})
 		return () => {
@@ -202,12 +203,12 @@ function LookupPopover({
 	const hebrew = entry?.id.startsWith('H')
 	const message =
 		result?.status === 'unsupported-translation'
-			? 'Word lookup is available for KJV. Look up a Strong’s number'
+			? "Margin can look up words in KJV only. Enter a Strong's number to use the dictionary."
 			: result?.status === 'snapshot-mismatch'
-				? 'Source tags are unavailable because this verse snapshot differs from the recorded edition or tokenizer. Look up a Strong’s number.'
+				? "Margin can't match this verse to the dictionary. Enter a Strong's number instead."
 				: supplied
-					? 'No source word — added in translation'
-					: 'No source tag for this word'
+					? 'The translators added this word. It has no Hebrew or Greek source word.'
+					: "Margin can't link this word to a dictionary entry. Enter a Strong's number instead."
 	return (
 		<Popover.Root
 			open
@@ -275,7 +276,7 @@ function LookupPopover({
 								</div>
 							</>
 						) : (
-							<strong>Look up {english ? `“${english}”` : 'word'}</strong>
+							<strong>Look up {english ? `"${english}"` : 'a word'}</strong>
 						)}
 					</header>
 					{dictionary && available.length > 1 && (
@@ -316,7 +317,7 @@ function LookupPopover({
 													}}
 												>
 													<span>{span.text}</span>
-													<span className="lookup-muted">{id} · Strong’s</span>
+													<span className="lookup-muted">{id} · Strong's</span>
 												</button>
 											))}
 										</div>
@@ -338,7 +339,7 @@ function LookupPopover({
 							<span className="lookup-source">{dictionary?.name(entry)}</span>
 							<button
 								className="icon-button"
-								aria-label="Copy"
+								aria-label="Copy definition"
 								title="Copy definition"
 								disabled={!dictionary}
 								onClick={() =>
@@ -348,7 +349,7 @@ function LookupPopover({
 											toast.error(
 												error instanceof Error
 													? error.message
-													: 'Could not copy the definition. Try again.',
+													: "Margin couldn't copy the definition. Try again.",
 											),
 										)
 								}

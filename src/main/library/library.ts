@@ -6,6 +6,7 @@ import { watch, type FSWatcher } from 'chokidar'
 import { migrateStudy, type PersistedStudy } from '../../shared/study/migrations'
 import { atomicWrite } from './atomic'
 import { acquireLibraryLock, type LibraryLock, type LibraryLockOwner } from './lock'
+import { UserFacingError, userMessage } from '../../shared/errors'
 
 import type { LibraryEvent } from '../../shared/ipc/contract'
 export type { LibraryEvent } from '../../shared/ipc/contract'
@@ -59,7 +60,14 @@ export class Library {
 				const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
 				if (id)
 					void this.externalChange(id).catch((error) =>
-						this.onEvent({ kind: 'error', studyId: id, message: String(error) }),
+						this.onEvent({
+							kind: 'error',
+							studyId: id,
+							message: userMessage(
+								error,
+								"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+							),
+						}),
 					)
 			})
 		}
@@ -67,14 +75,21 @@ export class Library {
 	}
 	private writable() {
 		if (this.readOnly)
-			throw new Error('This library is open read-only because another process holds its lock.')
+			throw new UserFacingError(
+				'Another copy of Margin has this library open. Close it to save changes here.',
+			)
 	}
 	/** Replaces a lock held by another host. Same-host owners are refused, so a live writer is never displaced. */
 	async takeOver() {
 		if (!this.readOnly || !this.lock)
-			throw new Error('This library is not locked by another computer.')
+			throw new UserFacingError(
+				'No other computer has this library open. Try opening the library again.',
+			)
 		const release = await this.lock.takeOver()
-		if (!release) throw new Error('This library is not locked by another computer.')
+		if (!release)
+			throw new UserFacingError(
+				'No other computer has this library open. Try opening the library again.',
+			)
 		this.release = release
 		this.readOnly = false
 		this.lockOwner = null
@@ -90,13 +105,18 @@ export class Library {
 					JSON.parse(await readFile(join(this.path, 'studies', filename), 'utf8')),
 				)
 				if (filename !== `${study.id}.study.json`)
-					throw new Error('Study filename does not match its ID.')
+					throw new UserFacingError(
+						"Margin couldn't open this study because its filename has changed. Restore its original filename and try again.",
+					)
 				studies.push(study)
 			} catch (error) {
 				this.onEvent({
 					kind: 'error',
 					studyId: filename.replace('.study.json', ''),
-					message: String(error),
+					message: userMessage(
+						error,
+						"Margin couldn't read this study file. Restore a backup or open another study.",
+					),
 				})
 			}
 		}
@@ -114,7 +134,10 @@ export class Library {
 	private async read(id: string) {
 		const content = await readFile(this.file(id), 'utf8')
 		const study = migrateStudy(JSON.parse(content))
-		if (study.id !== id) throw new Error('Study filename does not match its ID.')
+		if (study.id !== id)
+			throw new UserFacingError(
+				"Margin couldn't open this study because its filename has changed. Restore its original filename and try again.",
+			)
 		return { study, hash: hash(content) }
 	}
 	async open(id: string) {
@@ -175,7 +198,10 @@ export class Library {
 		return this.enqueue(study.id, async () => {
 			this.writable()
 			const known = this.known.get(study.id)
-			if (!known) throw new Error('Open the study before saving it.')
+			if (!known)
+				throw new UserFacingError(
+					"Margin couldn't save this study because it isn't open. Open the study and try again.",
+				)
 			if (
 				sequence <= (this.committed.get(study.id) ?? -1) ||
 				sequence < (this.sequences.get(study.id) ?? -1)
@@ -183,7 +209,9 @@ export class Library {
 				return { study: known.study, conflict: false }
 			const disk = await this.read(study.id).catch((error) => {
 				if (absent(error))
-					throw new Error('The study was deleted externally. Save a copy or close it.')
+					throw new UserFacingError(
+						"Margin can no longer find this study's file. Save a copy or close the study.",
+					)
 				throw error
 			})
 			if (
@@ -220,9 +248,14 @@ export class Library {
 	private async refreshIndex() {
 		try {
 			await this.list()
-		} catch (error) {
+		} catch {
 			// The authoritative study already reached disk; an index failure cannot undo that save.
-			this.onEvent({ kind: 'error', studyId: '', message: `Library index: ${String(error)}` })
+			this.onEvent({
+				kind: 'error',
+				studyId: '',
+				message:
+					"Margin couldn't update the study list. Check that you can open the library folder and try again.",
+			})
 		}
 		this.onEvent({ kind: 'list' })
 	}
@@ -263,7 +296,15 @@ export class Library {
 				}
 			} catch (error) {
 				if (absent(error)) this.onEvent({ kind: 'deleted', studyId: id })
-				else this.onEvent({ kind: 'error', studyId: id, message: String(error) })
+				else
+					this.onEvent({
+						kind: 'error',
+						studyId: id,
+						message: userMessage(
+							error,
+							"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+						),
+					})
 			}
 			await this.list()
 			this.onEvent({ kind: 'list' })
@@ -329,7 +370,10 @@ export class Library {
 	}
 	async flush() {
 		while (this.queues.size) await Promise.all([...this.queues.values()])
-		if (this.staged.size) throw new Error('Unsaved document changes remain. Retry or save a copy.')
+		if (this.staged.size)
+			throw new UserFacingError(
+				"Margin couldn't save your changes. Try again or save a copy before closing or switching studies.",
+			)
 	}
 	async close() {
 		try {

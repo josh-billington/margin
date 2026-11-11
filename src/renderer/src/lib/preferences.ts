@@ -23,7 +23,7 @@ export async function setPreferences(change: Partial<Notes>) {
 		const result = await window.margin.prefs.set(change)
 		if (result.ok) usePreferences.setState(result.data)
 		else toast.error(result.error.message)
-	} catch (error) {
-		toast.error(error instanceof Error ? error.message : String(error))
+	} catch {
+		toast.error("Margin couldn't save your settings. Try again.")
 	}
 }

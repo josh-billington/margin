@@ -7,9 +7,10 @@ export interface AnnotationCounts {
 export function translationLockReason({ highlights, wordArrows }: AnnotationCounts): string | null {
 	const parts = [
 		highlights && `${highlights} highlight${highlights === 1 ? '' : 's'}`,
-		wordArrows && `${wordArrows} word-bound arrow${wordArrows === 1 ? '' : 's'}`,
+		wordArrows &&
+			`${wordArrows} ${wordArrows === 1 ? 'arrow attached to a word' : 'arrows attached to words'}`,
 	].filter(Boolean)
 	return parts.length
-		? `Locked by ${parts.join(' and ')}. Remove them to change the translation.`
+		? `This block has ${parts.join(' and ')}. Remove ${highlights + wordArrows === 1 ? 'it' : 'them'} to change the translation.`
 		: null
 }

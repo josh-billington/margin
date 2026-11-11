@@ -146,8 +146,11 @@ test('note: create, edit text, options popover size and font', async () => {
 	await noteText.click()
 	await page.getByRole('button', { name: 'Note options' }).click()
 	const options = page.getByRole('dialog', { name: 'Note options' })
-	await options.getByRole('radio', { name: 'Size XL' }).or(options.getByLabel('Size XL')).click()
-	await options.getByRole('radio', { name: 'Plain' }).or(options.getByText('Plain')).click()
+	await options
+		.getByRole('radio', { name: 'Note size extra large' })
+		.or(options.getByLabel('Note size extra large'))
+		.click()
+	await options.getByRole('radio', { name: 'System' }).or(options.getByText('System')).click()
 	await page.keyboard.press('Escape')
 	// Double-click reopens the note for editing and keeps focus in the text.
 	await page.mouse.click(box.x + 20, box.y + box.height - 20)
@@ -163,15 +166,15 @@ test('note: create, edit text, options popover size and font', async () => {
 	expect(JSON.stringify(note.props)).toContain('Remember the covenant of grace')
 })
 
-test('save failure: read-only study folder shows "Save failed" and Retry recovers', async () => {
+test('save failure: read-only study folder shows the save error and trying again recovers', async () => {
 	const { app, page } = await launch(dirs)
 	await saved(page)
 	await chmod(join(dirs.library, 'studies'), 0o555)
 	await addAmos(page)
-	const status = page.getByRole('status').filter({ hasText: 'Save failed' })
+	const status = page.getByRole('status').filter({ hasText: "Margin couldn't save" })
 	await expect(status).toBeVisible({ timeout: 20_000 })
 	await chmod(join(dirs.library, 'studies'), 0o755)
-	await status.getByRole('button', { name: 'Retry' }).click()
+	await status.getByRole('button', { name: 'Try again' }).click()
 	await saved(page)
 	await closeApp(app)
 	const file = await firstStudyFile(dirs)

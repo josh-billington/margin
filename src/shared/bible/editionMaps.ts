@@ -52,7 +52,10 @@ export function editionPairMap(
 		(pair) =>
 			(pair.source === from && pair.target === to) || (pair.target === from && pair.source === to),
 	)
-	if (!pair) throw new RangeError('No mapping exists for these editions.')
+	if (!pair)
+		throw new RangeError(
+			"Margin couldn't match verses between these translations. Choose another translation.",
+		)
 	const entries: VersificationMap['entries'] = pair.entries.map((entry) => ({
 		kjv: [],
 		jps1917: [],
@@ -85,7 +88,7 @@ export function editionPairMap(
 				unmapped.push({
 					translationId: id,
 					ref: verseRefSchema.parse(ref),
-					reason: 'No equivalent verse text in the selected edition.',
+					reason: 'The selected translation has no matching text for this verse.',
 				})
 	const map = { version: 1 as const, corpusRevisions: maps.corpusRevisions, entries, unmapped }
 	verifyVersificationMap(map, boundaries)
