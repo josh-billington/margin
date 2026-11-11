@@ -67,6 +67,7 @@ const api = {
 	},
 	library: {
 		getLibrary: bind(ipcContract.library.getLibrary),
+		completeSetup: bind(ipcContract.library.completeSetup),
 		chooseLibraryFolder: bind(ipcContract.library.chooseLibraryFolder),
 		createStudy: bind(ipcContract.library.createStudy),
 		listStudies: bind(ipcContract.library.listStudies),

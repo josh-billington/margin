@@ -78,6 +78,8 @@ export const lockNoticeSchema = z.object({
 export type LockNotice = z.infer<typeof lockNoticeSchema>
 const librarySchema = z.object({
 	path: z.string().min(1),
+	displayPath: z.string().min(1),
+	setup: z.enum(['pending', 'done']),
 	readOnly: z.boolean(),
 	/** Set only when another computer holds the library lock. */
 	lock: lockNoticeSchema.nullable(),
@@ -100,6 +102,7 @@ const operation = <const C extends string, I extends z.ZodType, O extends z.ZodT
 export const ipcContract = {
 	library: {
 		getLibrary: operation('margin:library:get', z.void(), librarySchema.nullable()),
+		completeSetup: operation('margin:library:complete-setup', z.void(), librarySchema),
 		chooseLibraryFolder: operation(
 			'margin:library:choose-folder',
 			z.void(),

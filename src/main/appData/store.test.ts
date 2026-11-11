@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, expect, it } from 'vitest'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { AppDataStore } from './store'
@@ -28,4 +28,28 @@ it('persists selected library, preferences and per-study cameras without clobber
 	expect(reopened.preferences.defaultNoteFont).toBe('plain')
 	expect(reopened.camera('study')).toEqual({ x: 1, y: 2, z: 0.5 })
 	expect(reopened.camera('missing')).toBeNull()
+})
+
+it('keeps setup pending when prefs.json is missing', async () => {
+	const data = await new AppDataStore(root).open()
+	expect(data.setup).toBe('pending')
+})
+it('skips setup for existing preferences without a setup field', async () => {
+	await writeFile(join(root, 'prefs.json'), '{}')
+	expect((await new AppDataStore(root).open()).setup).toBe('done')
+})
+it('completes setup idempotently and persists it', async () => {
+	const data = await new AppDataStore(root).open()
+	await data.completeSetup()
+	await data.completeSetup()
+	expect(data.setup).toBe('done')
+	expect((await new AppDataStore(root).open()).setup).toBe('done')
+})
+it('skips setup when the library is supplied by the harness', async () => {
+	vi.stubEnv('MARGIN_LIBRARY_DIR', join(root, 'library'))
+	try {
+		expect((await new AppDataStore(root).open()).setup).toBe('done')
+	} finally {
+		vi.unstubAllEnvs()
+	}
 })
