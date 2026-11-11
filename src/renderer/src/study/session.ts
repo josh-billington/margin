@@ -26,11 +26,13 @@ export async function initializeStudies() {
 	try {
 		const library = unwrap(await window.margin.library.getLibrary())
 		useStudySession.setState({
+			setup: library?.setup ?? 'done',
+			libraryPath: library?.displayPath ?? '',
 			readOnly: library?.readOnly ?? true,
 			lock: library?.lock ?? null,
 			ready: true,
 		})
-		if (library?.readOnly && !library.lock)
+		if (library?.setup === 'done' && library.readOnly && !library.lock)
 			toast.info('This library is open read-only in another Margin process.')
 		await refreshStudies()
 		await ensureStudyOpen()
@@ -51,7 +53,7 @@ export function ensureStudyOpen() {
 }
 async function openInitialStudy() {
 	const state = useStudySession.getState()
-	if (state.currentId || state.closing) return
+	if (state.setup !== 'done' || state.currentId || state.closing) return
 	const last = await window.margin.prefs.get()
 	const lastId = last.ok ? last.data.lastOpenedStudyId : undefined
 	const recent = [...state.studies].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
@@ -62,6 +64,10 @@ async function openInitialStudy() {
 	for (let waited = 0; !getBootstrap() && editors.size === 0 && waited < 5000; waited += 50)
 		await new Promise((resolve) => setTimeout(resolve, 50))
 	await createStudy()
+}
+export async function completeSetup() {
+	unwrap(await window.margin.library.completeSetup())
+	await initializeStudies()
 }
 export async function flushStudies() {
 	try {
@@ -296,6 +302,8 @@ export async function chooseLibrary() {
 			useStudySession.setState({
 				sessions: {},
 				currentId: null,
+				setup: result.setup,
+				libraryPath: result.displayPath,
 				readOnly: result.readOnly,
 				lock: result.lock,
 			})

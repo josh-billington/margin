@@ -773,3 +773,36 @@ input[type='checkbox']:focus-visible {
 	outline-offset: 1px;
 	border-radius: var(--radius-xs);
 }
+
+.setup-panel {
+	font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+	font-size: 13px;
+	gap: 20px;
+}
+.setup-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+}
+.setup-folder {
+	display: grid;
+	gap: 8px;
+}
+.setup-folder-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+.setup-folder-row > div {
+	min-width: 0;
+}
+.setup-path {
+	color: var(--text-muted);
+	font-size: 12px;
+	overflow-wrap: anywhere;
+}
+.setup-folder p {
+	font-size: 12px;
+	line-height: 1.4;
+}

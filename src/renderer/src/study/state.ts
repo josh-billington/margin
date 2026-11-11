@@ -13,6 +13,8 @@ type Session = {
 	blocked: boolean
 }
 interface StudyState {
+	setup: 'pending' | 'done' | null
+	libraryPath: string
 	currentId: string | null
 	studies: StudySummary[]
 	sessions: Record<string, Session>
@@ -23,6 +25,8 @@ interface StudyState {
 	closing: boolean
 }
 export const useStudySession = create<StudyState>(() => ({
+	setup: null,
+	libraryPath: '',
 	currentId: null,
 	studies: [],
 	sessions: {},

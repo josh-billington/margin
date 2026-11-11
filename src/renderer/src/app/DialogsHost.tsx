@@ -1,4 +1,5 @@
 import { CommandPalette } from './CommandPalette'
+import { SetupDialog } from './SetupDialog'
 import { SettingsDialog } from './SettingsDialog'
 import { DeleteConfirm } from './DeleteConfirm'
 import { InsertPassageDialog } from '../insertion/InsertPassageDialog'
@@ -18,6 +19,7 @@ export function DialogsHost() {
 	const translation: TranslationId = prefs?.defaultTranslation ?? 'kjv'
 	return (
 		<>
+			<SetupDialog />
 			<CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
 			<DeleteConfirm />
