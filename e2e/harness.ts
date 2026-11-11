@@ -69,11 +69,12 @@ function serveRenderer(): Promise<string> {
 export async function launch(
 	dirs: Dirs,
 	extraEnv: Record<string, string> = {},
-	options: { executablePath?: string; args?: string[] } = {},
+	options: { executablePath?: string; args?: string[]; firstRun?: boolean } = {},
 ): Promise<Launched> {
 	const env: Record<string, string> = {}
 	for (const [key, value] of Object.entries(process.env))
-		if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE') env[key] = value
+		if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE' && key !== 'MARGIN_LIBRARY_DIR')
+			env[key] = value
 	const rendererUrl = options.executablePath ? undefined : await serveRenderer()
 	const app = await electron.launch({
 		executablePath: options.executablePath,
@@ -83,7 +84,9 @@ export async function launch(
 		env: {
 			...env,
 			MARGIN_USER_DATA_DIR: dirs.userData,
-			MARGIN_LIBRARY_DIR: dirs.library,
+			...(options.firstRun
+				? { MARGIN_DEFAULT_LIBRARY_DIR: dirs.library }
+				: { MARGIN_LIBRARY_DIR: dirs.library }),
 			MARGIN_GLASS: '0',
 			...(rendererUrl ? { ELECTRON_RENDERER_URL: rendererUrl } : {}),
 			...extraEnv,
@@ -116,6 +119,7 @@ export async function addAmos(page: Page) {
 	await page.getByLabel('Reference').fill('Amos 1:3-5')
 	await expect(page.getByRole('button', { name: 'Add verses' }).last()).toBeEnabled({ timeout: 15_000 })
 	await page.keyboard.press('Enter')
+	await expect(page.getByRole('dialog', { name: 'Add verses' })).toBeHidden()
 	await page.waitForSelector('[data-word]')
 }
 
@@ -131,6 +135,7 @@ export async function createTagFromPopover(page: Page, name: string) {
 	const dialog = page.getByRole('dialog', { name: 'Tag selected words' })
 	await dialog.getByPlaceholder('Name').fill(name)
 	await dialog.getByRole('button', { name: 'Create and apply' }).click()
+	await expect(dialog).toBeHidden()
 }
 
 export function wordAt(page: Page, index: number) {

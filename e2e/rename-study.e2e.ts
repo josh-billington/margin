@@ -7,7 +7,7 @@ test('study titles can be edited inline without a dialog', async () => {
 		const { app, page } = await launch(dirs)
 		try {
 			const sidebar = page.locator('#sidebar')
-			await sidebar.getByRole('button', { name: 'New study', exact: true }).click()
+			await saved(page)
 			const title = sidebar.getByRole('button', { name: 'Untitled study', exact: true })
 			await expect(title).toBeVisible()
 			await sidebar.getByRole('button', { name: 'Rename Untitled study', exact: true }).click()

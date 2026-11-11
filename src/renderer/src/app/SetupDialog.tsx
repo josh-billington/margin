@@ -8,7 +8,6 @@ import { chooseLibrary, completeSetup, useStudySession } from '../study/session'
 import { report } from '../study/state'
 
 export function SetupDialog() {
-	const setup = useStudySession((state) => state.setup)
 	const path = useStudySession((state) => state.libraryPath)
 	const { prefs, update: updatePrefs } = usePrefs()
 	const [busy, setBusy] = useState(false)
@@ -26,7 +25,7 @@ export function SetupDialog() {
 		if (!busy) void run(completeSetup)
 	}
 	return (
-		<Dialog.Root open={setup === 'pending'} onOpenChange={(open) => !open && finish()}>
+		<Dialog.Root open onOpenChange={(open) => !open && finish()}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
 				<Dialog.Content className="dialog-panel setup-panel" aria-describedby="setup-description">
