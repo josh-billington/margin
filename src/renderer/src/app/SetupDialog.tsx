@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { translationIdSchema } from '@shared/bible/types'
 import { translationNames } from '../insertion/labels'
@@ -11,6 +11,7 @@ export function SetupDialog() {
 	const path = useStudySession((state) => state.libraryPath)
 	const { prefs, update: updatePrefs } = usePrefs()
 	const [busy, setBusy] = useState(false)
+	const start = useRef<HTMLButtonElement>(null)
 	async function run(action: () => Promise<unknown>) {
 		setBusy(true)
 		try {
@@ -28,7 +29,14 @@ export function SetupDialog() {
 		<Dialog.Root open onOpenChange={(open) => !open && finish()}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-panel setup-panel" aria-describedby="setup-description">
+				<Dialog.Content
+					className="dialog-panel setup-panel"
+					aria-describedby="setup-description"
+					onOpenAutoFocus={(event) => {
+						event.preventDefault()
+						start.current?.focus()
+					}}
+				>
 					<Dialog.Title>Set up Margin</Dialog.Title>
 					<button
 						className="icon-button setup-close"
@@ -72,7 +80,7 @@ export function SetupDialog() {
 						</select>
 					</label>
 					<div className="dialog-actions">
-						<button className="button button-primary" disabled={busy} onClick={finish}>
+						<button ref={start} className="button button-primary" disabled={busy} onClick={finish}>
 							Start studying
 						</button>
 					</div>
