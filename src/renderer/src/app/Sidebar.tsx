@@ -16,7 +16,7 @@ export function Sidebar({
 	onCreateStudy: () => void
 	editor: Editor | null
 }) {
-	const { studies, currentId, readOnly: libraryReadOnly, closing } = useStudySession()
+	const { studies, currentId, readOnly: libraryReadOnly, closing, setup } = useStudySession()
 	const readOnly = libraryReadOnly || closing
 	return (
 		<aside id="sidebar" className="sidebar" aria-label="Library">
@@ -81,7 +81,7 @@ export function Sidebar({
 			<div className="sidebar-library">
 				<button className="row-button" onClick={() => void chooseLibrary()}>
 					<Folder {...iconMd} aria-hidden="true" />
-					Library folder…{readOnly ? ' (read-only)' : ''}
+					Library folder…{readOnly && setup === 'done' ? ' (read-only)' : ''}
 				</button>
 			</div>
 		</aside>

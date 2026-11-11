@@ -1,23 +1,41 @@
 import { app, dialog, ipcMain, type BrowserWindow } from 'electron'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { hostname } from 'node:os'
+import { hostname, homedir } from 'node:os'
 import { z } from 'zod'
 import { AppDataStore } from '../appData/store'
 import { Library } from '../library/library'
 import { migrateStudy } from '../../shared/study/migrations'
 import { ipcContract } from '../../shared/ipc/contract'
-import type { Preferences } from '../../shared/ipc/contract'
+import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
+
+export function describeFolder(path: string, home = homedir()): LibraryFolder {
+	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
+	const abbreviate = (value: string) => {
+		if (value === cloud) return 'iCloud Drive'
+		if (value.startsWith(cloud + '/')) return 'iCloud Drive' + value.slice(cloud.length)
+		if (value === home) return '~'
+		if (value === join(home, 'Documents')) return 'Documents'
+		return value.startsWith(home + '/') ? '~' + value.slice(home.length) : value
+	}
+	if (path === home || path === cloud || path === '/')
+		return { name: abbreviate(path), location: '' }
+	return { name: basename(path), location: abbreviate(dirname(path)) }
+}
 
 export async function registerPersistence(
 	getWindow: () => BrowserWindow | null,
 	onAppearanceChange: (preferences: Preferences) => void = () => {},
 ) {
 	const data = await new AppDataStore(app.getPath('userData')).open()
-	let library = await new Library(
-		process.env.MARGIN_LIBRARY_DIR ?? data.libraryPath ?? join(app.getPath('documents'), 'Margin'),
+	let library = new Library(
+		process.env.MARGIN_LIBRARY_DIR ??
+			data.libraryPath ??
+			process.env.MARGIN_DEFAULT_LIBRARY_DIR ??
+			join(app.getPath('documents'), 'Margin'),
 		data.path,
-	).initialize()
+	)
+	if (data.setup === 'done') await library.initialize()
 	const notify = () => {
 		library.onEvent = (event) => getWindow()?.webContents.send('margin:library:event', event)
 	}
@@ -25,6 +43,8 @@ export async function registerPersistence(
 	// Only a lock from another computer is surfaced; a live same-host owner stays a plain read-only open.
 	const describe = () => ({
 		path: library.path,
+		folder: describeFolder(library.path),
+		setup: data.setup,
 		readOnly: library.readOnly,
 		lock:
 			library.lockOwner && library.lockOwner.hostname !== hostname()
@@ -67,6 +87,18 @@ export async function registerPersistence(
 		})
 	}
 	handle(ipcContract.library.getLibrary, async () => describe())
+	handle(ipcContract.library.completeSetup, async () => {
+		if (data.setup === 'pending') {
+			await library.initialize()
+			try {
+				await data.completeSetup()
+			} catch (error) {
+				await library.close()
+				throw error
+			}
+		}
+		return describe()
+	})
 	handle(ipcContract.library.takeOver, async () => {
 		await library.takeOver()
 		return describe()
@@ -79,7 +111,8 @@ export async function registerPersistence(
 		const path = result.filePaths[0]
 		if (result.canceled || !path || path === library.path) return null
 		await library.flush()
-		const next = await new Library(path, data.path).initialize()
+		const next = new Library(path, data.path)
+		if (data.setup === 'done') await next.initialize()
 		try {
 			await data.update((settings) => {
 				settings.libraryPath = path
@@ -93,7 +126,9 @@ export async function registerPersistence(
 		notify()
 		return describe()
 	})
-	handle(ipcContract.library.listStudies, () => library.list())
+	handle(ipcContract.library.listStudies, () =>
+		data.setup === 'pending' ? Promise.resolve([]) : library.list(),
+	)
 	handle(ipcContract.library.openStudy, ({ studyId }) => library.open(studyId))
 	handle(ipcContract.library.createStudy, ({ title, document }) => library.create(title, document))
 	handle(ipcContract.library.saveStudy, ({ study, sequence, base }) =>

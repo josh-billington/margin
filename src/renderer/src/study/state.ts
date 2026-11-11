@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { Editor } from 'tldraw'
 import { toast } from 'sonner'
 import type { PersistedStudy } from '@shared/study/migrations'
-import type { LockNotice, StudySummary } from '@shared/ipc/contract'
+import type { LibraryFolder, LockNotice, StudySummary } from '@shared/ipc/contract'
 import type { SaveState } from '../app/SaveIndicator'
 import type { Autosave } from './autosave'
 type Session = {
@@ -13,6 +13,9 @@ type Session = {
 	blocked: boolean
 }
 interface StudyState {
+	setup: 'pending' | 'done' | null
+	libraryPath: string
+	libraryFolder: LibraryFolder | null
 	currentId: string | null
 	studies: StudySummary[]
 	sessions: Record<string, Session>
@@ -23,6 +26,9 @@ interface StudyState {
 	closing: boolean
 }
 export const useStudySession = create<StudyState>(() => ({
+	setup: null,
+	libraryPath: '',
+	libraryFolder: null,
 	currentId: null,
 	studies: [],
 	sessions: {},

@@ -6,6 +6,7 @@ import { atomicWrite } from '../library/atomic'
 
 const settingsSchema = z.object({
 	libraryPath: z.string().optional(),
+	setup: z.enum(['pending', 'done']).default('done'),
 	preferences: preferencesSchema.default({
 		defaultTranslation: 'kjv',
 		oldTestamentTranslation: 'kjv',
@@ -25,8 +26,18 @@ export class AppDataStore {
 			)
 		} catch (error) {
 			if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
+			this.data.setup = 'pending'
 		}
+		if (process.env.MARGIN_LIBRARY_DIR !== undefined) this.data.setup = 'done'
 		return this
+	}
+	get setup() {
+		return this.data.setup
+	}
+	completeSetup() {
+		return this.update((settings) => {
+			settings.setup = 'done'
+		})
 	}
 	get libraryPath() {
 		return this.data.libraryPath

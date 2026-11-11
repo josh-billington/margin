@@ -49,6 +49,9 @@
 	/* Dark tint laid over native glass / vibrancy so chrome stays dark on any wallpaper. */
 	--glass-scrim: rgba(20, 17, 21, 0.58);
 	--text-muted-on-glass: #a8a3ad;
+	/* The Finder folder: one artwork in both appearances, like macOS. */
+	--folder-back: #3ba4ea;
+	--folder-front: #6cc2f6;
 
 	/* Elevation for solid floating panels. */
 	--shadow-toolbar: 0 6px 20px rgba(0, 0, 0, 0.27);
@@ -66,6 +69,7 @@
 	--text-lg: 15px;
 
 	/* Space, size and radius scale (compact macOS density). */
+	--stroke-hairline: 1px;
 	--space-1: 2px;
 	--space-2: 4px;
 	--space-3: 6px;
@@ -83,6 +87,10 @@
 	--radius-md: 10px;
 	--radius-lg: 14px;
 	--radius-xl: 18px;
+	/* Sheets (first-run setup): System Settings proportions, roomier than the compact dialogs. */
+	--sheet-w: 520px;
+	--sheet-inset: 20px;
+	--sheet-row-h: 56px;
 	--titlebar-h: 52px;
 	--sidebar-w: 220px;
 	--toolbar-bottom: 20px;

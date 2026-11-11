@@ -1,4 +1,6 @@
 import { CommandPalette } from './CommandPalette'
+import { SetupDialog } from './SetupDialog'
+import { useStudySession } from '../study/session'
 import { SettingsDialog } from './SettingsDialog'
 import { DeleteConfirm } from './DeleteConfirm'
 import { InsertPassageDialog } from '../insertion/InsertPassageDialog'
@@ -8,6 +10,7 @@ import { useUiStore } from './uiStore'
 import type { TranslationId } from '@shared/bible/types'
 
 export function DialogsHost() {
+	const setup = useStudySession((state) => state.setup)
 	const editor = useEditorStore((state) => state.editor)
 	const paletteOpen = useUiStore((state) => state.paletteOpen)
 	const settingsOpen = useUiStore((state) => state.settingsOpen)
@@ -18,6 +21,7 @@ export function DialogsHost() {
 	const translation: TranslationId = prefs?.defaultTranslation ?? 'kjv'
 	return (
 		<>
+			{setup === 'pending' && <SetupDialog />}
 			<CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
 			<DeleteConfirm />
