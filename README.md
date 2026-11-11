@@ -57,13 +57,6 @@ cp .env.example .env
 The packaged app loads from `file://`, so a key limited to a web domain will not
 work there. It needs hosts `*` or tldraw's native-app option.
 
-## Docs
-
-- `docs/SPEC.md`: product spec and milestones
-- `docs/ARCHITECTURE.md`: process layout and code ownership
-- `docs/STATUS.md` and `docs/status/`: what is built, how it was verified, open issues
-- `docs/BETA.md`: beta launch priorities
-
 ## Licences and credits
 
 Margin's own code, website, and artwork are under the
