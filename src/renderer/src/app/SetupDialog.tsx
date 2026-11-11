@@ -91,7 +91,8 @@ export function SetupDialog() {
 						</div>
 					</div>
 					<Dialog.Description id="setup-description" className="setup-footnote">
-						Studies are plain files. A folder in iCloud Drive keeps them on every Mac.
+						Margin saves each study as a file in this folder. To use your studies on more than one
+						Mac, choose a folder in iCloud Drive.
 					</Dialog.Description>
 					<div className="dialog-actions">
 						<button className="button button-primary" disabled={busy} onClick={finish}>
