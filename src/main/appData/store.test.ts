@@ -48,8 +48,11 @@ it('completes setup idempotently and persists it', async () => {
 it('skips setup when the library is supplied by the harness', async () => {
 	vi.stubEnv('MARGIN_LIBRARY_DIR', join(root, 'library'))
 	try {
-		expect((await new AppDataStore(root).open()).setup).toBe('done')
+		const data = await new AppDataStore(root).open()
+		expect(data.setup).toBe('done')
+		await data.update(() => {})
 	} finally {
 		vi.unstubAllEnvs()
 	}
+	expect((await new AppDataStore(root).open()).setup).toBe('done')
 })

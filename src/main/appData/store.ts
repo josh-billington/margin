@@ -28,10 +28,11 @@ export class AppDataStore {
 			if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
 			this.data.setup = 'pending'
 		}
+		if (process.env.MARGIN_LIBRARY_DIR !== undefined) this.data.setup = 'done'
 		return this
 	}
 	get setup() {
-		return process.env.MARGIN_LIBRARY_DIR ? 'done' : this.data.setup
+		return this.data.setup
 	}
 	completeSetup() {
 		return this.update((settings) => {
