@@ -374,9 +374,7 @@ async function externalReload(study: PersistedStudy) {
 			reload(study)
 			install(copy)
 			await refreshStudies()
-			toast.warning(
-				'Margin kept the changes from outside the app. Margin saved your edits in a conflict copy.',
-			)
+			toast.warning('This study changed outside Margin. Your edits are saved in a conflict copy.')
 		} catch (error) {
 			update(study.id, { state: 'error', blocked: true })
 			throw error
@@ -420,9 +418,7 @@ async function applyConflict(copy: PersistedStudy, originalId: string) {
 	}
 	if (preferredCopy.id !== copy.id) install(preferredCopy)
 	editor?.updateInstanceState({ isReadonly: useStudySession.getState().readOnly })
-	toast.warning(
-		'Margin kept the changes from outside the app. Margin saved your edits in a conflict copy.',
-	)
+	toast.warning('This study changed outside Margin. Your edits are saved in a conflict copy.')
 }
 export function handleLibraryEvent(event: LibraryEvent) {
 	return (async () => {
