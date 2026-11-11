@@ -1,0 +1,224 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/gochi-hand/400.css";
+
+/* Margin brand tokens (docs/SPEC.md §2.1). Dark by default; light (paper) follows the system below. */
+:root {
+  --night: #141115;
+  --chrome: #1c191d;
+  --surface: #262228;
+  --surface-2: #2f2a31;
+  --line: #38333a;
+  --muted-ink: #8c8790;
+  --scripture: #f0f0f0;
+  --ink: #fafafa;
+  --sky: #00a2ff;
+  --violet: #a78bff;
+  --amber: #f2a23a;
+  --green: #30b377;
+  /* Hand-drawn marks (arrows, handwritten notes). Same as ink in dark, graphite in light. */
+  --pen: #fafafa;
+  --on-sky: var(--night);
+  --sky-hover: #33b5ff;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+  --font-hand: "Gochi Hand", "Bradley Hand", cursive;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* shadcn roles mapped onto the brand */
+  --background: var(--night);
+  --foreground: var(--ink);
+  --card: var(--chrome);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--sky);
+  --primary-foreground: var(--on-sky);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--ink);
+  --muted: var(--chrome);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--surface);
+  --accent-foreground: var(--ink);
+  --destructive: #ff6b5b;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--sky);
+  --radius: 0.75rem;
+
+  color-scheme: dark;
+}
+
+/* Light ("paper"), the app's light appearance (src/renderer/src/styles/tokens.css). WCAG AA on
+   paper, chrome and surface: ink 16:1, scripture 13:1, muted 5.2:1, tags 4.6:1 or better. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --night: #f7f4f0;
+    --chrome: #f0ece7;
+    --surface: #fffdfa;
+    --surface-2: #e9e4de;
+    --line: #dcd6ce;
+    --muted-ink: #6a656f;
+    --scripture: #2b272e;
+    --ink: #1c191d;
+    --sky: #0067c8;
+    --violet: #6c4fd6;
+    --amber: #a05600;
+    --green: #167347;
+    --pen: #3a3540;
+    --on-sky: #ffffff;
+    --sky-hover: #0058ab;
+    --destructive: #c73320;
+
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-night: var(--night);
+  --color-chrome: var(--chrome);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-scripture: var(--scripture);
+  --color-sky: var(--sky);
+  --color-violet: var(--violet);
+  --color-amber: var(--amber);
+  --color-green: var(--green);
+  --color-pen: var(--pen);
+  --color-sky-hover: var(--sky-hover);
+
+  --font-sans: var(--font-ui);
+  --font-heading: var(--font-ui);
+  --font-hand: var(--font-hand);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--sky) 28%, transparent);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--sky);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+/* Press feedback for anything pressable (Emil: scale 0.97, fast ease-out). */
+.pressable {
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, color 160ms ease;
+}
+.pressable:active:not(:focus-visible) {
+  transform: scale(0.97);
+}
+
+/* Section entrances. Content is visible without script; html.js opts into the motion. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 450ms var(--ease-out),
+    transform 600ms var(--ease-out);
+  transition-delay: var(--d, 0ms);
+}
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero frames: slow crossfade, like light shifting in a room. */
+.hero-frame {
+  transition: opacity 1600ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .pressable:active:not(:focus-visible) {
+    transform: none;
+  }
+  .hero-frame {
+    transition: none;
+  }
+}
+
+/*
+ * macOS window buttons over the hero frames. The frames are the full 1310pt-wide window at 2x,
+ * and the app places the buttons at (18pt, 18pt) (src/main/window/create.ts), so 1pt is
+ * 100cqw / 1310 of the frame.
+ */
+.traffic-lights {
+	--pt: calc(100cqw / 1310);
+	position: absolute;
+	z-index: 1;
+	top: calc(18 * var(--pt));
+	left: calc(18 * var(--pt));
+	display: flex;
+	gap: calc(8 * var(--pt));
+	pointer-events: none;
+}
+.traffic-lights > span {
+	width: calc(12 * var(--pt));
+	height: calc(12 * var(--pt));
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 calc(0.5 * var(--pt)) rgb(0 0 0 / 0.18);
+}
+.traffic-lights > span:nth-child(1) {
+	background: #ff5f57;
+}
+.traffic-lights > span:nth-child(2) {
+	background: #febc2e;
+}
+.traffic-lights > span:nth-child(3) {
+	background: #28c840;
+}

@@ -1,0 +1,152 @@
+:root {
+	color-scheme: dark;
+	--night: #141115;
+	--canvas-bg: #141115;
+	--canvas-dot: #1d1a1f;
+	--chrome-bg: #1c191d;
+	--surface: #262228;
+	/* Dialogs and toasts: the window chrome's colour, lifted off the dimmed canvas by border + shadow. */
+	--dialog-bg: #1f1b20;
+	--border: #38333a;
+	--text-muted: #8e8992;
+	--text-scripture: #f0f0f0;
+	--ink: #fafafa;
+	--accent: #00a2ff;
+	/* Text on a solid --accent fill (primary button). */
+	--accent-ink: #141115;
+	--focus-dim: rgba(20, 17, 21, 0.78);
+	--focus-dim-opacity: 0.22;
+	--sky: #00a2ff;
+	--violet: #a78bff;
+	--rose: #ff5fb0;
+	--coral: #ff6b5b;
+	--amber: #f2a23a;
+	--green: #30b377;
+	--sky-tint: rgba(0, 162, 255, 0.16);
+	--violet-tint: rgba(167, 139, 255, 0.16);
+	--rose-tint: rgba(255, 95, 176, 0.16);
+	--coral-tint: rgba(255, 107, 91, 0.16);
+	--amber-tint: rgba(242, 162, 58, 0.16);
+	--green-tint: rgba(48, 179, 119, 0.16);
+
+	/* Hairlines and hover fills that read on both solid chrome and glass. */
+	--hairline: rgba(255, 255, 255, 0.08);
+	--hover: rgba(255, 255, 255, 0.06);
+	--pressed: rgba(255, 255, 255, 0.1);
+	--selected: rgba(255, 255, 255, 0.12);
+	/* Menu and palette highlight: a deeper accent fill under white text, as native menus do.
+	   (#fff on the bright --accent is only 2.7:1.) */
+	--accent-fill: #0b6bd6;
+	--on-accent: #fff;
+	/* The native text-selection wash. */
+	--text-selection: rgba(0, 162, 255, 0.35);
+	/* Ink washes for tag emphasis on scripture words. */
+	--ink-wash: rgba(250, 250, 250, 0.12);
+	--ink-wash-strong: rgba(250, 250, 250, 0.26);
+	--ink-wash-flash: rgba(250, 250, 250, 0.5);
+	/* Pen: handwritten notes and arrows. Same as --ink in dark. */
+	--pen: #fafafa;
+	/* Dark tint laid over native glass / vibrancy so chrome stays dark on any wallpaper. */
+	--glass-scrim: rgba(20, 17, 21, 0.58);
+	--text-muted-on-glass: #a8a3ad;
+
+	/* Elevation for solid floating panels. */
+	--shadow-toolbar: 0 6px 20px rgba(0, 0, 0, 0.27);
+	--shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.32);
+	--shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.4);
+	--edge-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+	/* Type: Apple system font everywhere; Gochi Hand only for handwritten notes. */
+	--font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+	--font-hand: 'Gochi Hand', 'Bradley Hand', cursive;
+	--text-2xs: 10px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-lg: 15px;
+
+	/* Space, size and radius scale (compact macOS density). */
+	--space-1: 2px;
+	--space-2: 4px;
+	--space-3: 6px;
+	--space-4: 8px;
+	--space-5: 12px;
+	--space-6: 16px;
+	--space-7: 24px;
+	--control-h-sm: 22px;
+	--control-h: 26px;
+	--control-h-lg: 30px;
+	/* Palette rows, toolbar buttons and the reference field. */
+	--row-h: 28px;
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--radius-xl: 18px;
+	--titlebar-h: 52px;
+	--sidebar-w: 220px;
+	--toolbar-bottom: 20px;
+
+	/* Motion. */
+	--duration-fast: 120ms;
+	--duration-base: 150ms;
+	--duration-slow: 180ms;
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Light ("paper") appearance. Applied by <html data-appearance="light">; dark is the default above.
+   Tag names are stored in studies, so only the shades change here, never the names. */
+:root[data-appearance='light'] {
+	color-scheme: light;
+	--canvas-bg: #f7f4f0;
+	--canvas-dot: #e6e1da;
+	--chrome-bg: #f0ece7;
+	--surface: #fffdfa;
+	--dialog-bg: #fffdfa;
+	--border: #dcd6ce;
+	--text-muted: #6a656f;
+	--text-scripture: #2b272e;
+	--ink: #1c191d;
+	--accent: #0067c8;
+	--accent-ink: #fff;
+	--accent-fill: #0067c8;
+	--focus-dim: rgba(247, 244, 240, 0.78);
+	--focus-dim-opacity: 0.28;
+	--sky: #0067c8;
+	--violet: #6c4fd6;
+	--rose: #c2185f;
+	--coral: #c73320;
+	--amber: #a05600;
+	--green: #167347;
+	--sky-tint: rgba(0, 103, 200, 0.16);
+	--violet-tint: rgba(108, 79, 214, 0.16);
+	--rose-tint: rgba(194, 24, 95, 0.16);
+	--coral-tint: rgba(199, 51, 32, 0.16);
+	--amber-tint: rgba(160, 86, 0, 0.16);
+	--green-tint: rgba(22, 115, 71, 0.16);
+
+	--hairline: rgba(28, 25, 29, 0.1);
+	--hover: rgba(28, 25, 29, 0.06);
+	--pressed: rgba(28, 25, 29, 0.1);
+	--selected: rgba(28, 25, 29, 0.1);
+	--text-selection: rgba(0, 103, 200, 0.2);
+	--ink-wash: rgba(28, 25, 29, 0.09);
+	--ink-wash-strong: rgba(28, 25, 29, 0.2);
+	--ink-wash-flash: rgba(28, 25, 29, 0.4);
+	/* Warm graphite rather than near-black, so pen marks sit under the scripture instead of over it. */
+	--pen: #3a3540;
+	/* Pale tint over native glass / vibrancy so chrome stays light on any wallpaper. */
+	--glass-scrim: rgba(247, 244, 240, 0.62);
+	--text-muted-on-glass: #5a555f;
+
+	/* Paper needs layered shadows: a tight contact edge plus a wide, faint ambient. */
+	--shadow-toolbar:
+		0 1px 2px rgba(40, 30, 20, 0.06), 0 4px 12px rgba(40, 30, 20, 0.06),
+		0 10px 28px rgba(40, 30, 20, 0.08);
+	--shadow-popover:
+		0 1px 2px rgba(40, 30, 20, 0.07), 0 4px 10px rgba(40, 30, 20, 0.06),
+		0 14px 36px rgba(40, 30, 20, 0.12);
+	--shadow-dialog:
+		0 1px 3px rgba(40, 30, 20, 0.08), 0 8px 20px rgba(40, 30, 20, 0.08),
+		0 24px 48px rgba(40, 30, 20, 0.1);
+}

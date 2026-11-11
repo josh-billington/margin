@@ -1,0 +1,92 @@
+.library-study-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	/* minmax(0, …): long titles ellipsize instead of widening the column. */
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-2);
+}
+.library-study-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	border-radius: var(--radius-sm);
+}
+.library-study-row .row-button {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	display: block;
+	line-height: var(--control-h);
+}
+.library-study-row [hidden] {
+	display: none;
+}
+.study-title-input {
+	width: 100%;
+	font-size: var(--text-md);
+}
+@media (hover: hover) and (pointer: fine) {
+	.library-study-row:hover {
+		background: var(--hover);
+	}
+	.library-study-row:hover .row-button[aria-current='page'] {
+		background: var(--selected);
+	}
+}
+/* Leave room for the revealed actions so a long title ellipsizes before them. */
+.library-study-row:is(:hover, :focus-within) .row-button {
+	padding-right: calc(2 * var(--control-h-sm) + var(--space-1) + var(--space-3));
+}
+/* Rename and delete appear on hover or keyboard focus, so rows stay quiet. */
+.row-actions {
+	position: absolute;
+	right: var(--space-2);
+	display: flex;
+	gap: var(--space-1);
+	opacity: 0;
+	transition: opacity var(--duration-fast) ease;
+}
+.library-study-row:hover .row-actions,
+.library-study-row:focus-within .row-actions {
+	opacity: 1;
+}
+.library-lock-notice {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	padding: var(--space-3) var(--space-5);
+	background: var(--amber-tint);
+	color: var(--ink);
+	font-size: var(--text-sm);
+}
+.library-lock-notice p {
+	flex: 1;
+	margin: 0;
+}
+.library-lock-notice .text-button {
+	color: var(--amber);
+}
+.passage-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-2);
+}
+.passage-list-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: var(--space-2);
+}
+.passage-list-row .row-button {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	display: block;
+	line-height: var(--control-h);
+}

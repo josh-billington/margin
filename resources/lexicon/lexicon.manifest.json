@@ -1,0 +1,55 @@
+{
+	"schemaVersion": 2,
+	"importerVersion": 2,
+	"edition": {
+		"translationId": "kjv",
+		"editionName": "King James Version (1769), eBible.org",
+		"versificationId": "kjv",
+		"corpusRevision": "v1-8636c49305c158a1",
+		"tokenizerVersion": "1"
+	},
+	"verseCount": 31102,
+	"spanCount": 348884,
+	"entryCount": 14197,
+	"bibleSource": {
+		"translationId": "kjv",
+		"filename": "eng-kjv_usfm.zip",
+		"url": "https://ebible.org/Scriptures/eng-kjv_usfm.zip",
+		"revision": "Last-Modified: 2026-10-30T06:47:12Z",
+		"retrievedAt": "2026-11-03T04:21:56.350604+00:00",
+		"sha256": "206085ace5494f7eb46975990c0734fd8354e5ecce4d12cc74ce6f1aa8efd129",
+		"rights": "Public Domain",
+		"attribution": "King James Version (1769), eBible.org USFM transcription."
+	},
+	"dictionarySources": [
+		{
+			"filename": "strongs-hebrew-dictionary.js",
+			"url": "https://raw.githubusercontent.com/openscriptures/strongs/0acd2f251c2d35ff8db2dece4e0593979d3ac223/hebrew/strongs-hebrew-dictionary.js",
+			"revision": "0acd2f251c2d35ff8db2dece4e0593979d3ac223",
+			"sha256": "5ce6aeed551c709f49bcfa341cadf2f34bc7599b85d9de9e6ac2ecbf60fc3739",
+			"rights": "CC BY-SA 3.0 (Open Scriptures project statement: all content is licensed Creative Commons Attribution-Share Alike 3.0; the file header says CC-BY-SA)",
+			"attribution": "Copyright 2010, Open Scriptures. Strong’s Hebrew Dictionary by James Strong; digital transcription and corrections as credited in the source header."
+		},
+		{
+			"filename": "strongs-greek-dictionary.js",
+			"url": "https://raw.githubusercontent.com/openscriptures/strongs/0acd2f251c2d35ff8db2dece4e0593979d3ac223/greek/strongs-greek-dictionary.js",
+			"revision": "0acd2f251c2d35ff8db2dece4e0593979d3ac223",
+			"sha256": "7624ee738ae47e80f1a352223e28a26d011c9cd4898822cee52f47a010c04efd",
+			"rights": "CC BY-SA 3.0 (Open Scriptures project statement: all content is licensed Creative Commons Attribution-Share Alike 3.0; the file header says CC-BY-SA)",
+			"attribution": "Copyright 2009, Open Scriptures. Strong’s Greek Dictionary by James Strong; digital transcription and corrections as credited in the source header."
+		}
+	],
+	"license": "Original Strong dictionaries are public domain. The Open Scriptures digital editions are licensed CC BY-SA 3.0 (project statement: \"All code in the Open Scriptures project is released under the GPL 3.0 license, and all content is licensed Creative Commons Attribution-Share Alike 3.0.\"). Margin bundles content only, no Open Scriptures code. The generated lexicon data is an adaptation and is shared under CC BY-SA 3.0 with attribution.",
+	"normalization": "JSON data parsed without evaluation. Fields renamed, whitespace trimmed. USFM source spans mapped to unchanged display tokens; every KJV verse compared with the read-only bundled Bible DB. No inferred tags.",
+	"sourceNotices": [
+		{
+			"filename": "strongs-hebrew-dictionary.js",
+			"notice": "/**\n * A Concise Dictionary of the Words in the Hebrew Bible\n *    with their Renderings in the King James Version\n * by James Strong, LL.D., S.T.D.\n * 1894\n *\n * JSON version\n * ============\n * Copyright 2010, Open Scriptures. CC-BY-SA. Derived from XML.\n * $Id$\n *\n * XML e-text version\n * ==================\n * From a source by David Instone-Brewer (www.2LetterLookup.com):\n * \"The data came from several PD sources which were full of errors. \n * I cleaned them by comparing them to each other and (where \n * necessary) looking at the original.\"\n *\n * Editing, corrections and Unicode transliterations\n * by David Troidl.\n *\n * Comments or corrections:\n * open-scriptures@googlegroups.com\n */"
+		},
+		{
+			"filename": "strongs-greek-dictionary.js",
+			"notice": "/**\n *                      Dictionary of Greek Words\n *                              taken from\n *                    Strong's Exhaustive Concordance\n *                                   by\n *                      James Strong, S.T.D., LL.D.\n *                                  1890\n * \n * JSON version\n * ============\n * Copyright 2009, Open Scriptures. CC-BY-SA. Derived from XML.\n * $Id$\n *\n * XML e-text version\n * ==================\n * \n * The XML version of this work was prepared in 2006 by Ulrik Petersen\n * (http://ulrikp.org) from the ASCII e-text version presented below.\n * The XML version contains \"real\" UTF-8 Greek where the original ASCII\n * e-text version had transliteration.  The XML has a stand-alone DTD\n * which should be easy to follow.\n * \n * Ulrik Petersen welcomes bugfixes to the text.  Please send them to the\n * address provided on the website:\n * \n * http://ulrikp.org\n * \n * Ulrik Petersen\n */"
+		}
+	],
+	"checksum": "ca40b435cd2c0c3d0ecff17fda2ddba798427d9d2fb3a46c45be1b76ce526255"
+}

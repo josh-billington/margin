@@ -1,0 +1,775 @@
+* {
+	box-sizing: border-box;
+}
+html,
+body,
+#root {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+html {
+	font: 400 var(--text-sm) / 1.4 var(--font-ui);
+	-webkit-font-smoothing: antialiased;
+	font-optical-sizing: auto;
+}
+body {
+	color: var(--ink);
+	background: var(--canvas-bg);
+}
+/* With native glass or vibrancy the window is transparent; only the chrome lets it show. */
+:root[data-glass='native'] body,
+:root[data-glass='vibrancy'] body,
+:root[data-glass='native'] #root,
+:root[data-glass='vibrancy'] #root {
+	background: transparent;
+}
+[data-sonner-toaster] {
+	font-family: var(--font-ui);
+}
+/* Toasts are solid app surfaces like dialogs, not sonner's black/white defaults.
+   Selectors out-rank sonner's per-theme rules ([data-sonner-theme=…] … [data-styled=true]). */
+:root [data-sonner-toaster][data-sonner-theme],
+:root [data-sonner-toaster] [data-sonner-toast] {
+	--normal-bg: var(--dialog-bg);
+	--normal-bg-hover: var(--dialog-bg);
+	--normal-border: var(--border);
+	--normal-border-hover: var(--border);
+	--normal-text: var(--ink);
+	--border-radius: var(--radius-md);
+	--width: 440px;
+}
+:root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled] {
+	font-size: var(--text-md);
+	line-height: 1.4;
+	padding: var(--space-5) var(--space-6);
+	gap: var(--space-5);
+	box-shadow: var(--shadow-popover);
+}
+:root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled] [data-description] {
+	color: var(--text-muted);
+}
+:root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled] :is([data-button], [data-cancel]) {
+	height: var(--control-h);
+	padding: 0 var(--space-5);
+	border-radius: var(--radius-sm);
+	font-size: var(--text-md);
+	font-weight: 500;
+}
+:root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled] [data-button] {
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-weight: 600;
+}
+:root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-styled] [data-cancel] {
+	background: var(--hover);
+	color: var(--ink);
+}
+::selection {
+	background: var(--text-selection);
+}
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role='slider']:focus-visible,
+[tabindex]:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+button:disabled,
+select:disabled,
+input:disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+input[type='checkbox'],
+input[type='radio'] {
+	accent-color: var(--accent);
+}
+svg {
+	flex-shrink: 0;
+}
+kbd {
+	font-family: inherit;
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+/* Shared controls. */
+.icon-button,
+.button,
+.row-button,
+.row-icon-button,
+.text-button,
+.menu-button {
+	border: 0;
+	color: inherit;
+	transition:
+		background-color var(--duration-fast) ease,
+		color var(--duration-fast) ease,
+		transform var(--duration-fast) var(--ease-out);
+}
+.icon-button:not(:disabled):active,
+.button:not(:disabled):active,
+.row-icon-button:not(:disabled):active {
+	transform: scale(0.96);
+}
+.button-primary:not(:disabled):active {
+	transform: scale(0.97);
+}
+.icon-button {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	width: var(--control-h);
+	height: var(--control-h);
+	padding: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--text-scripture);
+}
+/* Keep a 28px hit area under the 26px visual. */
+.icon-button::before {
+	content: '';
+	position: absolute;
+	inset: -1px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.icon-button:not(:disabled):hover {
+		background: var(--hover);
+		color: var(--ink);
+	}
+	.button:not(:disabled):hover {
+		background: var(--pressed);
+	}
+	.row-button:not(:disabled):hover,
+	.row-icon-button:not(:disabled):hover,
+	.menu-button:not(:disabled):hover {
+		background: var(--hover);
+	}
+	.button-primary:not(:disabled):hover {
+		background: color-mix(in srgb, var(--accent), var(--ink) 15%);
+	}
+	.button-danger:not(:disabled):hover {
+		background: color-mix(in srgb, var(--coral-tint), var(--coral) 12%);
+	}
+	.text-button:not(:disabled):hover {
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+}
+.icon-button[aria-pressed='true'] {
+	color: var(--accent);
+	background: var(--sky-tint);
+}
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3);
+	height: var(--control-h);
+	padding: 0 var(--space-5);
+	border-radius: var(--radius-sm);
+	background: var(--hover);
+	font-weight: 500;
+	white-space: nowrap;
+}
+.button-primary {
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-weight: 600;
+}
+.button-danger {
+	background: var(--coral-tint);
+	color: var(--coral);
+	font-weight: 600;
+}
+.text-button {
+	background: none;
+	padding: var(--space-2) 0;
+	border-radius: var(--radius-xs);
+	color: var(--accent);
+	font-weight: 500;
+}
+.row-button {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	min-height: var(--control-h);
+	width: 100%;
+	min-width: 0;
+	padding: 0 var(--space-4);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	text-align: left;
+	font-size: var(--text-md);
+}
+.row-button[aria-current='page'] {
+	/* macOS dark sidebar selection: a neutral white-alpha fill, not a tinted wash. */
+	background: var(--selected);
+	color: var(--ink);
+	font-weight: 500;
+}
+.row-action {
+	color: var(--text-scripture);
+}
+.row-action svg {
+	color: var(--accent);
+}
+.row-icon-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--control-h-sm);
+	height: var(--control-h-sm);
+	padding: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--text-muted);
+}
+.menu-button {
+	height: var(--control-h);
+	padding: 0 var(--space-4);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	text-align: left;
+}
+.menu-button-danger {
+	color: var(--coral);
+}
+.field {
+	height: var(--control-h);
+	min-width: 0;
+	padding: 0 var(--space-4);
+	color: var(--ink);
+	background: var(--chrome-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+}
+.field:focus-visible {
+	outline-offset: -1px;
+}
+.check-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-4);
+}
+.check-row input {
+	margin: 2px 0 0;
+}
+.check-row small {
+	display: block;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+/* App shell. */
+.app-shell {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.title-bar,
+.canvas-toolbar,
+.sidebar,
+.tooltip {
+	user-select: none;
+	-webkit-user-select: none;
+}
+.title-bar {
+	height: var(--titlebar-h);
+	min-height: var(--titlebar-h);
+	display: grid;
+	grid-template-columns: 1fr minmax(0, 420px) 1fr;
+	align-items: center;
+	gap: var(--space-4);
+	/* Traffic lights end at ~70px (x 18 + 3×12 + 2×8); leave ~18px before the first control. */
+	padding: 0 var(--space-5) 0 88px;
+	background: var(--chrome-bg);
+	border-bottom: 1px solid var(--border);
+	-webkit-app-region: drag;
+}
+.title-bar button,
+.title-bar input {
+	-webkit-app-region: no-drag;
+}
+.title-leading {
+	display: flex;
+	align-items: center;
+}
+.title-bar h1 {
+	margin: 0;
+	min-width: 0;
+	font-size: var(--text-md);
+	font-weight: 600;
+	line-height: 1.3;
+}
+.title-input {
+	width: 100%;
+	height: var(--control-h);
+	padding: 0 var(--space-4);
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+	text-overflow: ellipsis;
+	user-select: text;
+	-webkit-user-select: text;
+	transition: background-color var(--duration-fast) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+	.title-input:not(:disabled):hover {
+		background: var(--hover);
+	}
+}
+.title-input:focus {
+	background: var(--hover);
+	outline: 2px solid var(--accent);
+	outline-offset: -1px;
+	text-align: left;
+}
+.title-input:disabled {
+	opacity: 1;
+}
+.title-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--space-2);
+}
+/* Title-bar glyphs sit a step back from the title, like native toolbar items. */
+.title-bar .icon-button {
+	color: var(--text-muted);
+}
+.save-indicator {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	white-space: nowrap;
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	margin-right: var(--space-2);
+}
+.save-indicator-content {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	animation: swap-in var(--duration-base) var(--ease-out);
+}
+@keyframes swap-in {
+	from {
+		opacity: 0;
+		transform: translateY(2px);
+	}
+}
+.save-indicator[data-state='error'] {
+	color: var(--coral);
+}
+.save-indicator[data-state='saving'] svg {
+	animation: spin 1s linear infinite;
+}
+.spinner {
+	display: inline-flex;
+	color: var(--text-muted);
+}
+.spinner > svg {
+	animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.workspace {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+.sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-7);
+	flex: 0 0 var(--sidebar-w);
+	padding: var(--space-5) var(--space-4);
+	background: var(--chrome-bg);
+	border-right: 1px solid var(--border);
+	overflow: hidden auto;
+	scrollbar-gutter: stable;
+}
+.sidebar-library {
+	margin-top: auto;
+	color: var(--text-muted);
+}
+.section-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	min-height: var(--control-h);
+	margin-bottom: var(--space-2);
+	padding-left: var(--space-4);
+	color: var(--text-muted);
+}
+.section-heading h2 {
+	margin: 0;
+	font-size: var(--text-xs);
+	font-weight: 600;
+	line-height: 1.3;
+}
+.sidebar-hint {
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	margin: 0;
+	padding: var(--space-2) var(--space-4);
+}
+.canvas-area {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	/* The canvas is always opaque so scripture never sits on translucent material. */
+	background: var(--canvas-bg);
+}
+.margin-canvas {
+	position: absolute;
+	inset: 0;
+}
+.margin-canvas .tl-container {
+	--tl-color-background: var(--canvas-bg);
+	--tl-color-selected: var(--accent);
+	--tl-color-text: var(--ink);
+	--tl-font-sans: var(--font-ui);
+}
+
+/* Liquid Glass / vibrancy: the title bar and sidebar are transparent so the window material shows. */
+:root[data-glass='native'] .title-bar,
+:root[data-glass='native'] .sidebar,
+:root[data-glass='vibrancy'] .title-bar,
+:root[data-glass='vibrancy'] .sidebar {
+	/* A dark scrim over the material keeps light chrome text legible even over a bright desktop. */
+	background: var(--glass-scrim);
+	border-color: var(--hairline);
+}
+:root[data-glass='native'] .title-bar,
+:root[data-glass='vibrancy'] .title-bar,
+:root[data-glass='native'] .sidebar,
+:root[data-glass='vibrancy'] .sidebar {
+	--text-muted: var(--text-muted-on-glass);
+}
+
+.empty-hint {
+	position: absolute;
+	left: 50%;
+	/* Sits just above the toolbar: toolbar offset + its height + one step. */
+	bottom: calc(var(--toolbar-bottom) + var(--row-h) + 2 * var(--space-2) + var(--space-5));
+	transform: translateX(-50%);
+	margin: 0;
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	pointer-events: none;
+	user-select: none;
+}
+.empty-hint kbd {
+	margin: 0 var(--space-1);
+}
+.canvas-toolbar {
+	position: absolute;
+	bottom: var(--toolbar-bottom);
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	/* Concentric with the buttons: outer radius = inner radius + padding. */
+	border-radius: calc(var(--radius-sm) + var(--space-2));
+	box-shadow: var(--shadow-toolbar);
+}
+.canvas-toolbar .icon-button {
+	width: var(--row-h);
+	height: var(--row-h);
+}
+.toolbar-divider {
+	width: 1px;
+	height: 16px;
+	background: var(--border);
+	margin: 0 var(--space-2);
+}
+.canvas-toolbar .zoom-button {
+	width: 44px;
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+}
+.tooltip {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	background: var(--surface);
+	color: var(--ink);
+	border: 1px solid var(--border);
+	padding: var(--space-2) var(--space-4);
+	border-radius: var(--radius-sm);
+	font-size: var(--text-xs);
+	z-index: 1000;
+	transform-origin: var(--radix-tooltip-content-transform-origin);
+}
+.tooltip[data-state='delayed-open'] {
+	animation: tooltip-in var(--duration-fast) var(--ease-out);
+}
+@keyframes tooltip-in {
+	from {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+}
+
+/* Dialogs: solid panels, centered, scaled in from the middle. */
+.dialog-overlay {
+	position: fixed;
+	inset: 0;
+	background: var(--focus-dim);
+	z-index: 1000;
+}
+.dialog-overlay[data-state='open'] {
+	animation: fade-in var(--duration-base) var(--ease-out);
+}
+.dialog-overlay[data-state='closed'] {
+	animation: fade-out 100ms var(--ease-out) forwards;
+}
+.dialog-panel,
+.command-dialog {
+	position: fixed;
+	inset: 0;
+	margin: auto;
+	height: fit-content;
+	max-height: calc(100% - 40px);
+	z-index: 1001;
+	background: var(--dialog-bg);
+	color: var(--ink);
+	/* Glass-style edge: a hairline plus a faint top highlight, like the native chrome. */
+	border: 1px solid var(--hairline);
+	box-shadow: var(--shadow-dialog), var(--edge-highlight);
+	transform-origin: center;
+}
+.dialog-panel {
+	width: min(380px, calc(100% - 40px));
+	padding: var(--space-6);
+	border-radius: var(--radius-lg);
+	display: grid;
+	gap: var(--space-5);
+	font-size: var(--text-md);
+}
+.dialog-panel h2 {
+	margin: 0;
+	font-size: var(--text-lg);
+	font-weight: 600;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+.dialog-panel p {
+	margin: 0;
+	color: var(--text-muted);
+}
+.dialog-panel label {
+	display: grid;
+	gap: var(--space-3);
+}
+.dialog-panel label.check-row {
+	display: flex;
+}
+.dialog-panel label.select-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--space-5);
+}
+.select-row small {
+	display: block;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+.dialog-form {
+	display: grid;
+	gap: var(--space-5);
+}
+.dialog-actions {
+	display: flex;
+	gap: var(--space-4);
+	justify-content: flex-end;
+}
+.command-dialog {
+	inset: 20% 0 auto;
+	width: min(520px, calc(100% - 40px));
+	border-radius: var(--radius-xl);
+	overflow: hidden;
+}
+.dialog-panel[data-state='open'],
+.command-dialog[data-state='open'] {
+	animation: pop-in var(--duration-slow) var(--ease-out);
+}
+.dialog-panel[data-state='closed'],
+.command-dialog[data-state='closed'] {
+	animation: pop-out var(--duration-fast) var(--ease-out) forwards;
+}
+/* Keyboard-opened palette and insert dialog are used constantly: no motion. */
+:root[data-input='keyboard'] .palette-overlay,
+:root[data-input='keyboard'] .command-dialog {
+	animation: none;
+}
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+}
+@keyframes pop-out {
+	to {
+		opacity: 0;
+		transform: scale(0.97);
+	}
+}
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes fade-out {
+	to {
+		opacity: 0;
+	}
+}
+.command-search {
+	display: flex;
+	gap: var(--space-4);
+	align-items: center;
+	height: calc(var(--row-h) + var(--space-5));
+	padding: 0 var(--space-5);
+	border-bottom: 1px solid var(--hairline);
+	color: var(--text-muted);
+}
+[cmdk-input] {
+	flex: 1;
+	min-width: 0;
+	background: transparent;
+	border: 0;
+	color: var(--ink);
+	font-size: var(--text-lg);
+	outline: none;
+}
+[cmdk-input]:focus-visible {
+	outline: 0;
+}
+[cmdk-list] {
+	padding: var(--space-3);
+	max-height: 360px;
+	overflow-y: auto;
+}
+[cmdk-group-heading] {
+	color: var(--text-muted);
+	padding: var(--space-4) var(--space-4) var(--space-2);
+	font-size: var(--text-xs);
+	font-weight: 500;
+}
+[cmdk-item] {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	height: var(--row-h);
+	padding: 0 var(--space-4);
+	border-radius: var(--radius-sm);
+	font-size: var(--text-md);
+	cursor: default;
+}
+[cmdk-item] > svg {
+	color: var(--text-muted);
+}
+/* Neutral wash like the sidebar selection, so the palette reads as the same material as the chrome. */
+[cmdk-item][data-selected='true'] {
+	background: var(--selected);
+	color: var(--ink);
+}
+[cmdk-item][data-selected='true'] > svg {
+	color: var(--ink);
+}
+[cmdk-item] span,
+[cmdk-item] kbd {
+	margin-left: auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+[cmdk-item] span + kbd {
+	margin-left: var(--space-4);
+}
+[cmdk-empty] {
+	padding: var(--space-7) var(--space-4);
+	color: var(--text-muted);
+	text-align: center;
+}
+@media (max-width: 950px) {
+	.sidebar {
+		flex-basis: 200px;
+	}
+	.title-bar {
+		gap: var(--space-2);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		transition-duration: 1ms !important;
+		scroll-behavior: auto !important;
+	}
+	/* Reduce, don't remove: keep the opacity fades, drop scale and spin. */
+	@keyframes pop-in {
+		from {
+			opacity: 0;
+		}
+	}
+	@keyframes pop-out {
+		to {
+			opacity: 0;
+		}
+	}
+	@keyframes tooltip-in {
+		from {
+			opacity: 0;
+		}
+	}
+	@keyframes swap-in {
+		from {
+			opacity: 0;
+		}
+	}
+	.save-indicator[data-state='saving'] svg {
+		animation: none;
+	}
+	.icon-button:not(:disabled):active,
+	.button:not(:disabled):active,
+	.row-icon-button:not(:disabled):active {
+		transform: none;
+	}
+}
+input[type='checkbox']:focus-visible {
+	outline-offset: 1px;
+	border-radius: var(--radius-xs);
+}

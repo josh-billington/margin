@@ -1,0 +1,33 @@
+@import './fonts.css';
+@import 'tailwindcss';
+@import 'tldraw/tldraw.css';
+@import './tokens.css';
+@import './shell.css';
+
+@theme inline {
+	--font-sans: var(--font-ui);
+	--font-handwritten: var(--font-hand);
+	--color-night: var(--night);
+	--color-canvas-bg: var(--canvas-bg);
+	--color-canvas-dot: var(--canvas-dot);
+	--color-chrome-bg: var(--chrome-bg);
+	--color-surface: var(--surface);
+	--color-border: var(--border);
+	--color-text-muted: var(--text-muted);
+	--color-text-scripture: var(--text-scripture);
+	--color-ink: var(--ink);
+	--color-accent: var(--accent);
+	--color-focus-dim: var(--focus-dim);
+	--color-sky: var(--sky);
+	--color-violet: var(--violet);
+	--color-rose: var(--rose);
+	--color-coral: var(--coral);
+	--color-amber: var(--amber);
+	--color-green: var(--green);
+	--color-sky-tint: var(--sky-tint);
+	--color-violet-tint: var(--violet-tint);
+	--color-rose-tint: var(--rose-tint);
+	--color-coral-tint: var(--coral-tint);
+	--color-amber-tint: var(--amber-tint);
+	--color-green-tint: var(--green-tint);
+}

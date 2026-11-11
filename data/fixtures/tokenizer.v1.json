@@ -1,0 +1,36 @@
+[
+	{
+		"name": "quotes",
+		"input": "\u201cIn the beginning,\u201d he said.",
+		"words": ["In", "the", "beginning", "he", "said"],
+		"leading": ["\u201c", "", "", "", ""],
+		"trailing": ["", "", ",\u201d", "", "."]
+	},
+	{
+		"name": "contractions",
+		"input": "Don't fear; thou\u2019s art.",
+		"words": ["Don't", "fear", "thou\u2019s", "art"]
+	},
+	{
+		"name": "compounds",
+		"input": "well-being and first-born, God-given.",
+		"words": ["well-being", "and", "first-born", "God-given"]
+	},
+	{
+		"name": "adjacent punctuation",
+		"input": "word\u2014word; \u201cword\u201d (word).",
+		"words": ["word", "word", "word", "word"]
+	},
+	{
+		"name": "whitespace",
+		"input": "One  two\tthree.\n",
+		"words": ["One", "two", "three"]
+	},
+	{
+		"name": "opening punctuation without a space",
+		"input": "word(another)",
+		"words": ["word", "another"],
+		"leading": ["", "("],
+		"trailing": ["", ")"]
+	}
+]

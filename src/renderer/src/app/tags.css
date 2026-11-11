@@ -1,0 +1,134 @@
+.tag-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-2);
+}
+.tag-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--space-1);
+	border-radius: var(--radius-sm);
+}
+.tag-row[aria-current='true'] {
+	background: var(--selected);
+}
+.tag-pick {
+	min-width: 0;
+}
+.tag-swatch {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex: none;
+}
+.tag-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.tag-count {
+	color: var(--text-muted);
+	margin-left: auto;
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+}
+.tag-nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-1) var(--space-4);
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+}
+.color-choices {
+	display: flex;
+	gap: var(--space-3);
+}
+.color-choices button {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: 2px solid transparent;
+	padding: 0;
+	transition: transform var(--duration-fast) var(--ease-out);
+}
+.color-choices button:active {
+	transform: scale(0.92);
+}
+/* A ring with a gap reads on every swatch colour, including ink. */
+.color-choices button[aria-pressed='true'] {
+	box-shadow:
+		0 0 0 2px var(--surface),
+		0 0 0 3px var(--ink);
+}
+.slider-root {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 20px;
+	width: 100%;
+	touch-action: none;
+}
+.slider-track {
+	position: relative;
+	flex-grow: 1;
+	height: 3px;
+	background: var(--border);
+	border-radius: var(--space-1);
+}
+.slider-range {
+	position: absolute;
+	height: 100%;
+	background: var(--accent);
+	border-radius: var(--space-1);
+}
+.slider-thumb {
+	display: block;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--ink);
+	box-shadow: var(--shadow-popover);
+}
+.slider-thumb:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+.toggle-row {
+	display: flex;
+	gap: var(--space-2);
+}
+.toggle-row button {
+	height: var(--control-h-sm);
+	padding: 0 var(--space-4);
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--text-muted);
+	transition:
+		background-color var(--duration-fast) ease,
+		color var(--duration-fast) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+	.toggle-row button:hover {
+		color: var(--ink);
+	}
+}
+.toggle-row [data-state='on'] {
+	background: var(--selected);
+	color: var(--ink);
+}
+/* Edit appears on hover or focus, like study row actions, so the tag list stays quiet. */
+.tag-row > .row-icon-button {
+	opacity: 0;
+	transition: opacity var(--duration-fast) ease;
+}
+.tag-row:is(:hover, :focus-within, [aria-current='true']) > .row-icon-button,
+.tag-row > .row-icon-button[data-state='open'] {
+	opacity: 1;
+}

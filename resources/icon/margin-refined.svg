@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="rim" x1="512" y1="55" x2="512" y2="970" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#756A7A" stop-opacity=".65"/><stop offset=".5" stop-color="#4D4454" stop-opacity=".12"/><stop offset="1" stop-color="#100D15" stop-opacity=".65"/>
+    </linearGradient>
+    <linearGradient id="left" x1="197" y1="470" x2="512" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4F0E5"/><stop offset=".36" stop-color="#FFFCF3"/><stop offset=".82" stop-color="#EDE8DB"/><stop offset="1" stop-color="#D8D0C1"/>
+    </linearGradient>
+    <linearGradient id="right" x1="512" y1="470" x2="827" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8D0C1"/><stop offset=".16" stop-color="#F5F0E4"/><stop offset=".62" stop-color="#FFFCF3"/><stop offset="1" stop-color="#E8E2D5"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="705" y1="272" x2="730" y2="429" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00A2FF"/><stop offset=".7" stop-color="#00A2FF"/><stop offset="1" stop-color="#008BE6"/>
+    </linearGradient>
+    <filter id="tileShadow" x="0" y="0" width="1024" height="1024" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#0C0910" flood-opacity=".24"/>
+    </filter>
+    <filter id="bookShadow" x="110" y="190" width="810" height="690" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="22" stdDeviation="20" flood-color="#08060D" flood-opacity=".45"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#08060D" flood-opacity=".3"/>
+    </filter>
+    <path id="leftPage" d="M200 278C303 253 408 269 512 316V756C410 714 305 699 200 724C192 726 188 721 188 713V294C188 286 192 280 200 278Z"/>
+    <path id="rightPage" d="M824 278C721 253 616 269 512 316V756C614 714 719 699 824 724C832 726 836 721 836 713V294C836 286 832 280 824 278Z"/>
+  </defs>
+  <g filter="url(#tileShadow)">
+    <rect x="54" y="54" width="916" height="916" rx="206" fill="#2D2832"/>
+    <rect x="56" y="56" width="912" height="912" rx="204" stroke="url(#rim)" stroke-width="3"/>
+  </g>
+  <g transform="translate(-51.2 -51.2) scale(1.1)">
+  <g filter="url(#bookShadow)">
+    <path d="M187 291C298 262 409 279 512 326C615 279 726 262 837 291C847 294 851 300 851 310V738C851 753 841 763 827 760C718 737 614 752 526 791C517 795 507 795 498 791C410 752 306 737 197 760C183 763 173 753 173 738V310C173 300 177 294 187 291Z" fill="#15131A"/>
+    <use href="#leftPage" fill="#BEB6A8" transform="translate(0 18)"/>
+    <use href="#rightPage" fill="#BEB6A8" transform="translate(0 18)"/>
+    <use href="#leftPage" fill="#DED7C9" transform="translate(0 10)"/>
+    <use href="#rightPage" fill="#DED7C9" transform="translate(0 10)"/>
+    <use href="#leftPage" fill="url(#left)"/>
+    <use href="#rightPage" fill="url(#right)"/>
+    <path d="M201 280C301 256 405 272 506 316M518 316C619 272 723 256 823 280" stroke="#FFFFF8" stroke-opacity=".8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M512 324V749" stroke="#948B7E" stroke-opacity=".45" stroke-width="2"/>
+    <!-- Two quiet columns on each leaf give the spread the character of a Bible. -->
+    <g stroke="#9F9687" stroke-opacity=".44" stroke-width="8" stroke-linecap="round">
+      <path d="M238 368H315M238 408H315M238 448H315M238 488H294M238 553H315M238 593H315M238 633H300"/>
+      <path d="M355 375 443 398M355 415 443 438M355 455 443 478M355 495 422 512M355 560 443 583M355 600 443 623M355 640 423 658"/>
+      <path d="M581 398 669 375M581 438 669 415M581 478 669 455M581 518 645 501M581 583 669 560M581 623 669 600M581 663 645 646"/>
+      <path d="M709 368H786M709 408H786M709 448H786M709 488H764M709 553H786M709 593H786M709 633H765"/>
+    </g>
+    <path d="M697 269C713 269 727 270 741 272V432L719 416 697 432V269Z" fill="#796F66" fill-opacity=".12" transform="translate(3 4)"/>
+    <path d="M694 269C710 269 724 270 738 272V424L716 408 694 424V269Z" fill="url(#ribbon)"/>
+    <path d="M696 274V415" stroke="#33B5FF" stroke-opacity=".6" stroke-width="2"/>
+  </g>
+  </g>
+</svg>
