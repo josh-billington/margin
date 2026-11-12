@@ -8,6 +8,7 @@ import { Library } from '../library/library'
 import { migrateStudy } from '../../shared/study/migrations'
 import { ipcContract } from '../../shared/ipc/contract'
 import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
+import { logFailure } from '../logger'
 
 export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
@@ -76,6 +77,7 @@ export async function registerPersistence(
 			try {
 				return operation.response.parse({ ok: true, data: await action(parsed.data) })
 			} catch (error) {
+				logFailure('persistence-operation-failed', error)
 				return operation.response.parse({
 					ok: false,
 					error: {
@@ -220,6 +222,7 @@ export async function registerPersistence(
 				}
 			})
 			.catch((error) => {
+				logFailure('close-flush-failed', error)
 				getWindow()?.webContents.send('margin:library:event', {
 					kind: 'error',
 					studyId: '',

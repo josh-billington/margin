@@ -64,9 +64,11 @@ export const notePropsSchema = z.object({
 		.optional(),
 })
 export type NoteProps = z.infer<typeof notePropsSchema>
+// Frozen for beta: any schema change needs a migration plus a fixture test.
+export const STUDY_SCHEMA_VERSION = 1
 export const studyMetadataSchema = z.object({
 	format: z.literal('margin-study'),
-	schemaVersion: z.literal(1),
+	schemaVersion: z.literal(STUDY_SCHEMA_VERSION),
 	id: ulidSchema,
 	title: z.string().trim().min(1),
 	createdAt: z.iso.datetime(),

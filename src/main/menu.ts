@@ -3,6 +3,8 @@ import type { BrowserWindow, MenuItemConstructorOptions } from 'electron'
 import { COMMAND_CHANNEL } from '../shared/ipc/commands'
 import type { AppCommandId } from '../shared/ipc/commands'
 import type { Appearance } from '../shared/ipc/contract'
+import { checkForUpdates } from './updates'
+import { feedbackUrl, openLink, revealLogs, WEBSITE } from './help'
 
 /**
  * Items dispatch renderer commands over IPC. Accelerators are display-only
@@ -33,6 +35,7 @@ export function installAppMenu(
 			label: app.name,
 			submenu: [
 				{ role: 'about' },
+				{ label: 'Check for Updates…', click: () => void checkForUpdates() },
 				{ type: 'separator' },
 				command('Settings…', 'settings.open', 'Cmd+,'),
 				{ type: 'separator' },
@@ -107,7 +110,19 @@ export function installAppMenu(
 			],
 		},
 		{ role: 'windowMenu' },
-		{ role: 'help', submenu: [] },
+		{
+			role: 'help',
+			submenu: [
+				{
+					label: 'Send Feedback…',
+					click: () =>
+						openLink(feedbackUrl(app.getVersion(), process.getSystemVersion(), process.arch)),
+				},
+				{ label: 'Reveal Logs', click: revealLogs },
+				{ type: 'separator' },
+				{ label: 'Margin Website', click: () => openLink(WEBSITE) },
+			],
+		},
 	]
 	Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }

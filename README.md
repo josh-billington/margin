@@ -11,11 +11,21 @@ Everything works offline, and studies are saved as plain JSON files on your Mac.
 - Offline Strong's lookup for KJV words
 - Autosave with recovery, conflict copies, and external-change detection
 
-Download: [margin-bible.pages.dev](https://margin-bible.pages.dev)
+Public beta for Apple silicon Macs, running macOS 12 Monterey or later.
 
-The app is not yet notarized by Apple. On first launch macOS says it cannot verify
+Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
+([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
+More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
+
+The beta is unsigned and not notarized by Apple. On first launch macOS says it cannot verify
 Margin. Open System Settings → Privacy & Security, click **Open Anyway** next to
 Margin, and confirm. You only need to do this once.
+
+Choose **Margin → Check for Updates…** to check for new beta releases. Nothing
+checks automatically; the app only connects when you ask. Download the new build
+and replace Margin in Applications — your study files stay where they are.
+Use **Help → Send Feedback…** to report a problem, or **Reveal Logs** to find the
+local diagnostic log. There is no telemetry, and logs do not include study content.
 
 ## About this project
 
