@@ -40,7 +40,7 @@ export default function Footer() {
 							href="https://tldraw.dev"
 							className="text-ink/75 hover:text-ink transition-colors duration-150"
 						>
-							built with tldraw
+							Built with tldraw
 						</a>
 					</nav>
 				</div>

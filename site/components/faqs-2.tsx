@@ -11,15 +11,33 @@ import {
 const faqItems = [
 	{
 		id: 'release',
-		question: 'When can I download Margin?',
+		question: 'Can I download Margin now?',
 		answer:
-			'Not quite yet. Margin is still being built, and the download will appear on this page when the first version is ready. Until then the button says so.',
+			'Yes. Margin is in a free public beta for Macs with Apple silicon (M1 or later) running macOS 12 or later. Expect some rough edges, and please tell us when you find one.',
+	},
+	{
+		id: 'verify',
+		question: 'Why does macOS say it can’t verify Margin?',
+		answer:
+			'The beta isn’t notarized by Apple yet. After the warning, open System Settings, go to Privacy & Security, scroll down and click Open Anyway next to Margin, then confirm. You only need to do this once.',
+	},
+	{
+		id: 'updates',
+		question: 'How do I get updates?',
+		answer:
+			'Choose Margin › Check for Updates… from the menu bar. If a newer beta is out, Margin takes you to the download. Margin never checks on its own, so it stays offline until you ask.',
+	},
+	{
+		id: 'feedback',
+		question: 'How do I report a problem or suggest something?',
+		answer:
+			'Choose Help › Send Feedback… in the app. It opens a new GitHub issue with your Margin and macOS versions filled in. Your studies are never attached.',
 	},
 	{
 		id: 'price',
 		question: 'What will it cost?',
 		answer:
-			'Margin will always be free to download and use, we are looking at pricing for covering data syncing across devices and additional translations and study resources.',
+			'Margin will always be free to download and use. Later we may charge for syncing across devices and for extra translations and study resources.',
 	},
 	{
 		id: 'translations',
@@ -37,7 +55,7 @@ const faqItems = [
 		id: 'files',
 		question: 'Where are my studies kept?',
 		answer:
-			'In a Margin folder in your Documents, one plain JSON file per study. You can back them up, sync them with any service you already use, or move them to another Mac.',
+			'In a folder you choose the first time you open Margin, Documents › Margin unless you pick another. Each study is one plain JSON file, so you can back them up, sync them with any service you already use, or move them to another Mac.',
 	},
 	{
 		id: 'other-tools',
@@ -84,8 +102,8 @@ export default function FAQs() {
 								style={{ '--d': '80ms' } as React.CSSProperties}
 								className="text-ink/80 mt-5 max-w-[22rem] text-[17px] leading-relaxed"
 							>
-								We're working hard on building the best app for studying the Bible. We've tried our
-								best to address any questions you might have, for more questions contact us.
+								If your question isn’t here, ask it on GitHub. Choose Help › Send Feedback… in the
+								app, or open an issue on the project page.
 							</p>
 						</div>
 					</div>

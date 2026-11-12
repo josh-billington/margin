@@ -13,15 +13,15 @@ export default function CallToAction() {
 							data-reveal
 							className="text-ink text-[clamp(44px,6vw,84px)] font-semibold leading-[0.98] tracking-[-0.035em]"
 						>
-							Coming to the Mac
+							Try the beta
 						</h2>
 						<p
 							data-reveal
 							style={{ '--d': '80ms' } as React.CSSProperties}
 							className="text-ink/85 mt-6 max-w-[32rem] text-xl leading-relaxed"
 						>
-							{site.githubUrl
-								? 'Margin isn’t released yet. Follow along on GitHub to see it take shape and to hear when the first version is ready to download.'
+							{site.downloadUrl
+								? 'The first beta is ready for the Mac. It’s free, it’s still rough in places, and your feedback shapes what comes next.'
 								: 'Margin is being prepared for its first beta. The Mac download will appear here when it’s ready.'}
 						</p>
 						<div
@@ -32,6 +32,20 @@ export default function CallToAction() {
 							<DownloadButton size="lg" />
 							<FollowLink />
 						</div>
+						{site.downloadUrl ? (
+							<div
+								data-reveal
+								style={{ '--d': '220ms' } as React.CSSProperties}
+								className="text-muted-foreground mt-6 max-w-[34rem] space-y-2 text-[15px] leading-relaxed"
+							>
+								<p>{site.requirements}</p>
+								<p>
+									This beta isn’t notarized by Apple yet, so the first time you open it macOS says it
+									can’t verify Margin. Open System Settings, go to Privacy &amp; Security, click Open
+									Anyway next to Margin, and confirm. You only do this once.
+								</p>
+							</div>
+						) : null}
 					</div>
 					<p
 						aria-hidden

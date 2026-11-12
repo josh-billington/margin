@@ -21,7 +21,11 @@ const sections: { title: string; body: React.ReactNode }[] = [
 	},
 	{
 		title: 'Your studies stay on your Mac',
-		body: 'Each study is saved as a plain JSON file in a Margin folder in your Documents, or in another folder you choose. Margin also keeps a little local state, such as which study was open last, in its own app folder. If you sync or back up those folders with another service, that service’s own privacy terms apply.',
+		body: 'Each study is saved as a plain JSON file in a Margin folder in your Documents, or in another folder you choose. Margin also keeps a little local state, such as which study was open last, in its own app folder, and a short log of app errors that helps diagnose problems. The log holds no study text and stays on your Mac unless you share it. If you sync or back up those folders with another service, that service’s own privacy terms apply.',
+	},
+	{
+		title: 'Updates and feedback',
+		body: 'Margin connects to GitHub only when you ask it to. Check for Updates… reads the list of Margin releases from GitHub and sends nothing about you or your studies. Send Feedback… opens a new GitHub issue in your browser with your Margin version, macOS version and Mac type filled in; you see it before anything is sent, and GitHub’s privacy terms apply to what you post.',
 	},
 	{
 		title: 'This website',
@@ -29,7 +33,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
 	},
 	{
 		title: 'Changes',
-		body: 'If any of this changes, for example if a future version adds an optional feature that uses the network, this page will say so before that version is released. Last updated 3 November 2026.',
+		body: 'If any of this changes, for example if a future version adds an optional feature that uses the network, this page will say so before that version is released. Last updated 12 November 2026.',
 	},
 ]
 
@@ -73,7 +77,16 @@ export default function PrivacyPage() {
 										.
 									</>
 								) : (
-									'A contact address will be listed here before the first release.'
+									<>
+										Open an issue on{' '}
+										<a
+											className="text-sky underline-offset-4 hover:underline"
+											href={site.issuesUrl}
+										>
+											GitHub
+										</a>
+										, or choose Help › Send Feedback… in the app.
+									</>
 								)}
 							</p>
 						</section>

@@ -5,11 +5,11 @@ const principles = [
 	},
 	{
 		title: 'Your studies are files',
-		body: 'Each study is a plain JSON file in a Margin folder in your Documents. Back it up, sync it, or open it with the other tools you already use.',
+		body: 'Each study is a plain JSON file in a folder you choose. Back it up, sync it, or open it with the other tools you already use.',
 	},
 	{
 		title: 'No account',
-		body: 'There is nothing to sign up for, and nothing reports back. No analytics, no tracking.',
+		body: 'There is nothing to sign up for, and nothing reports back. No analytics, no tracking, no automatic update checks.',
 	},
 	{
 		title: 'Made for the keyboard',

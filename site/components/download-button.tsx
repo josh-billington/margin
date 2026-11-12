@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Button, type ButtonProps } from '@/components/ui/button'
 import { site } from '@/lib/site'
 
@@ -13,7 +12,7 @@ export function DownloadButton({
 	if (site.downloadUrl)
 		return (
 			<Button asChild size={size} className={className}>
-				<Link href={site.downloadUrl}>Download for Mac</Link>
+				<a href={site.downloadUrl}>Download for Mac</a>
 			</Button>
 		)
 	return (
