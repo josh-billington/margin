@@ -1,6 +1,7 @@
 {
 	"name": "margin",
-	"version": "1.0.0",
+	"version": "0.9.0-beta.1",
+	"author": "Josh Billington",
 	"main": "./out/main/index.js",
 	"license": "PolyForm-Noncommercial-1.0.0",
 	"devDependencies": {
@@ -64,6 +65,7 @@
 		"import:lexicon": "tsx scripts/import-lexicon/index.ts"
 	},
 	"build": {
+		"copyright": "© 2026 Josh Billington",
 		"appId": "com.margin.app",
 		"productName": "Margin",
 		"directories": {
@@ -89,14 +91,29 @@
 			"**/*.node"
 		],
 		"mac": {
+			"artifactName": "Margin-arm64-mac.zip",
+			"minimumSystemVersion": "12.0",
 			"category": "public.app-category.productivity",
 			"icon": "resources/icon/margin-dark.icns",
 			"identity": "-",
 			"hardenedRuntime": false,
 			"target": [
-				"dmg",
-				"zip"
+				{
+					"target": "dmg",
+					"arch": [
+						"arm64"
+					]
+				},
+				{
+					"target": "zip",
+					"arch": [
+						"arm64"
+					]
+				}
 			]
+		},
+		"dmg": {
+			"artifactName": "Margin-arm64.dmg"
 		}
 	}
 }
