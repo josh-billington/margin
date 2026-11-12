@@ -1,8 +1,8 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, expect, it } from 'vitest'
-import { createLogger, initializeLogging, logFailure } from './logger'
+import { afterEach, describe, expect, it } from 'vitest'
+import { createLogger, initializeLogging, logFailure, stackFrames } from './logger'
 
 const root = mkdtempSync(join(tmpdir(), 'margin-logs-'))
 afterEach(() => rmSync(root, { recursive: true, force: true }))
@@ -43,4 +43,17 @@ it('appends without truncating earlier entries below the cap', () => {
 it('never throws if the logs directory cannot be written', () => {
 	writeFileSync(root, 'not a directory')
 	expect(() => createLogger(root).write('app-start')).not.toThrow()
+})
+
+describe('stackFrames', () => {
+	it('keeps code locations and drops the message line', () => {
+		const error = new Error('private study words')
+		error.stack =
+			'Error: private study words\n    at save (/app/out/main/index.js:10:5)\n    at run (/app/out/main/index.js:20:1)'
+		const frames = stackFrames(error)
+		expect(frames).toBe(
+			'at save (/app/out/main/index.js:10:5) | at run (/app/out/main/index.js:20:1)',
+		)
+		expect(frames).not.toContain('private')
+	})
 })

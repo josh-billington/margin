@@ -39,9 +39,9 @@ export function runApp() {
 		os: process.getSystemVersion(),
 		arch: process.arch,
 	})
-	process.on('uncaughtExceptionMonitor', (error) => logFailure('uncaught-exception', error))
+	process.on('uncaughtExceptionMonitor', (error) => logFailure('uncaught-exception', error, true))
 	process.on('unhandledRejection', (error: unknown) => {
-		logFailure('unhandled-rejection', error)
+		logFailure('unhandled-rejection', error, true)
 	})
 	app.on('browser-window-created', (_event, window) => {
 		window.webContents.on('render-process-gone', (_event, details) =>

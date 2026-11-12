@@ -26,12 +26,24 @@ export function logEvent(event: string, details?: Record<string, string | number
 	logger?.write(event, details)
 }
 
-export function logFailure(event: string, error: unknown) {
+/** Code locations from a stack, without the message line, which can quote user content. */
+export function stackFrames(error: unknown, limit = 8) {
+	if (!(error instanceof Error) || !error.stack) return ''
+	return error.stack
+		.split('\n')
+		.filter((line) => /^\s+at /.test(line))
+		.slice(0, limit)
+		.map((line) => line.trim())
+		.join(' | ')
+}
+
+export function logFailure(event: string, error: unknown, withStack = false) {
 	logEvent(event, {
 		kind: error instanceof Error ? error.name : typeof error,
 		code:
 			error instanceof Error && 'code' in error && typeof error.code === 'string'
 				? error.code
 				: 'unknown',
+		...(withStack ? { stack: stackFrames(error) } : {}),
 	})
 }
