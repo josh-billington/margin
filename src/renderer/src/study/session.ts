@@ -260,7 +260,7 @@ export function retrySave() {
 	const session = current()
 	if (session) {
 		if (session.blocked) {
-			report('Save a copy to preserve this study after an external change.')
+			report('This study changed outside Margin. Save a copy to keep your edits.')
 			return
 		}
 		update(session.study.id, { state: 'unsaved' })

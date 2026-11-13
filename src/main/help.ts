@@ -9,7 +9,7 @@ export function feedbackUrl(version: string, systemVersion: string, arch: string
 	url.searchParams.set('title', '')
 	url.searchParams.set(
 		'body',
-		`What happened?\n\nWhat did you expect?\n\nSteps to reproduce:\n1. \n\nMargin: ${version}\nmacOS: ${systemVersion}\nArchitecture: ${arch}\n\nPlease omit private study content.`,
+		`What happened?\n\nWhat did you expect to happen?\n\nHow can we make it happen again?\n1. \n\nMargin: ${version}\nmacOS: ${systemVersion}\nArchitecture: ${arch}\n\nLeave out anything private from your studies.`,
 	)
 	return url.toString()
 }

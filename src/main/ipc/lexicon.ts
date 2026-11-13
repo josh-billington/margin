@@ -44,7 +44,7 @@ export async function handleLexiconRequest(
 				await new Promise<void>((resolve) => {
 					Menu.buildFromTemplate([
 						{
-							label: multiple ? 'Look up selection' : `Look up "${word}"`,
+							label: multiple ? 'Look Up Selection' : `Look Up "${word}"`,
 							click: () => window.webContents.send(COMMAND_CHANNEL, 'word.lookup'),
 						},
 						{ type: 'separator' },

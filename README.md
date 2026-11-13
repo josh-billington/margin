@@ -1,15 +1,16 @@
 # Margin
 
-A Bible study canvas for macOS. Place passages on an infinite canvas, highlight and
-tag words, write notes, and draw arrows from a note to the exact word it is about.
-Everything works offline, and studies are saved as plain JSON files on your Mac.
+A Bible study canvas for macOS. Lay out verses on an open canvas, tag words in
+colour, write notes and draw arrows from a note to the exact word it's about.
+Margin works offline and saves each study as a plain JSON file on your Mac.
 
 - KJV, Berean Standard Bible (BSB), World English Bible (WEB), and ASV (1901)
   are bundled in full, alongside JPS 1917 (Tanakh)
-- Word-level highlights, tags, and arrows that stay attached as text reflows
-- Reading focus for one passage or verse
-- Offline Strong's lookup for KJV words
-- Autosave with recovery, conflict copies, and external-change detection
+- Highlights, tags and arrows that stay on their words when the text rewraps
+- Focus on one block of verses or a single verse
+- Offline Strong's lookup for words in the KJV
+- Saves as you go, with recovery copies, and keeps your edits in a conflict copy
+  if a study changes outside Margin
 
 Public beta for Apple silicon Macs, running macOS 12 Monterey or later.
 
@@ -17,15 +18,15 @@ Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/
 ([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
 More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
 
-The beta is unsigned and not notarized by Apple. On first launch macOS says it cannot verify
-Margin. Open System Settings → Privacy & Security, click **Open Anyway** next to
-Margin, and confirm. You only need to do this once.
+The beta is unsigned and not notarized by Apple. The first time you open it, macOS says
+it can't verify Margin. Open System Settings → Privacy & Security, click **Open Anyway**
+next to the message about Margin, then confirm. You only need to do this once.
 
-Choose **Margin → Check for Updates…** to check for new beta releases. Nothing
-checks automatically; the app only connects when you ask. Download the new build
-and replace Margin in Applications — your study files stay where they are.
-Use **Help → Send Feedback…** to report a problem, or **Reveal Logs** to find the
-local diagnostic log. There is no telemetry, and logs do not include study content.
+Choose **Margin → Check for Updates…** to look for a new beta. Margin never checks
+on its own. Download the new version and drag it into Applications to replace the old
+one. Your study files stay where they are.
+Choose **Help → Send Feedback…** to report a problem, or **Help → Show Logs in Finder**
+to find the error log. Margin collects no usage data, and the log holds no study text.
 
 ## About this project
 

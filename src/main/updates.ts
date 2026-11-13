@@ -23,14 +23,14 @@ export async function checkForUpdates() {
 			await dialog.showMessageBox({
 				type: 'info',
 				message: 'Margin is up to date',
-				detail: `You’re using Margin ${app.getVersion()}.`,
+				detail: `You're using Margin ${app.getVersion()}.`,
 			})
 		} else {
 			const result = await dialog.showMessageBox({
 				type: 'info',
 				message: `Margin ${release.tag_name.replace(/^v/, '')} is available`,
 				detail:
-					'Download the new version and replace Margin in Applications. Your studies stay on your Mac.',
+					'Download it and drag it into Applications to replace this version. Your studies stay as they are.',
 				buttons: ['Download', 'Later'],
 				defaultId: 0,
 				cancelId: 1,
@@ -41,8 +41,8 @@ export async function checkForUpdates() {
 		await dialog
 			.showMessageBox({
 				type: 'info',
-				message: 'Couldn’t check for updates',
-				detail: 'Please try again later. You can keep studying offline.',
+				message: "Margin couldn't check for updates",
+				detail: 'Check your internet connection and try again. You can keep studying offline.',
 			})
 			.catch(() => undefined)
 	} finally {

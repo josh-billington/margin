@@ -46,11 +46,11 @@ it('exposes feedback, local logs, and the website in Help', () => {
 	if (!Array.isArray(submenu)) throw new Error('Missing Help submenu')
 	expect(submenu.map((item) => item.label).filter(Boolean)).toEqual([
 		'Send Feedback…',
-		'Reveal Logs',
+		'Show Logs in Finder',
 		'Margin Website',
 	])
 	expect(mocks.open).not.toHaveBeenCalled()
-	const reveal = submenu.find((item) => item.label === 'Reveal Logs')?.click
+	const reveal = submenu.find((item) => item.label === 'Show Logs in Finder')?.click
 	const website = submenu.find((item) => item.label === 'Margin Website')?.click
 	if (!reveal || !website) throw new Error('Missing Help actions')
 	Reflect.apply(reveal, undefined, [])

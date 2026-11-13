@@ -59,15 +59,18 @@ export function planDeletion(model: DeletionModel): DeletionPlan {
 
 export function describeImpact(counts: DeletionPlan['counts']) {
 	const noun = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
-	const block = counts.passageNoun
-		? `${counts.passageNoun.replace(/s$/, '')} block`
-		: 'scripture block'
-	const parts = [noun(counts.passages, block)]
+	const what = counts.passageNoun ?? 'verses'
+	const parts = [
+		counts.passages === 1
+			? `${what.endsWith('s') ? 'these' : 'this'} ${what}`
+			: `${counts.passages} blocks of verses`,
+	]
 	if (counts.notes) parts.push(noun(counts.notes, 'note'))
 	if (counts.highlights) parts.push(noun(counts.highlights, 'highlight'))
 	if (counts.arrows) parts.push(noun(counts.arrows, 'arrow'))
 	const list = new Intl.ListFormat('en', { type: 'conjunction' }).format(parts)
-	const lines = [`Margin will delete ${list}.`]
+	// The title already names the verses; only list them when other things go too.
+	const lines = parts.length > 1 ? [`Margin will delete ${list}.`] : []
 	if (counts.clearedAssociations)
 		lines.push(
 			`Margin will keep ${noun(counts.clearedAssociations, 'note')} without a link to the verses.`,

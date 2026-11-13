@@ -25,14 +25,16 @@ export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	return { name: basename(path), location: abbreviate(dirname(path)) }
 }
 
+const NO_PERMISSION =
+	"Margin doesn't have permission to save in the library folder. Check the folder's permissions in Finder, or choose another library folder."
 const FILE_ERRORS: Record<string, string> = {
-	EACCES:
-		'Margin doesn’t have permission to write to the study folder. Check its permissions, or save a copy somewhere else.',
-	EPERM:
-		'Margin doesn’t have permission to write to the study folder. Check its permissions, or save a copy somewhere else.',
-	EROFS: 'The study folder is on a disk that can’t be written to. Save a copy somewhere else.',
-	ENOSPC: 'The disk is full. Free up some space, then try again.',
-	ENOENT: 'The study folder can’t be found. It may have been moved, renamed or disconnected.',
+	EACCES: NO_PERMISSION,
+	EPERM: NO_PERMISSION,
+	EROFS:
+		"Margin can't save to the disk that holds the library folder. Choose another library folder.",
+	ENOSPC: "Margin couldn't save because the disk is full. Free up some space and try again.",
+	ENOENT:
+		"Margin can't find the library folder. If you moved it or it's on a disconnected drive, put it back and try again.",
 }
 const SAVE_FALLBACK =
 	"Margin couldn't save your changes. Try again or save a copy before closing or switching studies."
@@ -275,10 +277,17 @@ export async function registerPersistence(
 				logFailure('close-flush-failed', error)
 				// Never trap the user in the app: offer to leave, keeping the changes as a recovery copy.
 				const window = getWindow()
+				// The heading already says the save failed; only a specific cause adds anything.
+				const cause = errorMessage(error)
 				const options = {
 					type: 'warning' as const,
-					message: 'Margin couldn’t save your latest changes',
-					detail: `${errorMessage(error)}\n\nKeep Margin open to try again or save a copy elsewhere. If you ${quit ? 'quit' : 'close'} now, Margin keeps your changes in a recovery copy and offers it the next time you open the study.`,
+					message: "Margin couldn't save your latest changes",
+					detail: [
+						cause === SAVE_FALLBACK ? null : cause,
+						`Keep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, Margin keeps your changes in a recovery copy and offers it the next time you open the study.`,
+					]
+						.filter(Boolean)
+						.join('\n\n'),
 					buttons: ['Keep Open', quit ? 'Quit Anyway' : 'Close Anyway'],
 					defaultId: 0,
 					cancelId: 0,

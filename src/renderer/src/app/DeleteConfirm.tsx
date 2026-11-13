@@ -4,8 +4,8 @@ import type { DeletionPlan } from '../canvas/annotations/deletion'
 import { cancelDeletion, confirmDeletion, useDeleteRequest } from '../canvas/annotations/editorOps'
 
 function deleteTitle({ passages, passageNoun }: DeletionPlan['counts']) {
-	if (passages > 1) return `Delete ${passages} scripture blocks?`
-	if (!passageNoun) return 'Delete this scripture block?'
+	if (passages > 1) return `Delete ${passages} blocks of verses?`
+	if (!passageNoun) return 'Delete these verses?'
 	return passageNoun.endsWith('s') ? `Delete these ${passageNoun}?` : `Delete this ${passageNoun}?`
 }
 

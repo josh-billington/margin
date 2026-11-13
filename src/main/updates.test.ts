@@ -74,7 +74,7 @@ it.each(['network', 'timeout', 'http', 'json', 'empty', 'external'])(
 		}
 		await expect(checkForUpdates()).resolves.toBeUndefined()
 		expect(electron.dialog.showMessageBox).toHaveBeenLastCalledWith(
-			expect.objectContaining({ message: 'Couldn’t check for updates' }),
+			expect.objectContaining({ message: "Margin couldn't check for updates" }),
 		)
 	},
 )

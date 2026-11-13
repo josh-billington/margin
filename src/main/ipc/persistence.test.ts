@@ -87,7 +87,7 @@ it('words file-system failures for the reader and keeps other messages', () => {
 	const denied = Object.assign(new Error("EACCES: permission denied, open '/x/.tmp'"), {
 		code: 'EACCES',
 	})
-	expect(errorMessage(denied)).toMatch(/^Margin doesn’t have permission/)
+	expect(errorMessage(denied)).toMatch(/^Margin doesn't have permission/)
 	expect(errorMessage(denied)).not.toContain('/x/')
 	expect(errorMessage(new UserFacingError('The study changed on disk.'))).toBe(
 		'The study changed on disk.',

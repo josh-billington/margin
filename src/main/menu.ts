@@ -118,7 +118,7 @@ export function installAppMenu(
 					click: () =>
 						openLink(feedbackUrl(app.getVersion(), process.getSystemVersion(), process.arch)),
 				},
-				{ label: 'Reveal Logs', click: revealLogs },
+				{ label: 'Show Logs in Finder', click: revealLogs },
 				{ type: 'separator' },
 				{ label: 'Margin Website', click: () => openLink(WEBSITE) },
 			],

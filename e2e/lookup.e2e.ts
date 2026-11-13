@@ -30,7 +30,7 @@ async function activateLookupMenu(app: ElectronApplication) {
 	await app.evaluate(({ Menu }) => {
 		Menu.prototype.popup = function (options) {
 			const item = this.items[0]
-			if (!item?.label.startsWith('Look up'))
+			if (!item?.label.startsWith('Look Up'))
 				throw new Error('Lookup must be the first native item')
 			;(globalThis as { lookupMenuLabel?: string }).lookupMenuLabel = item.label
 			item.click()
@@ -75,7 +75,7 @@ test('right-click in every tool, transient lookup, dark/light popover, note + bo
 		}
 		expect(
 			await app.evaluate(() => (globalThis as { lookupMenuLabel?: string }).lookupMenuLabel),
-		).toBe('Look up "created"')
+		).toBe('Look Up "created"')
 		await page.waitForTimeout(1000)
 		expect(await readFile(file, 'utf8')).toBe(before)
 		await created(page).click({ button: 'right' })
@@ -223,7 +223,7 @@ test('multi-word source choices, replacement, copy citation and click-outside di
 		await expect(lookup(page).getByRole('button', { name: /created.*H1254/ })).toBeVisible()
 		expect(
 			await app.evaluate(() => (globalThis as { lookupMenuLabel?: string }).lookupMenuLabel),
-		).toBe('Look up selection')
+		).toBe('Look Up Selection')
 		await lookup(page)
 			.getByRole('button', { name: /created.*H1254/ })
 			.click()

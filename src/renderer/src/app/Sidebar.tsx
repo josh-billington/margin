@@ -50,7 +50,7 @@ export function Sidebar({
 									<AlertDialog.Portal>
 										<AlertDialog.Overlay className="dialog-overlay" />
 										<AlertDialog.Content className="dialog-panel">
-											<AlertDialog.Title>Delete {study.title}?</AlertDialog.Title>
+											<AlertDialog.Title>Delete "{study.title}"?</AlertDialog.Title>
 											<AlertDialog.Description>
 												Margin will delete the study file and keep a recovery copy.
 											</AlertDialog.Description>
