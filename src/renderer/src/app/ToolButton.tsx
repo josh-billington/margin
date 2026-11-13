@@ -16,7 +16,10 @@ export function ToolButton({
 	return (
 		<Tooltip.Root>
 			<Tooltip.Trigger asChild>
-				<button type="button" className={`icon-button ${className}`} aria-label={label}
+				<button
+					type="button"
+					className={`icon-button ${className}`}
+					aria-label={label}
 					// Keep keyboard focus on the canvas so Space-to-pan and tool keys keep working.
 					onMouseDown={(e) => e.preventDefault()}
 					{...props}
