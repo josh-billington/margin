@@ -23,6 +23,22 @@ export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	return { name: basename(path), location: abbreviate(dirname(path)) }
 }
 
+/** File-system failures in words a reader can act on; other errors keep their own message. */
+const FILE_ERRORS: Record<string, string> = {
+	EACCES:
+		'Margin doesn’t have permission to write to the study folder. Check its permissions, or save a copy somewhere else.',
+	EPERM:
+		'Margin doesn’t have permission to write to the study folder. Check its permissions, or save a copy somewhere else.',
+	EROFS: 'The study folder is on a disk that can’t be written to. Save a copy somewhere else.',
+	ENOSPC: 'The disk is full. Free up some space, then try again.',
+	ENOENT: 'The study folder can’t be found. It may have been moved, renamed or disconnected.',
+}
+export function errorMessage(error: unknown): string {
+	const code = error instanceof Error && 'code' in error ? String(error.code) : undefined
+	if (code && FILE_ERRORS[code]) return FILE_ERRORS[code]
+	return error instanceof Error ? error.message : String(error)
+}
+
 export async function registerPersistence(
 	getWindow: () => BrowserWindow | null,
 	onAppearanceChange: (preferences: Preferences) => void = () => {},
@@ -80,7 +96,7 @@ export async function registerPersistence(
 					ok: false,
 					error: {
 						code: 'SAVE_FAILED',
-						message: error instanceof Error ? error.message : String(error),
+						message: errorMessage(error),
 					},
 				})
 			}
@@ -223,7 +239,7 @@ export async function registerPersistence(
 				getWindow()?.webContents.send('margin:library:event', {
 					kind: 'error',
 					studyId: '',
-					message: String(error),
+					message: errorMessage(error),
 				})
 			})
 			.finally(() => {
