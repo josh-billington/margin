@@ -24,6 +24,9 @@ import './canvas.css'
 const shapeUtils = [PassageShapeUtil, NoteShapeUtil, MarginArrowShapeUtil]
 const tools = [NoteTool, HighlightTool]
 const components = {
+	// tldraw's stock menu (Move to page, Export as, Reorder…) survives hideUi and does not fit the
+	// app; words get the native lookup menu instead, and editing commands live in the menu bar.
+	ContextMenu: null,
 	OnTheCanvas: () => (
 		<>
 			<FocusLayer />
