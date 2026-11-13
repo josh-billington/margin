@@ -3,6 +3,7 @@ import { createNoteForWord, phraseAnchorWord } from '../bindings/noteToWord'
 import { targetFromElement } from '../bindings/words'
 import { wordFor } from '../highlights/tagging'
 import { newNoteProps } from '../shapes/note/newNote'
+import { revealShape } from '../focus/actions'
 
 /**
  * Note with selected words: a new note beside the passage, already joined by an arrow to the
@@ -31,5 +32,7 @@ export function noteFromSelection(editor: Editor) {
 	if (!noteId) return false
 	selection.removeAllRanges()
 	editor.setCurrentTool('select').select(noteId).setEditingShape(noteId)
+	// The note sits in the margin beside the block, which can be off-screen: keep it in view.
+	revealShape(editor, noteId)
 	return true
 }
