@@ -598,6 +598,11 @@ kbd {
 	justify-content: space-between;
 	gap: var(--space-5);
 }
+/* One width for every pop-up in a settings column, so the values and chevrons line up. */
+.select-row select {
+	flex: none;
+	width: 104px;
+}
 .select-row small {
 	display: block;
 	color: var(--text-muted);

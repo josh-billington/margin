@@ -31,6 +31,13 @@ test('first launch sets the translation and never shows setup again', async () =
 		await expect(access(dirs.library)).rejects.toThrow()
 		expect(await studyFiles(dirs)).toEqual([])
 		await setup.getByLabel('Default translation').selectOption('bsb')
+		// One choice at setup covers the Old Testament too.
+		await expect
+			.poll(async () => {
+				const prefs = await page.evaluate(() => window.margin.prefs.get())
+				return prefs.ok && [prefs.data.defaultTranslation, prefs.data.oldTestamentTranslation]
+			})
+			.toEqual(['bsb', 'bsb'])
 		await setup.getByRole('button', { name: 'Start studying' }).click()
 		await expect(setup).toBeHidden()
 		await expect.poll(async () => (await studyFiles(dirs)).length).toBe(1)

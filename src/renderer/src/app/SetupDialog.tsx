@@ -79,7 +79,13 @@ export function SetupDialog() {
 								disabled={!prefs || busy}
 								onChange={(event) => {
 									const defaultTranslation = translationIdSchema.parse(event.target.value)
-									void run(() => updatePrefs({ defaultTranslation }))
+									// One choice at setup covers both testaments; Settings can split them later.
+									void run(() =>
+										updatePrefs({
+											defaultTranslation,
+											oldTestamentTranslation: defaultTranslation,
+										}),
+									)
 								}}
 							>
 								{(['bsb', 'web', 'asv', 'kjv'] as const).map((id) => (
