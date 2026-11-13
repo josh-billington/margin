@@ -10,8 +10,10 @@ it('runs ordered app-owned migrations and leaves newer input untouched', () => {
 	expect(newer).toEqual({ schemaVersion: 5 })
 })
 it('rejects missing and non-advancing migration steps', () => {
-	expect(() => migrateVersioned({ schemaVersion: 0 }, 1, new Map())).toThrow('No migration')
+	expect(() => migrateVersioned({ schemaVersion: 0 }, 1, new Map())).toThrow(
+		"Margin couldn't update this study's file format. Update Margin and try again.",
+	)
 	expect(() => migrateVersioned({ schemaVersion: 0 }, 1, new Map([[0, (input) => input]]))).toThrow(
-		'exactly one',
+		"Margin couldn't update this study's file format. Update Margin and try again.",
 	)
 })

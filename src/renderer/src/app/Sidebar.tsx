@@ -27,7 +27,7 @@ export function Sidebar({
 						<Plus {...iconMd} aria-hidden="true" />
 					</ToolButton>
 				</div>
-				{studies.length === 0 && <p className="sidebar-hint">Your studies will live here.</p>}
+				{studies.length === 0 && <p className="sidebar-hint">Your studies appear here.</p>}
 				<ul className="library-study-list">
 					{studies.map((study) => (
 						<li key={study.id} className="library-study-row">
@@ -52,8 +52,7 @@ export function Sidebar({
 										<AlertDialog.Content className="dialog-panel">
 											<AlertDialog.Title>Delete {study.title}?</AlertDialog.Title>
 											<AlertDialog.Description>
-												The study file will be removed. A recovery version stays in Margin’s app
-												data.
+												Margin will delete the study file and keep a recovery copy.
 											</AlertDialog.Description>
 											<div className="dialog-actions">
 												<AlertDialog.Cancel asChild>

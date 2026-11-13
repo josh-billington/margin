@@ -95,10 +95,14 @@ export class SqliteBibleProvider implements BibleProvider {
 				!this.verseNumbers(range.start.book, range.start.chapter).includes(range.start.verse) ||
 				!this.verseNumbers(range.end.book, range.end.chapter).includes(range.end.verse)
 			)
-				throw new RangeError('That verse does not exist in this edition.')
+				throw new RangeError(
+					'This translation does not contain that verse. Choose another verse or translation.',
+				)
 			for (let chapter = range.start.chapter; chapter <= range.end.chapter; chapter++) {
 				if (!this.verseNumbers(range.start.book, chapter).length)
-					throw new RangeError('That chapter does not exist in this edition.')
+					throw new RangeError(
+						'This translation does not contain that chapter. Choose another chapter or translation.',
+					)
 			}
 			const rows = this.db
 				.prepare(

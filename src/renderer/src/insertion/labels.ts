@@ -19,7 +19,7 @@ export function formatRange({ start, end }: PassageRange): string {
 	return `${bookName(start.book)} ${verseLabel(start)}${tail}`
 }
 
-export const formatRanges = (ranges: readonly PassageRange[]) => ranges.map(formatRange).join('; ')
+export const formatRanges = (ranges: readonly PassageRange[]) => ranges.map(formatRange).join(', ')
 
 export type BlockNoun = 'verse' | 'verses' | 'chapter' | 'chapters'
 
@@ -52,7 +52,7 @@ export function formatBlockRange(range: PassageRange, translation: TranslationId
 }
 
 export const formatBlockRanges = (ranges: readonly PassageRange[], translation: TranslationId) =>
-	ranges.map((range) => formatBlockRange(range, translation)).join('; ')
+	ranges.map((range) => formatBlockRange(range, translation)).join(', ')
 
 /** Label for a block: reference, then the short translation name ("Amos 1:3–5 · JPS 1917"). */
 export const blockTitle = (ranges: readonly PassageRange[], translation: TranslationId) =>

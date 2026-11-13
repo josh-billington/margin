@@ -50,7 +50,7 @@ export function TranslationControl({
 
 	return (
 		<div className="translation-control" role="group" aria-label="Translation">
-			<span>Translation: {translationNames[current].short}</span>
+			<span>Current translation {translationNames[current].short}</span>
 			<select
 				aria-label="Change translation to"
 				value={target}
@@ -85,22 +85,22 @@ export function TranslationControl({
 				<div className="translation-options" role="alert">
 					{pending.kind === 'confirmation-required' ? (
 						<p>
-							These verses split or merge in {translationNames[target].short}. Resolved to{' '}
-							<strong>{formatRanges(pending.ranges)}</strong>:
+							{translationNames[target].short} splits or combines these verses. Use{' '}
+							<strong>{formatRanges(pending.ranges)}</strong>?
 						</p>
 					) : (
-						<p>Some verses have no equivalent in {translationNames[target].short}:</p>
+						<p>{translationNames[target].short} has no matching text for some verses.</p>
 					)}
 					<ul>
 						{pending.partialGroups.map((group, i) => (
 							<li key={i}>
-								{formatRange({ start: group.source[0]!, end: group.source.at(-1)! })} →{' '}
+								{formatRange({ start: group.source[0]!, end: group.source.at(-1)! })} becomes{' '}
 								{formatRange({ start: group.target[0]!, end: group.target.at(-1)! })}
 							</li>
 						))}
 						{pending.unmapped.map((item) => (
 							<li key={`${item.ref.chapter}:${item.ref.verse}`}>
-								{formatRange({ start: item.ref, end: item.ref })}: {item.reason}
+								{formatRange({ start: item.ref, end: item.ref })}. {item.reason}
 							</li>
 						))}
 					</ul>

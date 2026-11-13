@@ -51,13 +51,13 @@ export function parseReference(
 	if (!match)
 		return fail(
 			'INVALID_SYNTAX',
-			'Enter a book and chapter, optionally with a verse or range. Cross-book ranges are not supported.',
+			'Enter a book and chapter, such as Amos 1 or Amos 1:3–5. Choose verses from one book at a time.',
 		)
 	const candidates = findBooks(match[1] ?? '')
 	if (!candidates.length)
 		return fail(
 			'UNKNOWN_BOOK',
-			'Book name is not recognized.',
+			"Margin doesn't recognise this book name. Check the name and try again.",
 			books
 				.filter((book) => book.name.toLowerCase().startsWith((match[1] ?? '').toLowerCase()))
 				.map((book) => book.name),
@@ -69,13 +69,17 @@ export function parseReference(
 			candidates.map((book) => book.name),
 		)
 	const book = candidates[0]
-	if (!book) return fail('UNKNOWN_BOOK', 'Book name is not recognized.')
+	if (!book)
+		return fail(
+			'UNKNOWN_BOOK',
+			"Margin doesn't recognise this book name. Check the name and try again.",
+		)
 	// An unqualified Old Testament reference uses the separate OT default when one is set.
 	if (!qualifier && book.testament === 'old' && oldTestamentTranslation)
 		translation = oldTestamentTranslation
 	const notice =
 		translation === 'jps1917' && book.testament === 'new'
-			? 'JPS 1917 contains the Tanakh only. KJV is offered for this New Testament reference; confirm KJV before adding.'
+			? 'JPS 1917 contains only the Tanakh. To add these New Testament verses, use KJV.'
 			: null
 	if (notice) translation = 'kjv'
 	const startChapter = Number(match[2])
@@ -93,10 +97,16 @@ export function parseReference(
 		endChapter < startChapter ||
 		(endChapter === startChapter && endVerse < startVerse)
 	)
-		return fail('INVALID_RANGE', 'That chapter or verse range does not exist in this edition.')
+		return fail(
+			'INVALID_RANGE',
+			'This translation does not contain these chapters or verses. Check the reference or choose another translation.',
+		)
 	for (let chapter = startChapter; chapter <= endChapter; chapter++) {
 		if (!boundaries(translation, book.id, chapter).length)
-			return fail('INVALID_RANGE', 'The range includes a missing chapter.')
+			return fail(
+				'INVALID_RANGE',
+				'This translation does not contain every chapter in this range. Choose another reference or translation.',
+			)
 	}
 	const range = {
 		start: { book: book.id, chapter: startChapter, verse: startVerse },

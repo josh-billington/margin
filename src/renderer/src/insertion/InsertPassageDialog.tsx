@@ -56,7 +56,7 @@ function PreviewBody({
 				<div role={insist ? 'alert' : undefined} aria-live={insist ? undefined : 'polite'}>
 					<p className={insist ? 'insert-error' : 'insert-hint'}>{state.error.message}</p>
 					{state.error.candidates.length > 0 && (
-						<ul className="insert-candidates" aria-label="Did you mean">
+						<ul className="insert-candidates" aria-label="Suggested books">
 							{state.error.candidates.map((candidate) => (
 								<li key={candidate}>
 									<button type="button" onClick={() => onPick(candidate)}>
@@ -149,7 +149,7 @@ export function InsertPassageDialog({
 				>
 					<Dialog.Title className="insert-title">Add verses</Dialog.Title>
 					<Dialog.Description id="insert-description" className="sr-only">
-						Type a reference, check the resolved verses, then add them.
+						Enter a Bible reference. Check the verses before adding them.
 					</Dialog.Description>
 					<form
 						onSubmit={(event) => {
@@ -204,7 +204,7 @@ export function InsertPassageDialog({
 								{busy
 									? 'Adding…'
 									: switched && resolved
-										? `Use ${translationNames[resolved.translation].short} and add`
+										? `Add verses in ${translationNames[resolved.translation].short}`
 										: `Add ${resolved ? blockNoun(resolved.ranges, resolved.translation) : 'verses'}`}
 							</button>
 						</div>

@@ -145,19 +145,19 @@ export const commands: AppCommand[] = [
 	{ id: 'view.zoomOut', title: 'Zoom out', group: 'View', run: withEditor((e) => e.zoomOut()) },
 	{
 		id: 'appearance.system',
-		title: 'Appearance: system',
+		title: 'Use system appearance',
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'system' }),
 	},
 	{
 		id: 'appearance.light',
-		title: 'Appearance: light',
+		title: 'Use light appearance',
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'light' }),
 	},
 	{
 		id: 'appearance.dark',
-		title: 'Appearance: dark',
+		title: 'Use dark appearance',
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'dark' }),
 	},

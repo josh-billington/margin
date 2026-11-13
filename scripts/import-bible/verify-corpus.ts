@@ -154,7 +154,7 @@ async function verify() {
 		assert.equal(fallback.kind, 'resolved')
 		if (fallback.kind === 'resolved') {
 			assert.equal(fallback.translation, 'kjv')
-			assert(fallback.notice?.includes('confirm KJV'))
+			assert(fallback.notice?.includes('use KJV'))
 			assert.equal(fallback.numberingSystem, 'kjv')
 		}
 		await assert.rejects(

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Editor } from 'tldraw'
 import { toast } from 'sonner'
+import { UserFacingError, userMessage } from '@shared/errors'
 import type { PersistedStudy } from '@shared/study/migrations'
 import type { LibraryFolder, LockNotice, StudySummary } from '@shared/ipc/contract'
 import type { SaveState } from '../app/SaveIndicator'
@@ -60,11 +61,11 @@ export function update(id: string, change: Partial<Session>) {
 export function unwrap<T>(
 	result: { ok: true; data: T } | { ok: false; error: { message: string } },
 ): T {
-	if (!result.ok) throw new Error(result.error.message)
+	if (!result.ok) throw new UserFacingError(result.error.message)
 	return result.data
 }
 export function report(error: unknown) {
-	toast.error(error instanceof Error ? error.message : String(error))
+	toast.error(userMessage(error, "Margin couldn't finish this action. Try again."))
 }
 export function install(study: PersistedStudy) {
 	useStudySession.setState((state) => ({

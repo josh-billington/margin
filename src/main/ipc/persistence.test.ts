@@ -1,3 +1,4 @@
+import { UserFacingError } from '../../shared/errors'
 import { afterEach, expect, it, vi } from 'vitest'
 import { access, mkdtemp, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -88,6 +89,9 @@ it('words file-system failures for the reader and keeps other messages', () => {
 	})
 	expect(errorMessage(denied)).toMatch(/^Margin doesn’t have permission/)
 	expect(errorMessage(denied)).not.toContain('/x/')
-	expect(errorMessage(new Error('The study changed on disk.'))).toBe('The study changed on disk.')
-	expect(errorMessage('plain')).toBe('plain')
+	expect(errorMessage(new UserFacingError('The study changed on disk.'))).toBe(
+		'The study changed on disk.',
+	)
+	expect(errorMessage(new Error('internal detail'), 'Try again.')).toBe('Try again.')
+	expect(errorMessage('plain')).not.toBe('plain')
 })

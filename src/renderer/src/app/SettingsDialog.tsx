@@ -22,7 +22,7 @@ export function SettingsDialog({
 				<Dialog.Content className="dialog-panel" aria-describedby="settings-description">
 					<Dialog.Title>Settings</Dialog.Title>
 					<Dialog.Description id="settings-description" className="sr-only">
-						Translations, appearance and note font preferences.
+						Choose a translation, note font and appearance.
 					</Dialog.Description>
 					<label className="select-row">
 						<span>Default translation</span>
@@ -88,7 +88,7 @@ export function SettingsDialog({
 							checked={displayNotesInPlainFont}
 							onChange={(e) => void setPreferences({ displayNotesInPlainFont: e.target.checked })}
 						/>
-						<span>Show every note in the system font</span>
+						<span>Show all notes in the system font</span>
 					</label>
 					{isMac && (
 						<label className="check-row">

@@ -38,7 +38,7 @@ export async function handleBibleRequest(channel: string, payload: unknown): Pro
 				message:
 					error instanceof RangeError
 						? error.message
-						: 'Bundled scripture could not be read. Run yarn import:bible in development or reinstall Margin.',
+						: "Margin couldn't load the Bible text. Reinstall Margin and try again.",
 			},
 		}
 	}

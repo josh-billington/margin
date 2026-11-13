@@ -44,7 +44,7 @@ export async function handleLexiconRequest(
 				await new Promise<void>((resolve) => {
 					Menu.buildFromTemplate([
 						{
-							label: multiple ? 'Look up selection' : `Look up “${word}”`,
+							label: multiple ? 'Look up selection' : `Look up "${word}"`,
 							click: () => window.webContents.send(COMMAND_CHANNEL, 'word.lookup'),
 						},
 						{ type: 'separator' },
@@ -71,8 +71,7 @@ export async function handleLexiconRequest(
 			ok: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message:
-					'The bundled dictionary could not be read. Reinstall Margin or run yarn import:lexicon in development.',
+				message: "Margin couldn't read the dictionary. Reinstall Margin and try again.",
 			},
 		}
 	}

@@ -30,7 +30,7 @@ test('tag sidebar: create, rename, recolor, delete with reassign', async () => {
 		const create = page.getByRole('dialog', { name: 'New tag' })
 		await create.getByRole('textbox').fill('Mercy')
 		await create.getByRole('button', { name: /^(Create|Add)/ }).click()
-		await expect(sidebar.getByRole('button', { name: /^Mercy, 0 highlights/ })).toBeVisible()
+		await expect(sidebar.getByRole('button', { name: 'Mercy. Show 0 highlights' })).toBeVisible()
 
 		// The New tag popover is still open here; opening Edit tag must not blank the canvas.
 		// Rename and recolor.
@@ -56,11 +56,13 @@ test('tag sidebar: create, rename, recolor, delete with reassign', async () => {
 			.getByRole('button', { name: /^Delete tag/ })
 			.click()
 		const confirm = page.getByRole('alertdialog')
-		await confirm.getByLabel('Reassign to').selectOption({ label: 'Mercy' })
+		await confirm.getByLabel('Move highlights to tag').selectOption({ label: 'Mercy' })
 		await confirm.getByRole('button', { name: 'Delete tag' }).click()
 		await expect(page.locator('[data-word][data-tag-name="Wrath"]')).toHaveCount(0)
 		await expect(page.locator('[data-word][data-tag-name="Mercy"]').first()).toBeVisible()
-		await expect(sidebar.getByRole('button', { name: /^Mercy, [1-9]/ })).toBeVisible()
+		await expect(
+			sidebar.getByRole('button', { name: /^Mercy\. Show [1-9]\d* highlights?$/ }),
+		).toBeVisible()
 		await closeApp(app)
 	} finally {
 		await removeDirs(dirs)

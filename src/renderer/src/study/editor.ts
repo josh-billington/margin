@@ -1,5 +1,6 @@
 import { getSnapshot, loadSnapshot, type Editor } from 'tldraw'
 import { studyFileEnvelopeSchema } from '@shared/study/types'
+import { UserFacingError } from '@shared/errors'
 import type { TldrawDocumentSnapshot } from '@shared/study/types'
 import type { PersistedStudy } from '@shared/study/migrations'
 import { Autosave } from './autosave'
@@ -95,7 +96,9 @@ export function studySnapshot(study: PersistedStudy, editor: Editor) {
 	const snapshot = study.document as unknown as TldrawDocumentSnapshot
 	const migrated = editor.store.schema.migrateStoreSnapshot(snapshot)
 	if (migrated.type === 'error')
-		throw new Error(`Cannot migrate this study's canvas: ${migrated.reason}`)
+		throw new UserFacingError(
+			"Margin couldn't open this study's canvas. Update Margin and try again.",
+		)
 	for (const record of Object.values(migrated.value))
 		editor.store.schema.validateRecord(editor.store, record, 'initialize', null)
 	return snapshot

@@ -60,10 +60,15 @@ export function expandRanges(
 			!boundaries(translation, range.start.book, range.start.chapter).includes(range.start.verse) ||
 			!boundaries(translation, range.end.book, range.end.chapter).includes(range.end.verse)
 		)
-			throw new RangeError('Mapping range endpoint does not exist.')
+			throw new RangeError(
+				'This translation does not contain that verse. Choose another verse or translation.',
+			)
 		for (let chapter = range.start.chapter; chapter <= range.end.chapter; chapter++) {
 			const numbers = boundaries(translation, range.start.book, chapter)
-			if (!numbers.length) throw new RangeError('Mapping range contains a missing chapter.')
+			if (!numbers.length)
+				throw new RangeError(
+					'This translation does not contain that chapter. Choose another chapter or translation.',
+				)
 			for (const verse of numbers)
 				if (
 					(chapter !== range.start.chapter || verse >= range.start.verse) &&
@@ -93,7 +98,10 @@ export function mapPassage(
 		entry[from].forEach((ref) => covered.add(verseKey(ref)))
 		if (!entry[to].length) {
 			for (const ref of entry[from].filter((ref) => selected.has(verseKey(ref))))
-				unmapped.push({ ref, reason: `This verse has no equivalent text in ${to.toUpperCase()}.` })
+				unmapped.push({
+					ref,
+					reason: `The selected translation has no matching text for this verse.`,
+				})
 			continue
 		}
 		if (!entry[from].every((ref) => selected.has(verseKey(ref))))
@@ -108,7 +116,11 @@ export function mapPassage(
 	}
 	for (const ref of expandRanges(ranges, from, boundaries))
 		if (!covered.has(verseKey(ref)))
-			unmapped.push({ ref, reason: 'Reference has no verified mapping entry.' })
+			unmapped.push({
+				ref,
+				reason:
+					"Margin couldn't find matching verses in the selected translation. Keep the current translation or choose another.",
+			})
 	return {
 		kind: unmapped.length
 			? ('incomplete' as const)

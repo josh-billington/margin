@@ -15,5 +15,5 @@ export function formatScriptureCopy(words: readonly CopiedWord[], editionName: s
 		.join('')
 		.trim()
 	const reference = formatRange({ start: words[0]!.verse, end: words.at(-1)!.verse })
-	return `${body}\n— ${reference}, ${editionName}`
+	return `${body}\n${reference}, ${editionName}`
 }

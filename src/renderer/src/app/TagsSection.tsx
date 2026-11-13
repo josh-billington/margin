@@ -98,7 +98,7 @@ function DeleteTagDialog({
 			<AlertDialog.Portal>
 				<AlertDialog.Overlay className="dialog-overlay" />
 				<AlertDialog.Content className="dialog-panel">
-					<AlertDialog.Title>Delete “{tag.name}”?</AlertDialog.Title>
+					<AlertDialog.Title>Delete "{tag.name}"?</AlertDialog.Title>
 					<AlertDialog.Description>
 						{count === 1 ? '1 highlight uses' : `${count} highlights use`} this tag. You can undo
 						this.
@@ -118,7 +118,7 @@ function DeleteTagDialog({
 							value={target}
 							disabled={mode !== 'reassign'}
 							onChange={(e) => setTarget(e.target.value)}
-							aria-label="Reassign to"
+							aria-label="Move highlights to tag"
 						>
 							{others.map((t) => (
 								<option key={t.id} value={t.id}>
@@ -187,7 +187,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 						<button
 							className="row-button tag-pick"
 							aria-pressed={selected === tag.id}
-							aria-label={`${tag.name}, ${counts[tag.id] ?? 0} highlights. Show matches`}
+							aria-label={`${tag.name}. Show ${counts[tag.id] ?? 0} ${counts[tag.id] === 1 ? 'highlight' : 'highlights'}`}
 							onClick={() => {
 								selectTag(tag.id)
 								if (editor && tag.id !== selected) stepTagMatch(editor, 1)
@@ -280,7 +280,9 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 							onClick={() => {
 								const added = addStarterTags(editor)
 								toast.info(
-									added ? `Added ${added} starter tags.` : 'Starter tags are already here.',
+									added
+										? `Added ${added} starter tags.`
+										: 'This study already has the starter tags.',
 								)
 							}}
 						>

@@ -113,7 +113,7 @@ export function TagPopover({
 					<strong>{existing ? 'Highlight' : 'Tag selected words'}</strong>
 					{existing && (
 						<ColorChoices
-							label="Highlight color"
+							label="Highlight colour"
 							value={existing.color ?? null}
 							onChange={recolour}
 						/>
@@ -163,7 +163,7 @@ export function TagPopover({
 							</label>
 							<ColorChoices value={color} onChange={setColor} />
 							<button className="popover-action" disabled={!name.trim()}>
-								Create and apply
+								Create and apply tag
 							</button>
 						</form>
 					)}

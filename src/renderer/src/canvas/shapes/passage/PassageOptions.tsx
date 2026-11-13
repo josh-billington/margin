@@ -66,8 +66,8 @@ export function PassageOptions({
 								update({ layout: e.target.value === 'flow' ? 'flow' : 'verse-per-line' })
 							}
 						>
-							<option value="flow">Flow</option>
-							<option value="verse-per-line">Verse per line</option>
+							<option value="flow">Paragraphs</option>
+							<option value="verse-per-line">One verse per line</option>
 						</select>
 					</label>
 					<label>
@@ -84,10 +84,10 @@ export function PassageOptions({
 							checked={shape.props.showSuppliedWordItalics}
 							onChange={(e) => update({ showSuppliedWordItalics: e.target.checked })}
 						/>
-						Supplied-word italics
+						Italicise words added in translation
 					</label>
 					<label>
-						Scripture size
+						Text size
 						<input
 							type="range"
 							min="0.6"

@@ -8,7 +8,7 @@ const colorName = (color: string) => color.charAt(0).toUpperCase() + color.slice
 export function ColorChoices({
 	value,
 	onChange,
-	label = 'Tag color',
+	label = 'Tag colour',
 }: {
 	value: PaletteColor | null
 	onChange: (color: PaletteColor) => void

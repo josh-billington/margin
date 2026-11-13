@@ -84,8 +84,8 @@ export function validateLoadedAnnotations(editor: Editor) {
 		)
 	const highlights = found.filter((f) => f.kind === 'highlight').length
 	toast.warning(
-		`${found.length} annotation${found.length === 1 ? '' : 's'} no longer match their scripture text` +
-			` (${highlights} highlight${highlights === 1 ? '' : 's'}, ${found.length - highlights} arrow target${found.length - highlights === 1 ? '' : 's'}). They were kept in this study's recovery data and not moved to other words.`,
+		`Margin found ${highlights} highlight${highlights === 1 ? '' : 's'} and ${found.length - highlights} arrow target${found.length - highlights === 1 ? '' : 's'} that no longer match the verses. ` +
+			`Margin kept them in this study's recovery data without moving them to other words.`,
 		{ duration: 12000 },
 	)
 	return found.length

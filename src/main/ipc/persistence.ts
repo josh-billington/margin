@@ -9,6 +9,7 @@ import { migrateStudy } from '../../shared/study/migrations'
 import { ipcContract } from '../../shared/ipc/contract'
 import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
 import { logEvent, logFailure } from '../logger'
+import { userMessage } from '../../shared/errors'
 
 export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
@@ -24,7 +25,6 @@ export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	return { name: basename(path), location: abbreviate(dirname(path)) }
 }
 
-/** File-system failures in words a reader can act on; other errors keep their own message. */
 const FILE_ERRORS: Record<string, string> = {
 	EACCES:
 		'Margin doesn’t have permission to write to the study folder. Check its permissions, or save a copy somewhere else.',
@@ -34,10 +34,13 @@ const FILE_ERRORS: Record<string, string> = {
 	ENOSPC: 'The disk is full. Free up some space, then try again.',
 	ENOENT: 'The study folder can’t be found. It may have been moved, renamed or disconnected.',
 }
-export function errorMessage(error: unknown): string {
+const SAVE_FALLBACK =
+	"Margin couldn't save your changes. Try again or save a copy before closing or switching studies."
+/** File-system failures in words a reader can act on; other errors only show if written for the user. */
+export function errorMessage(error: unknown, fallback = SAVE_FALLBACK): string {
 	const code = error instanceof Error && 'code' in error ? String(error.code) : undefined
 	if (code && FILE_ERRORS[code]) return FILE_ERRORS[code]
-	return error instanceof Error ? error.message : String(error)
+	return userMessage(error, fallback)
 }
 
 export async function registerPersistence(
@@ -71,6 +74,7 @@ export async function registerPersistence(
 	function handle<I extends z.ZodType, O extends z.ZodType>(
 		operation: { channel: string; request: I; response: O },
 		action: (request: z.output<I>) => Promise<unknown>,
+		failureMessage = "Margin couldn't update the library. Check that you can open the library folder and try again.",
 	) {
 		ipcMain.removeHandler(operation.channel)
 		ipcMain.handle(operation.channel, async (event, payload: unknown) => {
@@ -82,13 +86,19 @@ export async function registerPersistence(
 			)
 				return operation.response.parse({
 					ok: false,
-					error: { code: 'FORBIDDEN', message: 'Untrusted IPC sender.' },
+					error: {
+						code: 'FORBIDDEN',
+						message: 'Margin blocked a request from another window. Try again in the main window.',
+					},
 				})
 			const parsed = operation.request.safeParse(payload)
 			if (!parsed.success)
 				return operation.response.parse({
 					ok: false,
-					error: { code: 'INVALID_REQUEST', message: 'Invalid request.' },
+					error: {
+						code: 'INVALID_REQUEST',
+						message: "Margin couldn't read this request. Try again.",
+					},
 				})
 			try {
 				return operation.response.parse({ ok: true, data: await action(parsed.data) })
@@ -98,7 +108,7 @@ export async function registerPersistence(
 					ok: false,
 					error: {
 						code: 'SAVE_FAILED',
-						message: errorMessage(error),
+						message: errorMessage(error, failureMessage),
 					},
 				})
 			}
@@ -147,10 +157,16 @@ export async function registerPersistence(
 	handle(ipcContract.library.listStudies, () =>
 		data.setup === 'pending' ? Promise.resolve([]) : library.list(),
 	)
-	handle(ipcContract.library.openStudy, ({ studyId }) => library.open(studyId))
+	handle(
+		ipcContract.library.openStudy,
+		({ studyId }) => library.open(studyId),
+		"Margin couldn't open this study. Restore a backup or open another study.",
+	)
 	handle(ipcContract.library.createStudy, ({ title, document }) => library.create(title, document))
-	handle(ipcContract.library.saveStudy, ({ study, sequence, base }) =>
-		library.save(migrateStudy(study), sequence, base),
+	handle(
+		ipcContract.library.saveStudy,
+		({ study, sequence, base }) => library.save(migrateStudy(study), sequence, base),
+		"Margin couldn't save your changes. Check that you can save files in the library folder, then try again or save a copy.",
 	)
 	handle(ipcContract.library.closeStudy, async ({ studyId }) => {
 		await library.flush()
@@ -169,21 +185,37 @@ export async function registerPersistence(
 		await library.flush()
 		return null
 	})
-	handle(ipcContract.prefs.get, async () => data.preferences)
-	handle(ipcContract.prefs.set, async (patch) => {
-		await data.update((settings) => {
-			Object.assign(settings.preferences, patch)
-		})
-		if ('appearance' in patch) onAppearanceChange(data.preferences)
-		return data.preferences
-	})
-	handle(ipcContract.camera.get, async ({ studyId }) => data.camera(studyId))
-	handle(ipcContract.camera.set, async ({ studyId, camera }) => {
-		await data.update((settings) => {
-			settings.cameras[studyId] = camera
-		})
-		return null
-	})
+	handle(
+		ipcContract.prefs.get,
+		async () => data.preferences,
+		"Margin couldn't load your settings. Restart Margin and try again.",
+	)
+	handle(
+		ipcContract.prefs.set,
+		async (patch) => {
+			await data.update((settings) => {
+				Object.assign(settings.preferences, patch)
+			})
+			if ('appearance' in patch) onAppearanceChange(data.preferences)
+			return data.preferences
+		},
+		"Margin couldn't save your settings. Try again.",
+	)
+	handle(
+		ipcContract.camera.get,
+		async ({ studyId }) => data.camera(studyId),
+		"Margin couldn't restore the canvas view. Close the study and open it again.",
+	)
+	handle(
+		ipcContract.camera.set,
+		async ({ studyId, camera }) => {
+			await data.update((settings) => {
+				settings.cameras[studyId] = camera
+			})
+			return null
+		},
+		"Margin couldn't save the canvas view. Try again.",
+	)
 
 	let closing = false
 	let requesting = false

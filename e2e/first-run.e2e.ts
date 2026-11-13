@@ -19,7 +19,7 @@ test('first launch sets the translation and never shows setup again', async () =
 			'King James Version',
 		])
 		await page.keyboard.press('Tab')
-		await expect(setup.getByRole('button', { name: 'Choose…' })).toBeFocused()
+		await expect(setup.getByRole('button', { name: 'Choose a folder…' })).toBeFocused()
 		await page.keyboard.press('Tab')
 		await expect(setup.getByLabel('Default translation')).toBeFocused()
 		await page.keyboard.press('Enter')
