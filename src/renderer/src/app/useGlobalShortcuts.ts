@@ -16,6 +16,8 @@ export function useGlobalShortcuts() {
 			)
 			if (!match) return
 			event.preventDefault()
+			// Holding ⌘N makes one study, not one per key repeat.
+			if (event.repeat && match.id === 'study.new') return
 			if (match.id === 'word.lookup') event.stopImmediatePropagation()
 			runCommand(match.id)
 		}

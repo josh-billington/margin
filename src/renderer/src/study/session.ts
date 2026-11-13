@@ -116,7 +116,17 @@ export async function openStudy(id: string) {
 		report(error)
 	}
 }
+let creating = false
 export async function createStudy() {
+	if (creating) return
+	creating = true
+	try {
+		await createStudyNow()
+	} finally {
+		creating = false
+	}
+}
+async function createStudyNow() {
 	if (useStudySession.getState().closing || useStudySession.getState().readOnly) return
 	if (!(await flushStudies())) return
 	const editor = getBootstrap() ?? editors.values().next().value

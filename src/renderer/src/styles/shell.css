@@ -413,7 +413,11 @@ kbd {
 	background: var(--chrome-bg);
 	border-right: 1px solid var(--border);
 	overflow: hidden auto;
-	scrollbar-gutter: stable;
+	/* Scrolls by trackpad or wheel without ever drawing a scroll bar. */
+	scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar {
+	display: none;
 }
 .sidebar-library {
 	margin-top: auto;

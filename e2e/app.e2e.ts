@@ -163,6 +163,24 @@ test('note: create, edit text, options popover size and font', async () => {
 	expect(JSON.stringify(note.props)).toContain('Remember the covenant of grace')
 })
 
+test('holding ⌘N creates one study, not one per key repeat', async () => {
+	const { app, page } = await launch(dirs)
+	await saved(page)
+	await page.evaluate(() => {
+		const send = (repeat: boolean) =>
+			window.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'n', metaKey: true, repeat, bubbles: true }),
+			)
+		send(false)
+		for (let i = 0; i < 20; i++) send(true)
+	})
+	await expect(page.getByLabel('Library').getByText('Untitled study')).toHaveCount(2)
+	await saved(page)
+	await page.waitForTimeout(500)
+	expect(await studyFiles(dirs)).toHaveLength(2)
+	await closeApp(app)
+})
+
 test('save failure: read-only study folder shows "Save failed" and Retry recovers', async () => {
 	const { app, page } = await launch(dirs)
 	await saved(page)
