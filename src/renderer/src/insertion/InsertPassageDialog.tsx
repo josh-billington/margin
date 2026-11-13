@@ -20,7 +20,19 @@ interface Props {
 	onTranslationChange: (translation: TranslationId) => void
 }
 
-function PreviewBody({ state, onPick }: { state: PreviewState; onPick: (value: string) => void }) {
+/** Shown while the reference is still being typed; the parser's own message waits for Enter. */
+const TYPING_HINT = 'Type a book and chapter, like John 3 or Amos 1:3–5.'
+
+function PreviewBody({
+	state,
+	onPick,
+	insist,
+}: {
+	state: PreviewState
+	onPick: (value: string) => void
+	/** The reader pressed Enter on an unresolved reference: show the error as an error. */
+	insist: boolean
+}) {
 	switch (state.status) {
 		case 'idle':
 			return null
@@ -37,9 +49,12 @@ function PreviewBody({ state, onPick }: { state: PreviewState; onPick: (value: s
 				</p>
 			)
 		case 'error':
+			// Half-typed references are normal: a quiet hint until the reader commits with Enter.
+			if (!insist && state.error.code === 'INVALID_SYNTAX')
+				return <p className="insert-hint">{TYPING_HINT}</p>
 			return (
-				<div role="alert">
-					<p className="insert-error">{state.error.message}</p>
+				<div role={insist ? 'alert' : undefined} aria-live={insist ? undefined : 'polite'}>
+					<p className={insist ? 'insert-error' : 'insert-hint'}>{state.error.message}</p>
 					{state.error.candidates.length > 0 && (
 						<ul className="insert-candidates" aria-label="Did you mean">
 							{state.error.candidates.map((candidate) => (
@@ -89,9 +104,11 @@ export function InsertPassageDialog({
 }: Props) {
 	const [query, setQuery] = useState(initialQuery)
 	const [busy, setBusy] = useState(false)
+	const [insist, setInsist] = useState(false)
 	useEffect(() => {
 		if (open) setQuery(initialQuery)
 	}, [open, initialQuery])
+	useEffect(() => setInsist(false), [query, open])
 	// An explicit toggle click outranks the Old Testament default (a qualifier still outranks both).
 	const [chosen, setChosen] = useState<TranslationId | null>(null)
 	useEffect(() => {
@@ -145,6 +162,10 @@ export function InsertPassageDialog({
 								autoFocus
 								value={query}
 								onChange={(event) => setQuery(event.target.value)}
+								onKeyDown={(event) => {
+									// A disabled submit button blocks implicit submission, so Enter is caught here.
+									if (event.key === 'Enter' && !resolved) setInsist(true)
+								}}
 								placeholder="Amos 1:3–5"
 								aria-label="Reference"
 								spellCheck={false}
@@ -166,7 +187,7 @@ export function InsertPassageDialog({
 								))}
 							</div>
 						</div>
-						<PreviewBody state={state} onPick={setQuery} />
+						<PreviewBody state={state} onPick={setQuery} insist={insist} />
 						<div className="insert-actions">
 							<button type="button" className="button" onClick={() => onOpenChange(false)}>
 								Cancel
