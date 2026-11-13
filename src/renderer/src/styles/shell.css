@@ -487,6 +487,11 @@ kbd {
 	color: var(--text-muted);
 	pointer-events: none;
 	user-select: none;
+	transition: opacity var(--duration-fast) ease;
+}
+/* A toolbar tooltip opens in the same spot; let it have the line rather than overlap. */
+.canvas-area:has(.canvas-toolbar [data-state$='open']) .empty-hint {
+	opacity: 0;
 }
 .empty-hint kbd {
 	margin: 0 var(--space-1);
