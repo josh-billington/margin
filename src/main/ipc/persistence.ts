@@ -8,7 +8,7 @@ import { Library } from '../library/library'
 import { migrateStudy } from '../../shared/study/migrations'
 import { ipcContract } from '../../shared/ipc/contract'
 import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
-import { logFailure } from '../logger'
+import { logEvent, logFailure } from '../logger'
 
 export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
@@ -221,29 +221,44 @@ export async function registerPersistence(
 		event.preventDefault()
 		if (requesting) return
 		requesting = true
+		const finish = async () => {
+			closing = true
+			if (quit) {
+				await library.close().catch((error) => logFailure('library-close-failed', error))
+				app.quit()
+			} else {
+				getWindow()?.once('closed', () => {
+					closing = false
+				})
+				getWindow()?.close()
+			}
+		}
 		void requestFlush()
 			.then(async (ok) => {
-				if (ok) {
-					await library.flush()
-					closing = true
-					if (quit) {
-						await library.close()
-						app.quit()
-					} else {
-						getWindow()?.once('closed', () => {
-							closing = false
-						})
-						getWindow()?.close()
-					}
-				}
+				if (!ok) throw new Error('The latest changes could not be saved.')
+				await library.flush()
+				await finish()
 			})
-			.catch((error) => {
+			.catch(async (error) => {
 				logFailure('close-flush-failed', error)
-				getWindow()?.webContents.send('margin:library:event', {
-					kind: 'error',
-					studyId: '',
-					message: errorMessage(error),
-				})
+				// Never trap the user in the app: offer to leave, keeping the changes as a recovery copy.
+				const window = getWindow()
+				const options = {
+					type: 'warning' as const,
+					message: 'Margin couldn’t save your latest changes',
+					detail: `${errorMessage(error)}\n\nKeep Margin open to try again or save a copy elsewhere. If you ${quit ? 'quit' : 'close'} now, Margin keeps your changes in a recovery copy and offers it the next time you open the study.`,
+					buttons: ['Keep Open', quit ? 'Quit Anyway' : 'Close Anyway'],
+					defaultId: 0,
+					cancelId: 0,
+				}
+				const { response } = await (window && !window.isDestroyed()
+					? dialog.showMessageBox(window, options)
+					: dialog.showMessageBox(options))
+				if (response !== 1) return
+				const preserved = await library.preserveUnsaved()
+				logEvent('quit-with-unsaved', { preserved })
+				for (const id of [...library.stagedIds()]) library.abandon(id)
+				await finish()
 			})
 			.finally(() => {
 				requesting = false

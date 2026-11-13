@@ -322,10 +322,34 @@ export class Library {
 			null
 		)
 	}
+	stagedIds() {
+		return this.staged.keys()
+	}
 	abandon(id: string) {
 		this.staged.delete(id)
 		this.known.delete(id)
 		this.baselines.delete(id)
+	}
+	/**
+	 * Writes every unsaved change to the app-data recovery folder, newer than the file on disk,
+	 * so the next open offers it. Used when the user quits while the study folder can't be written.
+	 */
+	async preserveUnsaved() {
+		let preserved = 0
+		for (const { study } of this.staged.values()) {
+			const base = this.known.get(study.id)?.study.revision ?? study.revision
+			try {
+				await this.recover({
+					...study,
+					revision: base + 1,
+					updatedAt: new Date().toISOString(),
+				})
+				preserved++
+			} catch {
+				/* Keep going: one unwritable recovery must not lose the others. */
+			}
+		}
+		return preserved
 	}
 	async flush() {
 		while (this.queues.size) await Promise.all([...this.queues.values()])

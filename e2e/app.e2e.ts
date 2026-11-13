@@ -178,6 +178,41 @@ test('save failure: read-only study folder shows "Save failed" and Retry recover
 	expect(JSON.stringify(await readStudy(file))).toContain('passage')
 })
 
+test('save failure: quitting offers Quit Anyway and the next launch offers the recovery copy', async () => {
+	let { app, page } = await launch(dirs)
+	await saved(page)
+	await chmod(join(dirs.library, 'studies'), 0o555)
+	await addAmos(page)
+	await expect(page.getByRole('status').filter({ hasText: 'Save failed' })).toBeVisible({
+		timeout: 20_000,
+	})
+	// Native dialogs can't be clicked from Playwright; answer "Quit Anyway" in the main process.
+	await app.evaluate(({ dialog }) => {
+		const shown: string[] = []
+		;(globalThis as Record<string, unknown>).shownDialogs = shown
+		dialog.showMessageBox = (async (...args: unknown[]) => {
+			const options = args.at(-1) as { message: string }
+			shown.push(options.message)
+			return { response: 1, checkboxChecked: false }
+		}) as typeof dialog.showMessageBox
+	})
+	const exited = new Promise<void>((resolve) => app.process().once('exit', () => resolve()))
+	await app.evaluate(({ app }) => app.quit())
+	await exited
+	await chmod(join(dirs.library, 'studies'), 0o755)
+	;({ app, page } = await launch(dirs))
+	const offer = page.getByText('A newer recovery version is available.')
+	await expect(offer).toBeVisible({ timeout: 15_000 })
+	await page.getByRole('button', { name: 'Save recovery copy' }).click()
+	await expect(page.getByLabel('Library').getByText('Untitled study (recovered)')).toBeVisible()
+	await saved(page)
+	await closeApp(app)
+	const files = await studyFiles(dirs)
+	const studies = await Promise.all(files.map(readStudy))
+	const recovered = studies.find((study) => study.title === 'Untitled study (recovered)')
+	expect(JSON.stringify(recovered)).toContain('passage')
+})
+
 test('add verses: dialog JPS choice beats the Old Testament default; qualifier beats both', async () => {
 	const { app, page } = await launch(dirs)
 	await page.keyboard.press('Meta+,')

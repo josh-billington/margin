@@ -78,6 +78,27 @@ describe('library persistence', () => {
 		await library.flush()
 		expect(await disk(copy.id)).toMatchObject({ title: 'Unsaved (copy)' })
 	})
+	it('preserves unsaved changes as a recovery that the next open offers', async () => {
+		const study = await library.create('Before', document)
+		fail = true
+		await expect(library.save({ ...study, title: 'Unsaved' }, 1)).rejects.toThrow('Disk full')
+		expect(await library.preserveUnsaved()).toBe(1)
+		await library.close().catch(() => {})
+		const reopened = await new Library(join(root, 'library'), join(root, 'private')).initialize(
+			false,
+		)
+		const seen: LibraryEvent[] = []
+		reopened.onEvent = (event) => seen.push(event)
+		try {
+			expect(await reopened.open(study.id)).toEqual(study)
+			expect(seen).toContainEqual({
+				kind: 'recovery',
+				study: expect.objectContaining({ title: 'Unsaved', revision: 1 }),
+			})
+		} finally {
+			await reopened.close()
+		}
+	})
 	it('does not advance timestamps/revision for identical document and title', async () => {
 		const study = await library.create('Amos', document)
 		expect((await library.save(study, 1)).study).toEqual(study)
