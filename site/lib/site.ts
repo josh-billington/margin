@@ -7,7 +7,7 @@ export const site = {
 	/** Set at build time to the production Pages URL or custom domain. */
 	url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://margin-bible.pages.dev',
 	description:
-		'Make it your own. Map out your study, find connections between verses, notes, and ideas.',
+		'A Bible study app for the Mac. Lay out verses on an open canvas and draw arrows from your notes to the exact words they’re about.',
 	/** Direct link to the newest .dmg. */
 	downloadUrl:
 		'https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg' as

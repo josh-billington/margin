@@ -1,27 +1,27 @@
 const principles = [
 	{
 		title: 'Works offline',
-		body: 'Scripture, fonts and everything else ship inside the app. Margin never needs the network to open a study.',
+		body: 'The Bible text, dictionary and fonts come with the app. Margin never needs the internet to open or save a study.',
 	},
 	{
 		title: 'Your studies are files',
-		body: 'Each study is a plain JSON file in a folder you choose. Back it up, sync it, or open it with the other tools you already use.',
+		body: 'Each study is a plain JSON file in a folder you choose. Back it up, sync it or open it in other apps.',
 	},
 	{
 		title: 'No account',
-		body: 'There is nothing to sign up for, and nothing reports back. No analytics, no tracking, no automatic update checks.',
+		body: 'There’s nothing to sign up for. Margin collects no data and checks for updates only when you ask.',
 	},
 	{
 		title: 'Made for the keyboard',
-		body: 'V, T, A and H switch tools. F focuses. ⌃⌘D looks up a word. ⌘K finds verses and commands.',
+		body: 'V, T, A and H switch tools. F focuses the selected verses. ⌃⌘D looks up a word. ⌘K adds verses and runs commands.',
 	},
 	{
-		title: 'Handwritten, or plain',
-		body: 'Notes are written in a marker-style hand by default, with a plain font for longer thoughts.',
+		title: 'Handwritten or plain',
+		body: 'Notes use a handwritten font by default. Switch one note, or all of them, to the system font.',
 	},
 	{
 		title: 'Saves as you go',
-		body: 'Every change is saved. If a save fails, or another program changes the file, Margin keeps your work and tells you.',
+		body: 'Margin saves every change as you make it. If a save fails or another app changes the file, Margin keeps your work and tells you.',
 	},
 ]
 

@@ -24,7 +24,8 @@ export default function HeroSection() {
 									style={{ '--d': '80ms' } as React.CSSProperties}
 									className="text-ink/85 mt-7 max-w-[34rem] text-xl leading-relaxed"
 								>
-									Map out your study, find connections between verses, notes, and ideas.
+									Lay out verses on an open canvas and draw arrows from your notes to the exact
+									words they’re about.
 								</p>
 								<div
 									data-reveal

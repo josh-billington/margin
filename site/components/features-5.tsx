@@ -76,8 +76,9 @@ export default function Features() {
 			<div className="mx-auto w-full max-w-6xl space-y-32 px-6 md:space-y-48">
 				<div className="grid items-center gap-12 md:grid-cols-12">
 					<div className="md:col-span-5">
-						<Statement title="Any verse, in a keystroke" kbd="⌘K, then just type">
-							Press ⌘K and type a reference. Add a single verse, a range, or a whole chapter.
+						<Statement title="Add verses from the keyboard" kbd="⌘K, then Psalm 23">
+							Press ⌘K and type a reference, such as John 3:16 or Amos 1:3–5. Add one verse or a
+							whole chapter.
 						</Statement>
 					</div>
 					<div className="relative md:col-span-7">
@@ -113,7 +114,7 @@ export default function Features() {
 								src="/shots/sidebar.webp"
 								width={560}
 								height={827}
-								alt="The sidebar listing the tags Trust, Zion and Steadfast, each with its colour and a count of tagged words."
+								alt="The sidebar listing the tags Trust, Zion and Steadfast, each with its colour and a count of its highlights."
 							/>
 						</div>
 						<div
@@ -130,19 +131,18 @@ export default function Features() {
 						</div>
 					</div>
 					<div className="md:col-span-5 md:pl-6">
-						<Statement title="Your favourite verses and important words stand out">
-							Tag words and phrases in a colour and see every tag in the sidebar. Choose one to mark
-							each place it appears and step through them in order.
+						<Statement title="Tag the words that matter to you">
+							Give a word or phrase a coloured tag. The sidebar lists your tags. Choose one to step
+							through every place you used it.
 						</Statement>
 					</div>
 				</div>
 
 				<div className="grid items-center gap-12 md:grid-cols-12">
 					<div className="md:col-span-5">
-						<Statement title="Look up any word" kbd="right-click, or ⌃⌘D">
-							See the Hebrew or Greek behind a word, with its Strong’s entry. For Hebrew, open
-							Brown-Driver-Briggs for the full outline of meanings. Add what you find as a note on
-							the word.
+						<Statement title="Look up the Hebrew and Greek" kbd="right-click, or ⌃⌘D">
+							In the King James Version, see the Hebrew or Greek word behind the English, with its
+							Strong’s entry. Add what you find as a note on the word.
 						</Statement>
 					</div>
 					<div className="md:col-span-7">
@@ -151,7 +151,7 @@ export default function Features() {
 								src="/shots/lookup.webp"
 								width={740}
 								height={630}
-								alt="Psalm 125:1 with trust marked and the word lookup open beneath it on the Brown-Driver-Briggs tab: the Hebrew בָּטַח, Strong’s number H982 and its meanings grouped by verb stem."
+								alt="The word lookup for trust in Psalm 125:1: the Hebrew בָּטַח (bâṭach), Strong’s number H982, its meaning and its KJV renderings."
 							/>
 						</div>
 					</div>

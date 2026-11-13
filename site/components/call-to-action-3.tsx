@@ -21,8 +21,8 @@ export default function CallToAction() {
 							className="text-ink/85 mt-6 max-w-[32rem] text-xl leading-relaxed"
 						>
 							{site.downloadUrl
-								? 'The first beta is ready for the Mac. It’s free, it’s still rough in places, and your feedback shapes what comes next.'
-								: 'Margin is being prepared for its first beta. The Mac download will appear here when it’s ready.'}
+								? 'The beta is free to download. It’s still rough in places, so tell us what you find. Your feedback shapes what comes next.'
+								: 'Margin’s first beta isn’t out yet. The Mac download will appear here when it’s ready.'}
 						</p>
 						<div
 							data-reveal
@@ -40,9 +40,9 @@ export default function CallToAction() {
 							>
 								<p>{site.requirements}</p>
 								<p>
-									This beta isn’t notarized by Apple yet, so the first time you open it macOS says it
-									can’t verify Margin. Open System Settings, go to Privacy &amp; Security, click Open
-									Anyway next to Margin, and confirm. You only do this once.
+									This beta isn’t notarized by Apple yet, so the first time you open it, macOS says it
+									can’t verify Margin. Open System Settings › Privacy &amp; Security, click Open Anyway
+									next to the message about Margin, then confirm. You only need to do this once.
 								</p>
 							</div>
 						) : null}
