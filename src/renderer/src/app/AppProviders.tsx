@@ -12,7 +12,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
 				theme={appearance}
 				position="bottom-right"
 				offset={{ bottom: 72, right: 16 }}
-				toastOptions={{ classNames: { actionButton: 'button button-primary', cancelButton: 'button' } }}
+				toastOptions={{
+					classNames: { actionButton: 'button button-primary', cancelButton: 'button' },
+				}}
 			/>
 		</Tooltip.Provider>
 	)

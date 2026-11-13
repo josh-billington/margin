@@ -207,3 +207,18 @@ test('add verses: dialog JPS choice beats the Old Testament default; qualifier b
 		.toEqual(['jps1917', 'kjv'].sort())
 	await closeApp(app)
 })
+
+test('add verses: a half-typed reference gets a quiet hint; Enter turns it into an error', async () => {
+	const { app, page } = await launch(dirs)
+	await page.getByRole('button', { name: 'Add verses' }).first().click()
+	const dialog = page.getByRole('dialog', { name: 'Add verses' })
+	await page.getByLabel('Reference').fill('Joh')
+	await expect(dialog.locator('.insert-hint')).toContainText('Type a book and chapter')
+	await expect(dialog.getByRole('alert')).toHaveCount(0)
+	await page.keyboard.press('Enter')
+	await expect(dialog.getByRole('alert')).toContainText('Enter a book and chapter')
+	await page.getByLabel('Reference').fill('John 3')
+	await expect(dialog.getByRole('alert')).toHaveCount(0)
+	await expect(dialog.locator('.insert-preview')).toContainText('John 3:1–36')
+	await closeApp(app)
+})

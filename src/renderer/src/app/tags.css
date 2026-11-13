@@ -6,6 +6,10 @@
 	grid-template-columns: minmax(0, 1fr);
 	gap: var(--space-2);
 }
+/* Same rhythm between the last tag and the actions below as between tags. */
+.tag-list:not(:empty) {
+	margin-bottom: var(--space-2);
+}
 .tag-row {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
@@ -22,6 +26,8 @@
 .tag-swatch {
 	width: 8px;
 	height: 8px;
+	/* Centred in the 14px icon column so tag names line up with "New tag" below. */
+	margin: 0 3px;
 	border-radius: 50%;
 	flex: none;
 }

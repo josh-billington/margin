@@ -199,7 +199,8 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 								aria-hidden="true"
 							/>
 							<span className="tag-name">{tag.name}</span>
-							<span className="tag-count">{counts[tag.id] ?? 0}</span>
+							{/* A column of zeros is noise; the count appears once the tag is used. */}
+							{!!counts[tag.id] && <span className="tag-count">{counts[tag.id]}</span>}
 						</button>
 						{editor && !readOnly && (
 							<EditTag

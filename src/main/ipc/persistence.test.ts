@@ -20,7 +20,7 @@ vi.mock('electron', () => ({
 	},
 }))
 import { Library } from '../library/library'
-import { describeFolder, registerPersistence } from './persistence'
+import { describeFolder, errorMessage, registerPersistence } from './persistence'
 
 let root: string
 let closeLibrary: (() => Promise<unknown>) | undefined
@@ -80,4 +80,14 @@ it.each([
 	['/', { name: '/', location: '' }],
 ])('describes folder %s', (path, folder) => {
 	expect(describeFolder(path, home)).toEqual(folder)
+})
+
+it('words file-system failures for the reader and keeps other messages', () => {
+	const denied = Object.assign(new Error("EACCES: permission denied, open '/x/.tmp'"), {
+		code: 'EACCES',
+	})
+	expect(errorMessage(denied)).toMatch(/^Margin doesn’t have permission/)
+	expect(errorMessage(denied)).not.toContain('/x/')
+	expect(errorMessage(new Error('The study changed on disk.'))).toBe('The study changed on disk.')
+	expect(errorMessage('plain')).toBe('plain')
 })

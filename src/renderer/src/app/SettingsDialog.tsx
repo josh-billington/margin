@@ -22,12 +22,28 @@ export function SettingsDialog({
 				<Dialog.Content className="dialog-panel" aria-describedby="settings-description">
 					<Dialog.Title>Settings</Dialog.Title>
 					<Dialog.Description id="settings-description" className="sr-only">
-						Old Testament translation, note font and window appearance preferences.
+						Translations, appearance and note font preferences.
 					</Dialog.Description>
 					<label className="select-row">
-						<span>
-							Default Old Testament translation
-						</span>
+						<span>Default translation</span>
+						<select
+							value={prefs?.defaultTranslation ?? 'kjv'}
+							disabled={!prefs}
+							onChange={(e) =>
+								void update({ defaultTranslation: translationIdSchema.parse(e.target.value) })
+							}
+						>
+							{translationIdSchema.options
+								.filter((id) => id !== 'jps1917')
+								.map((id) => (
+									<option key={id} value={id}>
+										{translationNames[id].short}
+									</option>
+								))}
+						</select>
+					</label>
+					<label className="select-row">
+						<span>Old Testament translation</span>
 						<select
 							value={prefs?.oldTestamentTranslation ?? 'kjv'}
 							disabled={!prefs}
@@ -72,9 +88,7 @@ export function SettingsDialog({
 							checked={displayNotesInPlainFont}
 							onChange={(e) => void setPreferences({ displayNotesInPlainFont: e.target.checked })}
 						/>
-						<span>
-							Display notes in system font
-						</span>
+						<span>Show every note in the system font</span>
 					</label>
 					{isMac && (
 						<label className="check-row">
@@ -84,9 +98,7 @@ export function SettingsDialog({
 								disabled={!prefs}
 								onChange={(e) => void update({ liquidGlass: e.target.checked })}
 							/>
-							<span>
-								Use liquid glass for top and sidebar
-							</span>
+							<span>Use Liquid Glass for the title bar and sidebar</span>
 						</label>
 					)}
 					<div className="dialog-actions">

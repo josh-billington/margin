@@ -15,6 +15,8 @@ test('note on selected words: T or the Note button adds a note already arrowed t
 	const dirs = await makeDirs()
 	try {
 		const { app, page } = await launch(dirs)
+		// Narrow enough that the margin beside the block starts off-screen.
+		await (await app.browserWindow(page)).evaluate((window) => window.setSize(900, 700))
 		await addAmos(page)
 		await page.keyboard.press('Escape')
 
@@ -24,6 +26,14 @@ test('note on selected words: T or the Note button adds a note already arrowed t
 		const input = page.getByLabel('Note text')
 		await expect(input).toBeFocused()
 		await page.keyboard.type('Three transgressions')
+		// The camera brings the new note fully into view.
+		await expect
+			.poll(async () => {
+				const box = await input.boundingBox()
+				const width = await page.evaluate(() => window.innerWidth)
+				return !!box && box.x >= 0 && box.x + box.width <= width
+			})
+			.toBe(true)
 		await page.keyboard.press('Escape')
 
 		// Mouse: double-click a word to select it, click the toolbar Note button, type.

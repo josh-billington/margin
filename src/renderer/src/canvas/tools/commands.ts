@@ -1,5 +1,5 @@
 import { Box, createShapeId, react } from 'tldraw'
-import type { Editor } from 'tldraw'
+import type { Editor, TLShapeId } from 'tldraw'
 import type { PassageText } from '@shared/bible/types'
 import { shortcutsSuppressed } from '../shortcutContext'
 import { newNoteProps } from '../shapes/note/newNote'
@@ -33,12 +33,35 @@ export function insertPassage(editor: Editor, text: PassageText) {
 		{ x, y, moved } = insertionPoint(editor)
 	editor.markHistoryStoppingPoint('insert passage')
 	editor.createShape({ id, type: 'passage', x, y, props: { text } }).select(id)
-	if (moved) {
-		const { w, h } = editor.getViewportScreenBounds()
-		const top = { x: x + INSERT_W / 2, y: y + h / 2 / editor.getZoomLevel() - INSERT_GAP }
-		moveCamera(editor, centerOn({ w, h }, top, editor.getZoomLevel()))
-	}
+	revealWhenMeasured(editor, id, moved)
 	return id
+}
+
+/** Screen space kept clear above the floating toolbar when deciding whether a block fits. */
+const TOOLBAR_CLEARANCE = 72
+
+/**
+ * The block's real height is only known once it has rendered. When it was pushed below other
+ * blocks, or a long chapter runs off the bottom of the view, bring its first verse up near the
+ * top so the reader starts reading instead of scrolling.
+ */
+function revealWhenMeasured(editor: Editor, id: TLShapeId, moved: boolean) {
+	const initial = editor.getShape(id)?.props as { h?: number } | undefined
+	let frames = 0
+	const check = () => {
+		const shape = editor.getShape(id)
+		if (!shape || shape.type !== 'passage') return
+		if (shape.props.h === initial?.h && frames++ < 12) return void requestAnimationFrame(check)
+		const bounds = editor.getShapePageBounds(id)
+		if (!bounds) return
+		const zoom = editor.getZoomLevel()
+		const view = editor.getViewportPageBounds()
+		if (!moved && bounds.maxY <= view.maxY - TOOLBAR_CLEARANCE / zoom) return
+		const { w, h } = editor.getViewportScreenBounds()
+		const top = { x: bounds.midX, y: bounds.minY + h / 2 / zoom - INSERT_GAP / zoom }
+		moveCamera(editor, centerOn({ w, h }, top, zoom))
+	}
+	requestAnimationFrame(check)
 }
 export function installCanvasCommands(editor: Editor) {
 	let preview: HTMLElement | undefined

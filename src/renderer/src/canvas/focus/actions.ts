@@ -107,6 +107,27 @@ export function moveCamera(editor: Editor, camera: Camera) {
 		editor.setCamera(camera, { animation: { duration: CAMERA_MS, easing: EASINGS.easeOutCubic } })
 }
 
+/** Screen padding kept around a shape that is panned into view. */
+const REVEAL_PAD = 32
+
+/** Pans the least distance that brings a shape fully into view; no zoom change. */
+export function revealShape(editor: Editor, id: TLShapeId) {
+	const bounds = editor.getShapePageBounds(id)
+	if (!bounds) return
+	const view = editor.getViewportPageBounds()
+	const camera = editor.getCamera()
+	const pad = REVEAL_PAD / camera.z
+	const shift = (min: number, max: number, viewMin: number, viewMax: number) =>
+		max + pad > viewMax
+			? Math.min(max + pad - viewMax, min - pad - viewMin)
+			: min - pad < viewMin
+				? min - pad - viewMin
+				: 0
+	const dx = shift(bounds.minX, bounds.maxX, view.minX, view.maxX)
+	const dy = shift(bounds.minY, bounds.maxY, view.minY, view.maxY)
+	if (dx || dy) moveCamera(editor, { ...camera, x: camera.x - dx, y: camera.y - dy })
+}
+
 export function focusPassage(editor: Editor, passageId: string) {
 	const shape = passageOf(editor, passageId)
 	if (!shape) return
