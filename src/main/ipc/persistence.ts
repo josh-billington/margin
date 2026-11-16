@@ -49,7 +49,19 @@ export async function registerPersistence(
 	getWindow: () => BrowserWindow | null,
 	onAppearanceChange: (preferences: Preferences) => void = () => {},
 ) {
-	const data = await new AppDataStore(app.getPath('userData')).open()
+	const data = new AppDataStore(app.getPath('userData'))
+	let startupError: string | null = null
+	let prefsFailed = false
+	try {
+		await data.open()
+	} catch (error) {
+		logFailure('prefs-open-failed', error)
+		startupError = errorMessage(
+			error,
+			"Margin couldn't load your settings. Try again or choose another library folder.",
+		)
+		prefsFailed = true
+	}
 	let library = new Library(
 		process.env.MARGIN_LIBRARY_DIR ??
 			data.libraryPath ??
@@ -57,7 +69,19 @@ export async function registerPersistence(
 			join(app.getPath('documents'), 'Margin'),
 		data.path,
 	)
-	if (data.setup === 'done') await library.initialize()
+	let initialized = false
+	if (data.setup === 'done' && !prefsFailed) {
+		try {
+			await library.initialize()
+			initialized = true
+		} catch (error) {
+			logFailure('library-initialize-failed', error)
+			startupError = errorMessage(
+				error,
+				"Margin couldn't open your library. Try again or choose another library folder.",
+			)
+		}
+	}
 	const notify = () => {
 		library.onEvent = (event) => getWindow()?.webContents.send('margin:library:event', event)
 	}
@@ -66,7 +90,8 @@ export async function registerPersistence(
 	const describe = () => ({
 		path: library.path,
 		folder: describeFolder(library.path),
-		setup: data.setup,
+		setup: initialized ? data.setup : 'pending',
+		error: startupError,
 		readOnly: library.readOnly,
 		lock:
 			library.lockOwner && library.lockOwner.hostname !== hostname()
@@ -118,7 +143,11 @@ export async function registerPersistence(
 	}
 	handle(ipcContract.library.getLibrary, async () => describe())
 	handle(ipcContract.library.completeSetup, async () => {
-		if (data.setup === 'pending') {
+		if (!initialized) {
+			if (prefsFailed) {
+				await data.open()
+				prefsFailed = false
+			}
 			await library.initialize()
 			try {
 				await data.completeSetup()
@@ -126,6 +155,8 @@ export async function registerPersistence(
 				await library.close()
 				throw error
 			}
+			initialized = true
+			startupError = null
 		}
 		return describe()
 	})
@@ -142,7 +173,7 @@ export async function registerPersistence(
 		if (result.canceled || !path || path === library.path) return null
 		await library.flush()
 		const next = new Library(path, data.path)
-		if (data.setup === 'done') await next.initialize()
+		if (initialized) await next.initialize()
 		try {
 			await data.update((settings) => {
 				settings.libraryPath = path
@@ -153,11 +184,12 @@ export async function registerPersistence(
 		}
 		await library.close()
 		library = next
+		startupError = null
 		notify()
 		return describe()
 	})
 	handle(ipcContract.library.listStudies, () =>
-		data.setup === 'pending' ? Promise.resolve([]) : library.list(),
+		!initialized ? Promise.resolve([]) : library.list(),
 	)
 	handle(
 		ipcContract.library.openStudy,

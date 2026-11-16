@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, rename } from 'node:fs/promises'
 import { join } from 'node:path'
 import { z } from 'zod'
 import { cameraSchema, preferencesSchema } from '../../shared/ipc/contract'
@@ -25,7 +25,11 @@ export class AppDataStore {
 				JSON.parse(await readFile(join(this.path, 'prefs.json'), 'utf8')),
 			)
 		} catch (error) {
-			if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
+			if (error instanceof SyntaxError || error instanceof z.ZodError) {
+				await rename(join(this.path, 'prefs.json'), join(this.path, `prefs.json.bad-${Date.now()}`))
+			} else if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
+				throw error
+			}
 			this.data.setup = 'pending'
 		}
 		if (process.env.MARGIN_LIBRARY_DIR !== undefined) this.data.setup = 'done'

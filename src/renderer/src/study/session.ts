@@ -34,6 +34,8 @@ export async function initializeStudies() {
 			lock: library?.lock ?? null,
 			ready: true,
 		})
+		if (library?.error) toast.error(library.error, { id: 'library-startup', duration: Infinity })
+		else toast.dismiss('library-startup')
 		if (library?.setup === 'done' && library.readOnly && !library.lock)
 			toast.info('Another copy of Margin has this library open. Close it to save changes here.')
 		await refreshStudies()

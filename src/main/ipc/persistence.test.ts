@@ -160,3 +160,34 @@ it('keeps failed recovery studies open unless the user explicitly chooses to los
 	await expect.poll(() => electron.quit.mock.calls.length).toBe(1)
 	expect([...library.stagedIds()]).toEqual([])
 })
+
+it('opens the setup picker after library startup fails and retries the saved folder', async () => {
+	root = await mkdtemp(join(tmpdir(), 'margin-startup-'))
+	electron.paths = { userData: join(root, 'private'), documents: root }
+	const path = join(root, 'unavailable')
+	vi.stubEnv('MARGIN_LIBRARY_DIR', path)
+	await writeFile(path, 'not a directory')
+	const webContents = { mainFrame: {}, send: vi.fn() }
+	await registerPersistence(() => ({ webContents }) as unknown as Electron.BrowserWindow)
+	const invoke = (operation: { channel: string }) =>
+		electron.handlers.get(operation.channel)!({
+			sender: webContents,
+			senderFrame: webContents.mainFrame,
+		})
+	expect(await invoke(ipcContract.library.getLibrary)).toMatchObject({
+		ok: true,
+		data: { path, setup: 'pending', error: expect.any(String) },
+	})
+	expect(await invoke(ipcContract.library.listStudies)).toEqual({ ok: true, data: [] })
+	expect(await invoke(ipcContract.library.completeSetup)).toMatchObject({ ok: false })
+	await rm(path)
+	const initialize = Library.prototype.initialize
+	vi.spyOn(Library.prototype, 'initialize').mockImplementation(function (this: Library) {
+		closeLibrary = () => this.close()
+		return initialize.call(this, false)
+	})
+	expect(await invoke(ipcContract.library.completeSetup)).toMatchObject({
+		ok: true,
+		data: { path, setup: 'done', error: null },
+	})
+})
