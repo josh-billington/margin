@@ -288,7 +288,7 @@ export async function registerPersistence(
 					]
 						.filter(Boolean)
 						.join('\n\n'),
-					buttons: ['Keep Open', quit ? 'Quit Anyway' : 'Close Anyway'],
+					buttons: ['Keep open', quit ? 'Quit anyway' : 'Close anyway'],
 					defaultId: 0,
 					cancelId: 0,
 				}
@@ -296,9 +296,24 @@ export async function registerPersistence(
 					? dialog.showMessageBox(window, options)
 					: dialog.showMessageBox(options))
 				if (response !== 1) return
-				const preserved = await library.preserveUnsaved()
-				logEvent('quit-with-unsaved', { preserved })
-				for (const id of [...library.stagedIds()]) library.abandon(id)
+				const { preserved, failed } = await library.preserveUnsaved()
+				logEvent('quit-with-unsaved', { preserved: preserved.length, failed: failed.length })
+				if (failed.length) {
+					const warning = {
+						type: 'warning' as const,
+						message: "Margin couldn't keep a recovery copy of these studies",
+						detail: `${failed.map(({ title }) => title).join('\n')}\n\nKeep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, you will lose the unsaved changes in these studies.`,
+						buttons: ['Keep open', quit ? 'Quit and lose changes' : 'Close and lose changes'],
+						defaultId: 0,
+						cancelId: 0,
+					}
+					const choice = await (window && !window.isDestroyed()
+						? dialog.showMessageBox(window, warning)
+						: dialog.showMessageBox(warning))
+					if (choice.response !== 1) return
+					for (const { id } of failed) library.abandon(id)
+				}
+				for (const id of preserved) library.abandon(id)
 				await finish()
 			})
 			.finally(() => {

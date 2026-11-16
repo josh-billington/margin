@@ -1,6 +1,6 @@
 import { UserFacingError } from '../../shared/errors'
 import { afterEach, expect, it, vi } from 'vitest'
-import { access, mkdtemp, readdir, rm } from 'node:fs/promises'
+import { access, mkdtemp, readdir, rm, mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ipcContract } from '../../shared/ipc/contract'
@@ -9,10 +9,24 @@ const electron = vi.hoisted(() => ({
 	handlers: new Map<string, (event: unknown, payload?: unknown) => Promise<unknown>>(),
 	paths: { userData: '', documents: '' },
 	selected: '',
+	events: new Map<string, (event: { preventDefault: () => void }) => void>(),
+	quit: vi.fn(),
+	message: vi.fn(async (...args: unknown[]) => {
+		void args
+		return { response: 0 }
+	}),
 }))
 vi.mock('electron', () => ({
-	app: { getPath: (key: keyof typeof electron.paths) => electron.paths[key], on: vi.fn() },
-	dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: [electron.selected] }) },
+	app: {
+		getPath: (key: keyof typeof electron.paths) => electron.paths[key],
+		on: (name: string, callback: (event: { preventDefault: () => void }) => void) =>
+			electron.events.set(name, callback),
+		quit: electron.quit,
+	},
+	dialog: {
+		showMessageBox: electron.message,
+		showOpenDialog: async () => ({ canceled: false, filePaths: [electron.selected] }),
+	},
 	ipcMain: {
 		removeHandler: (channel: string) => electron.handlers.delete(channel),
 		handle: (channel: string, handler: (event: unknown, payload?: unknown) => Promise<unknown>) =>
@@ -26,7 +40,7 @@ import { describeFolder, errorMessage, registerPersistence } from './persistence
 let root: string
 let closeLibrary: (() => Promise<unknown>) | undefined
 afterEach(async () => {
-	await closeLibrary?.()
+	await closeLibrary?.().catch(() => {})
 	vi.unstubAllEnvs()
 	vi.restoreAllMocks()
 	if (root) await rm(root, { recursive: true, force: true })
@@ -94,4 +108,55 @@ it('words file-system failures for the reader and keeps other messages', () => {
 	)
 	expect(errorMessage(new Error('internal detail'), 'Try again.')).toBe('Try again.')
 	expect(errorMessage('plain')).not.toBe('plain')
+})
+
+it('keeps failed recovery studies open unless the user explicitly chooses to lose them', async () => {
+	root = await mkdtemp(join(tmpdir(), 'margin-close-'))
+	electron.paths = { userData: join(root, 'private'), documents: root }
+	vi.stubEnv('MARGIN_LIBRARY_DIR', join(root, 'library'))
+	const libraries: Library[] = []
+	const initialize = Library.prototype.initialize
+	vi.spyOn(Library.prototype, 'initialize').mockImplementation(function (this: Library) {
+		libraries.push(this)
+		closeLibrary = () => this.close()
+		return initialize.call(this, false)
+	})
+	await registerPersistence(() => null)
+	const library = libraries[0]
+	if (!library) throw new Error('Missing library')
+	const document = {
+		store: {
+			'page:page': {
+				id: 'page:page',
+				typeName: 'page',
+				name: 'Page',
+				index: 'a1',
+				meta: { schemaVersion: 1, tags: [] },
+			},
+		},
+		schema: { schemaVersion: 2, sequences: {} },
+	}
+	const kept = await library.create('Kept', document)
+	const failed = await library.create('Needs preservation', document)
+	library.stage({ ...kept, title: 'Kept edits' }, 1)
+	library.stage({ ...failed, title: 'Edits at risk' }, 1)
+	await mkdir(join(electron.paths.userData, 'recovery'), { recursive: true })
+	await writeFile(join(electron.paths.userData, 'recovery', failed.id), 'blocked')
+	electron.quit.mockClear()
+	electron.message.mockResolvedValueOnce({ response: 1 }).mockResolvedValueOnce({ response: 0 })
+	electron.events.get('before-quit')?.({ preventDefault: vi.fn() })
+	await expect.poll(() => electron.message.mock.calls.length).toBe(2)
+	await new Promise((resolve) => setImmediate(resolve))
+	expect(electron.message.mock.calls[1]?.[0]).toMatchObject({
+		detail: expect.stringContaining('Edits at risk'),
+		buttons: ['Keep open', 'Quit and lose changes'],
+	})
+	expect([...library.stagedIds()]).toEqual([kept.id, failed.id])
+	await library.save({ ...kept, title: 'Kept edits' }, 1)
+	expect(electron.quit).not.toHaveBeenCalled()
+	expect(await library.latestRecovery(kept.id)).toMatchObject({ title: 'Kept edits' })
+	electron.message.mockResolvedValueOnce({ response: 1 }).mockResolvedValueOnce({ response: 1 })
+	electron.events.get('before-quit')?.({ preventDefault: vi.fn() })
+	await expect.poll(() => electron.quit.mock.calls.length).toBe(1)
+	expect([...library.stagedIds()]).toEqual([])
 })

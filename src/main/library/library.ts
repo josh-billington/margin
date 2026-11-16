@@ -376,7 +376,8 @@ export class Library {
 	 * so the next open offers it. Used when the user quits while the study folder can't be written.
 	 */
 	async preserveUnsaved() {
-		let preserved = 0
+		const preserved: string[] = []
+		const failed: { id: string; title: string }[] = []
 		for (const { study } of this.staged.values()) {
 			const base = this.known.get(study.id)?.study.revision ?? study.revision
 			try {
@@ -385,12 +386,12 @@ export class Library {
 					revision: base + 1,
 					updatedAt: new Date().toISOString(),
 				})
-				preserved++
+				preserved.push(study.id)
 			} catch {
-				/* Keep going: one unwritable recovery must not lose the others. */
+				failed.push({ id: study.id, title: study.title })
 			}
 		}
-		return preserved
+		return { preserved, failed }
 	}
 	async flush() {
 		while (this.queues.size) await Promise.all([...this.queues.values()])

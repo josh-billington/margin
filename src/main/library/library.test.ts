@@ -82,7 +82,7 @@ describe('library persistence', () => {
 		const study = await library.create('Before', document)
 		fail = true
 		await expect(library.save({ ...study, title: 'Unsaved' }, 1)).rejects.toThrow('Disk full')
-		expect(await library.preserveUnsaved()).toBe(1)
+		expect(await library.preserveUnsaved()).toEqual({ preserved: [study.id], failed: [] })
 		await library.close().catch(() => {})
 		const reopened = await new Library(join(root, 'library'), join(root, 'private')).initialize(
 			false,
@@ -98,6 +98,35 @@ describe('library persistence', () => {
 		} finally {
 			await reopened.close()
 		}
+	})
+	it('reports failed recovery studies and keeps their edits staged for retry', async () => {
+		await library.close()
+		let failedId = ''
+		library = await new Library(
+			join(root, 'library'),
+			join(root, 'private'),
+			async (path, content) => {
+				if (failedId && path.includes(`/recovery/${failedId}/`))
+					throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
+				await atomicWrite(path, content)
+			},
+		).initialize(false)
+		const kept = await library.create('Kept', document)
+		const failed = await library.create('Needs retry', document)
+		failedId = failed.id
+		library.stage({ ...kept, title: 'Kept edits' }, 1)
+		library.stage({ ...failed, title: 'Unsaved edits' }, 1)
+		const result = await library.preserveUnsaved()
+		expect(result).toEqual({
+			preserved: [kept.id],
+			failed: [{ id: failed.id, title: 'Unsaved edits' }],
+		})
+		for (const id of result.preserved) library.abandon(id)
+		expect([...library.stagedIds()]).toEqual([failed.id])
+		expect(await library.latestRecovery(kept.id)).toMatchObject({ title: 'Kept edits' })
+		failedId = ''
+		expect(await library.preserveUnsaved()).toEqual({ preserved: [failed.id], failed: [] })
+		expect(await library.latestRecovery(failed.id)).toMatchObject({ title: 'Unsaved edits' })
 	})
 	it('does not advance timestamps/revision for identical document and title', async () => {
 		const study = await library.create('Amos', document)
