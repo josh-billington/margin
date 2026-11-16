@@ -7,6 +7,7 @@ import type { Editor } from 'tldraw'
 export function installSpacePan(editor: Editor) {
 	const doc = editor.getContainer().ownerDocument
 	const onKeyDown = (event: KeyboardEvent) => {
+		if (getComputedStyle(editor.getContainer()).visibility === 'hidden') return
 		if (event.code !== 'Space' || event.repeat) return
 		if (event.metaKey || event.ctrlKey || event.altKey) return
 		if (event.target !== doc.body && event.target !== doc.documentElement) return

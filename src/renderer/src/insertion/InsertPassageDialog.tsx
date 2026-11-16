@@ -1,5 +1,5 @@
 import './insert.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
 import type { Editor } from 'tldraw'
@@ -104,6 +104,24 @@ export function InsertPassageDialog({
 }: Props) {
 	const [query, setQuery] = useState(initialQuery)
 	const [busy, setBusy] = useState(false)
+	const generation = useRef(0)
+	const inFlight = useRef(false)
+	useEffect(() => {
+		inFlight.current = false
+		setBusy(false)
+		return () => {
+			generation.current++
+			inFlight.current = false
+		}
+	}, [open, editor])
+	function changeOpen(next: boolean) {
+		if (!next) {
+			generation.current++
+			inFlight.current = false
+			setBusy(false)
+		}
+		onOpenChange(next)
+	}
 	const [insist, setInsist] = useState(false)
 	useEffect(() => {
 		if (open) setQuery(initialQuery)
@@ -124,23 +142,38 @@ export function InsertPassageDialog({
 	const switched = !!resolved?.notice && resolved.translation !== (chosen ?? translation)
 
 	async function confirm() {
-		if (!resolved || (state.status === 'resolved' && state.stale) || !editor || busy) return
+		if (
+			!resolved ||
+			(state.status === 'resolved' && state.stale) ||
+			!editor ||
+			busy ||
+			inFlight.current
+		)
+			return
 		setBusy(true)
+		inFlight.current = true
+		const request = ++generation.current
 		try {
 			const result = await window.margin.bible.getPassage({
 				translationId: resolved.translation,
 				ranges: resolved.ranges,
 			})
+			if (request !== generation.current) return
 			if (!result.ok) return void toast.error(result.error.message)
 			insertPassage(editor, result.data)
-			onOpenChange(false)
+			changeOpen(false)
+		} catch {
+			if (request === generation.current) toast.error("Margin couldn't load the verses. Try again.")
 		} finally {
-			setBusy(false)
+			if (request === generation.current) {
+				inFlight.current = false
+				setBusy(false)
+			}
 		}
 	}
 
 	return (
-		<Dialog.Root open={open} onOpenChange={onOpenChange}>
+		<Dialog.Root open={open} onOpenChange={changeOpen}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay palette-overlay" />
 				<Dialog.Content
@@ -191,7 +224,7 @@ export function InsertPassageDialog({
 							<PreviewBody state={state} onPick={setQuery} insist={insist} />
 						</div>
 						<div className="insert-actions">
-							<button type="button" className="button" onClick={() => onOpenChange(false)}>
+							<button type="button" className="button" onClick={() => changeOpen(false)}>
 								Cancel
 							</button>
 							<button

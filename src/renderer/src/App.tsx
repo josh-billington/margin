@@ -1,3 +1,4 @@
+import { ErrorBoundary } from './app/ErrorBoundary'
 import { AppProviders } from './app/AppProviders'
 import { AppShell } from './app/AppShell'
 import { DialogsHost } from './app/DialogsHost'
@@ -10,7 +11,9 @@ export function App() {
 	return (
 		<AppProviders>
 			<AppShell />
-			<DialogsHost />
+			<ErrorBoundary message="Margin couldn't display the dialog." className="dialog-error">
+				<DialogsHost />
+			</ErrorBoundary>
 		</AppProviders>
 	)
 }

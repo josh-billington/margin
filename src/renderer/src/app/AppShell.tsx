@@ -1,3 +1,4 @@
+import { ErrorBoundary } from './ErrorBoundary'
 import { useValue } from 'tldraw'
 import { StudyWorkspace } from '../study/StudyWorkspace'
 import { useStudySession, renameStudy, retrySave, saveCopy, createStudy } from '../study/session'
@@ -30,7 +31,11 @@ export function AppShell() {
 			/>
 			{studyState.lock && <LibraryLockNotice lock={studyState.lock} />}
 			<div className="workspace">
-				{sidebarOpen && <Sidebar onCreateStudy={() => void createStudy()} editor={editor} />}
+				{sidebarOpen && (
+					<ErrorBoundary message="Margin couldn't display the sidebar.">
+						<Sidebar onCreateStudy={() => void createStudy()} editor={editor} />
+					</ErrorBoundary>
+				)}
 				<main className="canvas-area" aria-label="Study canvas">
 					<StudyWorkspace onEditor={setActiveEditor} />
 					{session && isEmpty && <EmptyHint />}
