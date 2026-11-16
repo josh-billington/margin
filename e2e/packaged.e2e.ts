@@ -3,7 +3,8 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { addAmos, closeApp, launch, makeDirs, removeDirs, saved } from './harness'
 
-// Runs the unsigned .app produced by `yarn dist` (skipped when it has not been built).
+// Keep enableNodeCliInspectArguments on: Playwright needs --inspect=0 to attach to the packaged app.
+// Runs the ad-hoc .app produced by `yarn dist` (skipped when it has not been built).
 const executable = resolve(__dirname, '../release/mac-arm64/Margin.app/Contents/MacOS/Margin')
 
 test.skip(!existsSync(executable), 'Run `yarn dist` first to produce release/mac-arm64/Margin.app')
