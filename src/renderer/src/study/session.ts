@@ -282,7 +282,7 @@ export async function saveCopy() {
 			}),
 		)
 		autosaves.get(session.study.id)?.cancel()
-		closeMissing(session.study.id)
+		await closeMissing(session.study.id)
 		install(copy)
 		await refreshStudies()
 	} catch (error) {
@@ -461,7 +461,12 @@ export function handleLibraryEvent(event: LibraryEvent) {
 								void saveCopy()
 							},
 						},
-						cancel: { label: 'Close', onClick: () => closeMissing(event.studyId) },
+						cancel: {
+							label: 'Close',
+							onClick: () => {
+								void closeMissing(event.studyId).catch(report)
+							},
+						},
 					},
 				)
 				break
@@ -492,8 +497,8 @@ export function handleLibraryEvent(event: LibraryEvent) {
 		}
 	})().catch(report)
 }
-function closeMissing(id: string) {
-	void window.margin.library.closeStudy({ studyId: id }).catch(report)
+async function closeMissing(id: string) {
+	unwrap(await window.margin.library.closeStudy({ studyId: id }))
 	pendingDocumentChanges.delete(id)
 	autosaves.get(id)?.cancel()
 	autosaves.delete(id)

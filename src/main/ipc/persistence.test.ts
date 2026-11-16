@@ -191,3 +191,46 @@ it('opens the setup picker after library startup fails and retries the saved fol
 		data: { path, setup: 'done', error: null },
 	})
 })
+
+it('closes a deleted study without requiring unrelated staged studies to flush', async () => {
+	root = await mkdtemp(join(tmpdir(), 'margin-discard-'))
+	electron.paths = { userData: join(root, 'private'), documents: root }
+	vi.stubEnv('MARGIN_LIBRARY_DIR', join(root, 'library'))
+	const libraries: Library[] = []
+	const initialize = Library.prototype.initialize
+	vi.spyOn(Library.prototype, 'initialize').mockImplementation(function (this: Library) {
+		libraries.push(this)
+		closeLibrary = () => this.close()
+		return initialize.call(this, false)
+	})
+	const webContents = { mainFrame: {}, send: vi.fn() }
+	await registerPersistence(() => ({ webContents }) as unknown as Electron.BrowserWindow)
+	const library = libraries[0]
+	if (!library) throw new Error('Missing library')
+	const document = {
+		store: {
+			'page:page': {
+				id: 'page:page',
+				typeName: 'page',
+				name: 'Page',
+				index: 'a1',
+				meta: { schemaVersion: 1, tags: [] },
+			},
+		},
+		schema: { schemaVersion: 2, sequences: {} },
+	}
+	const missing = await library.create('Missing', document)
+	const other = await library.create('Other', document)
+	library.stage({ ...missing, title: 'Missing edits' }, 1)
+	library.stage({ ...other, title: 'Other edits' }, 1)
+	await rm(library.file(missing.id))
+	const result = await electron.handlers.get(ipcContract.library.closeStudy.channel)!(
+		{ sender: webContents, senderFrame: webContents.mainFrame },
+		{ studyId: missing.id },
+	)
+	expect(result).toEqual({ ok: true, data: null })
+	expect([...library.stagedIds()]).toEqual([other.id])
+	await expect(library.flush()).rejects.toThrow()
+	library.abandon(other.id)
+	await expect(library.flush()).resolves.toBeUndefined()
+})

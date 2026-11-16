@@ -53,7 +53,11 @@ const api = {
 		flush: vi.fn(async () => success(null)),
 		listStudies: vi.fn(async () => success([])),
 		createStudy: vi.fn(async () => success(makeStudy('Copy', copyId))),
-		closeStudy: vi.fn(async () => success(null)),
+		closeStudy: vi.fn(
+			async (): Promise<
+				{ ok: true; data: null } | { ok: false; error: { code: string; message: string } }
+			> => success(null),
+		),
 		openStudy: vi.fn(async () => success(makeStudy('Second', copyId))),
 		saveStudy: vi.fn(),
 	},
@@ -140,6 +144,31 @@ describe('study session boundaries', () => {
 		})
 		expect(useStudySession.getState().currentId).toBe(copyId)
 		expect(useStudySession.getState().sessions[id]).toBeUndefined()
+	})
+	it('keeps the old session until close IPC succeeds after saving a copy', async () => {
+		let finish = () => {}
+		const gate = new Promise<void>((resolve) => {
+			finish = resolve
+		})
+		api.library.closeStudy.mockImplementationOnce(async () => {
+			await gate
+			return success(null)
+		})
+		const copying = saveCopy()
+		await vi.waitFor(() => expect(api.library.closeStudy).toHaveBeenCalled())
+		expect(useStudySession.getState().sessions[id]).toBeDefined()
+		finish()
+		await copying
+		expect(useStudySession.getState().sessions[id]).toBeUndefined()
+	})
+	it('keeps the session when close IPC returns a failure', async () => {
+		api.library.closeStudy.mockResolvedValueOnce({
+			ok: false,
+			error: { code: 'SAVE_FAILED', message: 'Try again.' },
+		})
+		await saveCopy()
+		expect(useStudySession.getState().sessions[id]).toBeDefined()
+		expect(useStudySession.getState().currentId).toBe(id)
 	})
 	it('preserves invalid external documents and marks them failed without replacing memory', async () => {
 		await handleLibraryEvent({ kind: 'error', studyId: id, message: 'Malformed external file' })

@@ -203,8 +203,7 @@ export async function registerPersistence(
 		"Margin couldn't save your changes. Check that you can save files in the library folder, then try again or save a copy.",
 	)
 	handle(ipcContract.library.closeStudy, async ({ studyId }) => {
-		await library.flush()
-		library.abandon(studyId)
+		await library.closeStudy(studyId)
 		return null
 	})
 	handle(ipcContract.library.stageStudy, async ({ study, sequence }) => {

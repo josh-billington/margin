@@ -401,6 +401,9 @@ export class Library {
 	stagedIds() {
 		return this.staged.keys()
 	}
+	closeStudy(id: string) {
+		return this.enqueue(id, async () => this.abandon(id))
+	}
 	abandon(id: string) {
 		this.staged.delete(id)
 		this.known.delete(id)
