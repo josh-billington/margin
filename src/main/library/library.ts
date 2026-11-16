@@ -6,6 +6,7 @@ import { watch, type FSWatcher } from 'chokidar'
 import { migrateStudy, type PersistedStudy } from '../../shared/study/migrations'
 import { atomicWrite } from './atomic'
 import { acquireLibraryLock, type LibraryLock, type LibraryLockOwner } from './lock'
+import { logFailure } from '../logger'
 import { UserFacingError, userMessage } from '../../shared/errors'
 
 import type { LibraryEvent } from '../../shared/ipc/contract'
@@ -52,27 +53,51 @@ export class Library {
 			throw error
 		}
 		if (watching) {
-			this.watcher = watch(join(this.path, 'studies'), {
-				ignoreInitial: true,
-				awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 30 },
-			})
-			this.watcher.on('all', (_event, path) => {
-				const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
-				if (id)
-					void this.externalChange(id).catch((error) =>
-						this.onEvent({
-							kind: 'error',
-							studyId: id,
-							message: userMessage(
-								error,
-								"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
-							),
-						}),
-					)
-			})
+			this.watcherClosed = false
+			this.startWatcher()
 		}
 		return this
 	}
+	private watcherClosed = false
+	private startWatcher(retry = true) {
+		this.watcher = watch(join(this.path, 'studies'), {
+			ignoreInitial: true,
+			awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 30 },
+		})
+		this.watcher.on('all', (_event, path) => {
+			const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
+			if (id)
+				void this.externalChange(id).catch((error) =>
+					this.onEvent({
+						kind: 'error',
+						studyId: id,
+						message: userMessage(
+							error,
+							"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+						),
+					}),
+				)
+		})
+		this.watcher.on('error', (error) => {
+			logFailure('library-watcher-failed', error)
+			this.onEvent({
+				kind: 'error',
+				studyId: '',
+				message: retry
+					? "Margin couldn't watch the library for changes. Trying again. Your unsaved studies are still open."
+					: "Margin couldn't watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.",
+			})
+			if (!retry) return
+			retry = false
+			void this.watcher
+				?.close()
+				.then(() => {
+					if (!this.watcherClosed) this.startWatcher(false)
+				})
+				.catch((error) => logFailure('library-watcher-restart-failed', error))
+		})
+	}
+
 	private writable() {
 		if (this.readOnly)
 			throw new UserFacingError(
@@ -401,6 +426,7 @@ export class Library {
 			)
 	}
 	async close() {
+		this.watcherClosed = true
 		try {
 			await this.watcher?.close()
 			await this.flush()
