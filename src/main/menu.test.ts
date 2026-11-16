@@ -50,12 +50,12 @@ it('exposes feedback, local logs, the website, and the privacy policy in Help', 
 		'Send Feedback…',
 		'Show Logs in Finder',
 		'Margin Website',
-		'Privacy policy',
+		'Privacy Policy',
 	])
 	expect(mocks.open).not.toHaveBeenCalled()
 	const reveal = submenu.find((item) => item.label === 'Show Logs in Finder')?.click
 	const website = submenu.find((item) => item.label === 'Margin Website')?.click
-	const privacy = submenu.find((item) => item.label === 'Privacy policy')?.click
+	const privacy = submenu.find((item) => item.label === 'Privacy Policy')?.click
 	if (!reveal || !website || !privacy) throw new Error('Missing Help actions')
 	Reflect.apply(reveal, undefined, [])
 	Reflect.apply(website, undefined, [])

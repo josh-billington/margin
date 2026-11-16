@@ -121,7 +121,7 @@ export function installAppMenu(
 				{ label: 'Show Logs in Finder', click: revealLogs },
 				{ type: 'separator' },
 				{ label: 'Margin Website', click: () => openLink(WEBSITE) },
-				{ label: 'Privacy policy', click: () => openLink(`${WEBSITE}/privacy/`) },
+				{ label: 'Privacy Policy', click: () => openLink(`${WEBSITE}/privacy/`) },
 			],
 		},
 	]

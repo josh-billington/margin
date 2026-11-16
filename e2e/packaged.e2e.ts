@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { addAmos, closeApp, launch, makeDirs, removeDirs, saved } from './harness'
 
-// Keep enableNodeCliInspectArguments on: Playwright needs --inspect=0 to attach to the packaged app.
+// `yarn dist` keeps enableNodeCliInspectArguments on so Playwright can attach with --inspect=0; `dist:release` turns it off.
 // Runs the ad-hoc .app produced by `yarn dist` (skipped when it has not been built).
 const executable = resolve(__dirname, '../release/mac-arm64/Margin.app/Contents/MacOS/Margin')
 
