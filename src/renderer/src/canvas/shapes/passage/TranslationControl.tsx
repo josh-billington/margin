@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { Editor } from 'tldraw'
 import { translationIdSchema, type TranslationId } from '@shared/bible/types'
+import { wordBindingMetadataSchema } from '@shared/study/types'
 import type { MappedPassage } from '@shared/ipc/contract'
 import { formatRange, formatRanges, translationNames } from '../../../insertion/labels'
 import type { PassageShape } from '../types'
@@ -20,11 +21,23 @@ export function TranslationControl({
 	const [target, setTarget] = useState<TranslationId>(current === 'kjv' ? 'jps1917' : 'kjv')
 	const [pending, setPending] = useState<MappedPassage | null>(null)
 	const [busy, setBusy] = useState(false)
+	const inFlight = useRef(false)
+	function unchanged() {
+		const latest = editor.getShape(shape.id)
+		return (
+			latest?.type === 'passage' &&
+			JSON.stringify(latest.props.text) === JSON.stringify(shape.props.text) &&
+			!latest.props.highlights.length &&
+			!editor
+				.getBindingsToShape(shape.id, 'arrow')
+				.some((binding) => wordBindingMetadataSchema.safeParse(binding.meta).success)
+		)
+	}
 
 	async function apply(ranges: MappedPassage['ranges']) {
-		const latest = editor.getShape(shape.id)
-		if (latest?.type !== 'passage' || latest.props.highlights.length) return
+		if (!unchanged()) return
 		const result = await window.margin.bible.getPassage({ translationId: target, ranges })
+		if (!unchanged()) return
 		if (!result.ok) return void toast.error(result.error.message)
 		editor.markHistoryStoppingPoint('change translation')
 		editor.updateShape({ id: shape.id, type: 'passage', props: { text: result.data } })
@@ -32,18 +45,26 @@ export function TranslationControl({
 		setTarget(current)
 	}
 
-	async function change() {
+	async function change(ranges?: MappedPassage['ranges']) {
+		if (inFlight.current || !unchanged()) return
+		inFlight.current = true
 		setBusy(true)
 		try {
+			if (ranges) {
+				await apply(ranges)
+				return
+			}
 			const mapped = await window.margin.bible.mapPassage({
 				from: current,
 				to: target,
 				ranges: shape.props.text.ranges,
 			})
+			if (!unchanged()) return
 			if (!mapped.ok) return void toast.error(mapped.error.message)
 			if (mapped.data.kind === 'mapped') await apply(mapped.data.ranges)
 			else setPending(mapped.data)
 		} finally {
+			inFlight.current = false
 			setBusy(false)
 		}
 	}
@@ -105,13 +126,13 @@ export function TranslationControl({
 						))}
 					</ul>
 					{pending.ranges.length > 0 && (
-						<button type="button" onClick={() => void apply(pending.ranges)}>
+						<button type="button" disabled={busy} onClick={() => void change(pending.ranges)}>
 							{pending.kind === 'incomplete'
 								? `Use only ${formatRanges(pending.ranges)}`
 								: `Use ${formatRanges(pending.ranges)}`}
 						</button>
 					)}
-					<button type="button" onClick={() => setPending(null)}>
+					<button type="button" disabled={busy} onClick={() => setPending(null)}>
 						Keep {translationNames[current].short}
 					</button>
 				</div>
