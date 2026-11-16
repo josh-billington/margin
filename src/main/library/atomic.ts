@@ -2,7 +2,11 @@ import { open, rename, rm, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
-export async function atomicWrite(path: string, content: string) {
+export async function atomicWrite(
+	path: string,
+	content: string,
+	beforeReplace?: () => Promise<void>,
+) {
 	await mkdir(dirname(path), { recursive: true })
 	const temporary = join(dirname(path), `.${randomUUID()}.tmp`)
 	try {
@@ -13,6 +17,7 @@ export async function atomicWrite(path: string, content: string) {
 		} finally {
 			await file.close()
 		}
+		await beforeReplace?.()
 		await rename(temporary, path)
 		const directory = await open(dirname(path), 'r')
 		try {

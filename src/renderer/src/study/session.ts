@@ -34,6 +34,8 @@ export async function initializeStudies() {
 			lock: library?.lock ?? null,
 			ready: true,
 		})
+		if (library?.error) toast.error(library.error, { id: 'library-startup', duration: Infinity })
+		else toast.dismiss('library-startup')
 		if (library?.setup === 'done' && library.readOnly && !library.lock)
 			toast.info('Another copy of Margin has this library open. Close it to save changes here.')
 		await refreshStudies()
@@ -280,7 +282,7 @@ export async function saveCopy() {
 			}),
 		)
 		autosaves.get(session.study.id)?.cancel()
-		closeMissing(session.study.id)
+		await closeMissing(session.study.id)
 		install(copy)
 		await refreshStudies()
 	} catch (error) {
@@ -459,7 +461,12 @@ export function handleLibraryEvent(event: LibraryEvent) {
 								void saveCopy()
 							},
 						},
-						cancel: { label: 'Close', onClick: () => closeMissing(event.studyId) },
+						cancel: {
+							label: 'Close',
+							onClick: () => {
+								void closeMissing(event.studyId).catch(report)
+							},
+						},
 					},
 				)
 				break
@@ -490,8 +497,8 @@ export function handleLibraryEvent(event: LibraryEvent) {
 		}
 	})().catch(report)
 }
-function closeMissing(id: string) {
-	void window.margin.library.closeStudy({ studyId: id }).catch(report)
+async function closeMissing(id: string) {
+	unwrap(await window.margin.library.closeStudy({ studyId: id }))
 	pendingDocumentChanges.delete(id)
 	autosaves.get(id)?.cancel()
 	autosaves.delete(id)

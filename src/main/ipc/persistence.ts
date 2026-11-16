@@ -49,7 +49,19 @@ export async function registerPersistence(
 	getWindow: () => BrowserWindow | null,
 	onAppearanceChange: (preferences: Preferences) => void = () => {},
 ) {
-	const data = await new AppDataStore(app.getPath('userData')).open()
+	const data = new AppDataStore(app.getPath('userData'))
+	let startupError: string | null = null
+	let prefsFailed = false
+	try {
+		await data.open()
+	} catch (error) {
+		logFailure('prefs-open-failed', error)
+		startupError = errorMessage(
+			error,
+			"Margin couldn't load your settings. Try again or choose another library folder.",
+		)
+		prefsFailed = true
+	}
 	let library = new Library(
 		process.env.MARGIN_LIBRARY_DIR ??
 			data.libraryPath ??
@@ -57,7 +69,19 @@ export async function registerPersistence(
 			join(app.getPath('documents'), 'Margin'),
 		data.path,
 	)
-	if (data.setup === 'done') await library.initialize()
+	let initialized = false
+	if (data.setup === 'done' && !prefsFailed) {
+		try {
+			await library.initialize()
+			initialized = true
+		} catch (error) {
+			logFailure('library-initialize-failed', error)
+			startupError = errorMessage(
+				error,
+				"Margin couldn't open your library. Try again or choose another library folder.",
+			)
+		}
+	}
 	const notify = () => {
 		library.onEvent = (event) => getWindow()?.webContents.send('margin:library:event', event)
 	}
@@ -66,7 +90,8 @@ export async function registerPersistence(
 	const describe = () => ({
 		path: library.path,
 		folder: describeFolder(library.path),
-		setup: data.setup,
+		setup: initialized ? data.setup : 'pending',
+		error: startupError,
 		readOnly: library.readOnly,
 		lock:
 			library.lockOwner && library.lockOwner.hostname !== hostname()
@@ -118,7 +143,11 @@ export async function registerPersistence(
 	}
 	handle(ipcContract.library.getLibrary, async () => describe())
 	handle(ipcContract.library.completeSetup, async () => {
-		if (data.setup === 'pending') {
+		if (!initialized) {
+			if (prefsFailed) {
+				await data.open()
+				prefsFailed = false
+			}
 			await library.initialize()
 			try {
 				await data.completeSetup()
@@ -126,6 +155,8 @@ export async function registerPersistence(
 				await library.close()
 				throw error
 			}
+			initialized = true
+			startupError = null
 		}
 		return describe()
 	})
@@ -142,7 +173,7 @@ export async function registerPersistence(
 		if (result.canceled || !path || path === library.path) return null
 		await library.flush()
 		const next = new Library(path, data.path)
-		if (data.setup === 'done') await next.initialize()
+		if (initialized) await next.initialize()
 		try {
 			await data.update((settings) => {
 				settings.libraryPath = path
@@ -153,11 +184,12 @@ export async function registerPersistence(
 		}
 		await library.close()
 		library = next
+		startupError = null
 		notify()
 		return describe()
 	})
 	handle(ipcContract.library.listStudies, () =>
-		data.setup === 'pending' ? Promise.resolve([]) : library.list(),
+		!initialized ? Promise.resolve([]) : library.list(),
 	)
 	handle(
 		ipcContract.library.openStudy,
@@ -171,8 +203,7 @@ export async function registerPersistence(
 		"Margin couldn't save your changes. Check that you can save files in the library folder, then try again or save a copy.",
 	)
 	handle(ipcContract.library.closeStudy, async ({ studyId }) => {
-		await library.flush()
-		library.abandon(studyId)
+		await library.closeStudy(studyId)
 		return null
 	})
 	handle(ipcContract.library.stageStudy, async ({ study, sequence }) => {
@@ -288,7 +319,7 @@ export async function registerPersistence(
 					]
 						.filter(Boolean)
 						.join('\n\n'),
-					buttons: ['Keep Open', quit ? 'Quit Anyway' : 'Close Anyway'],
+					buttons: ['Keep open', quit ? 'Quit anyway' : 'Close anyway'],
 					defaultId: 0,
 					cancelId: 0,
 				}
@@ -296,9 +327,24 @@ export async function registerPersistence(
 					? dialog.showMessageBox(window, options)
 					: dialog.showMessageBox(options))
 				if (response !== 1) return
-				const preserved = await library.preserveUnsaved()
-				logEvent('quit-with-unsaved', { preserved })
-				for (const id of [...library.stagedIds()]) library.abandon(id)
+				const { preserved, failed } = await library.preserveUnsaved()
+				logEvent('quit-with-unsaved', { preserved: preserved.length, failed: failed.length })
+				if (failed.length) {
+					const warning = {
+						type: 'warning' as const,
+						message: "Margin couldn't keep a recovery copy of these studies",
+						detail: `${failed.map(({ title }) => title).join('\n')}\n\nKeep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, you will lose the unsaved changes in these studies.`,
+						buttons: ['Keep open', quit ? 'Quit and lose changes' : 'Close and lose changes'],
+						defaultId: 0,
+						cancelId: 0,
+					}
+					const choice = await (window && !window.isDestroyed()
+						? dialog.showMessageBox(window, warning)
+						: dialog.showMessageBox(warning))
+					if (choice.response !== 1) return
+					for (const { id } of failed) library.abandon(id)
+				}
+				for (const id of preserved) library.abandon(id)
 				await finish()
 			})
 			.finally(() => {
