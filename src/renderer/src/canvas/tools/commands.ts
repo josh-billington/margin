@@ -83,6 +83,7 @@ export function installCanvasCommands(editor: Editor) {
 		}
 	}
 	const onKeyDown = (event: KeyboardEvent) => {
+		if (getComputedStyle(editor.getContainer()).visibility === 'hidden') return
 		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 		const context = shortcutContext(editor, event)
 		// T with scripture words selected: a note already joined to them by an arrow.
