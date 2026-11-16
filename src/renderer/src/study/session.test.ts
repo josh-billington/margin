@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTLStore, type Editor } from 'tldraw'
 import type * as TldrawModule from 'tldraw'
+import { studyFileEnvelopeSchema } from '@shared/study/types'
 import { migrateStudy } from '@shared/study/migrations'
 import { Autosave } from './autosave'
 import {
@@ -257,4 +258,30 @@ it('does not reinstall a session created while its open request was pending', as
 		study: { title: 'Live session' },
 		state: 'unsaved',
 	})
+})
+it('restores editing and retries conflict recovery after a bridge rejection', async () => {
+	const editor = {
+		store: createTLStore(),
+		updateInstanceState: vi.fn(),
+		getCamera: () => ({ x: 0, y: 0, z: 1 }),
+		clearHistory: vi.fn(),
+		selectNone: vi.fn(),
+		setCamera: vi.fn(),
+		getCurrentPageShapes: () => [],
+	} as unknown as Editor
+	editors.set(id, editor)
+	// Keep the copy identical so this test exercises reopening the original.
+	const copy = studyFileEnvelopeSchema.parse({
+		...makeStudy('Copy', copyId),
+		document: editor.store.getStoreSnapshot(),
+	})
+	api.library.openStudy.mockRejectedValueOnce(new Error('Disconnected'))
+	const event = { kind: 'conflict' as const, originalId: id, study: copy }
+	await handleLibraryEvent(event)
+	expect(editor.updateInstanceState).toHaveBeenLastCalledWith({ isReadonly: false })
+	api.library.openStudy.mockResolvedValueOnce(success(makeStudy()))
+	await handleLibraryEvent(event)
+	expect(api.library.openStudy).toHaveBeenCalledTimes(2)
+	expect(useStudySession.getState().sessions[id]?.state).toBe('saved')
+	expect(editor.updateInstanceState).toHaveBeenLastCalledWith({ isReadonly: false })
 })

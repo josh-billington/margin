@@ -418,7 +418,10 @@ const conflictTasks = new Map<string, Promise<void>>()
 function conflict(copy: PersistedStudy, originalId: string): Promise<void> {
 	const existing = conflictTasks.get(copy.id)
 	if (existing) return existing
-	const task = applyConflict(copy, originalId)
+	const task = applyConflict(copy, originalId).catch((error: unknown) => {
+		conflictTasks.delete(copy.id)
+		throw error
+	})
 	conflictTasks.set(copy.id, task)
 	return task
 }
@@ -426,29 +429,40 @@ async function applyConflict(copy: PersistedStudy, originalId: string) {
 	autosaves.get(originalId)?.cancel()
 	const editor = editors.get(originalId)
 	editor?.updateInstanceState({ isReadonly: true })
-	const local = useStudySession.getState().sessions[originalId]
-	const latestDocument = editor ? snapshot(editor) : local?.study.document
-	let preferredCopy = copy
-	if (local && latestDocument && JSON.stringify(latestDocument) !== JSON.stringify(copy.document)) {
-		const latestCopy = unwrap(
-			await window.margin.library.createStudy({
-				title: `${local.study.title} (conflict copy)`,
-				document: latestDocument,
-			}),
-		)
-		preferredCopy = latestCopy
-	}
+	try {
+		const local = useStudySession.getState().sessions[originalId]
+		const latestDocument = editor ? snapshot(editor) : local?.study.document
+		let preferredCopy = copy
+		if (
+			local &&
+			latestDocument &&
+			JSON.stringify(latestDocument) !== JSON.stringify(copy.document)
+		) {
+			const latestCopy = unwrap(
+				await window.margin.library.createStudy({
+					title: `${local.study.title} (conflict copy)`,
+					document: latestDocument,
+				}),
+			)
+			preferredCopy = latestCopy
+		}
 
-	const original = unwrap(await window.margin.library.openStudy({ studyId: originalId }))
-	reload(original)
-	if (!useStudySession.getState().sessions[copy.id]) {
-		const currentId = useStudySession.getState().currentId
-		install(copy)
-		if (currentId && currentId !== originalId) useStudySession.setState({ currentId })
+		const original = unwrap(await window.margin.library.openStudy({ studyId: originalId }))
+		reload(original)
+		if (!useStudySession.getState().sessions[copy.id]) {
+			const currentId = useStudySession.getState().currentId
+			install(copy)
+			if (currentId && currentId !== originalId) useStudySession.setState({ currentId })
+		}
+		if (preferredCopy.id !== copy.id) install(preferredCopy)
+		toast.warning('This study changed outside Margin. Your edits are saved in a conflict copy.')
+	} catch (error) {
+		update(originalId, { state: 'error', blocked: true })
+		throw error
+	} finally {
+		const { readOnly, closing } = useStudySession.getState()
+		editor?.updateInstanceState({ isReadonly: readOnly || closing })
 	}
-	if (preferredCopy.id !== copy.id) install(preferredCopy)
-	editor?.updateInstanceState({ isReadonly: useStudySession.getState().readOnly })
-	toast.warning('This study changed outside Margin. Your edits are saved in a conflict copy.')
 }
 export function handleLibraryEvent(event: LibraryEvent) {
 	return (async () => {
