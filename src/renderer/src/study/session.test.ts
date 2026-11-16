@@ -285,3 +285,17 @@ it('restores editing and retries conflict recovery after a bridge rejection', as
 	expect(useStudySession.getState().sessions[id]?.state).toBe('saved')
 	expect(editor.updateInstanceState).toHaveBeenLastCalledWith({ isReadonly: false })
 })
+it('opens the recent study when reading the last-opened preference rejects', async () => {
+	const { ensureStudyOpen } = await import('./session')
+	api.library.openStudy.mockResolvedValueOnce(success(makeStudy('Recent', copyId)))
+	vi.stubGlobal('window', {
+		margin: { ...api, prefs: { get: vi.fn().mockRejectedValue(new Error('Disconnected')) } },
+	})
+	useStudySession.setState({
+		setup: 'done',
+		currentId: null,
+		studies: [makeStudy('Recent', copyId)],
+	})
+	await ensureStudyOpen()
+	expect(useStudySession.getState().currentId).toBe(copyId)
+})

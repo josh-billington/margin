@@ -1,4 +1,5 @@
 import type * as ReactModule from 'react'
+import { toast } from 'sonner'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { ReactElement } from 'react'
 import type { Editor } from 'tldraw'
@@ -15,6 +16,7 @@ vi.mock('react', async (original) => ({
 		if (cleanup) hooks.cleanups.push(cleanup)
 	},
 }))
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 vi.mock('./usePreview', () => ({
 	usePreview: () => ({
 		status: 'resolved',
@@ -78,4 +80,19 @@ it.each(['Cancel', 'dismiss', 'unmount'])('discards pending insertion after %s',
 	await settle()
 	expect(insertPassage).not.toHaveBeenCalled()
 	expect(close).toHaveBeenCalledTimes(action === 'unmount' ? 0 : 1)
+})
+
+it('reports a rejected insertion request and allows another attempt', async () => {
+	const getPassage = vi
+		.fn()
+		.mockRejectedValueOnce(new Error('Transport failure'))
+		.mockResolvedValueOnce({ ok: true, data: 'passage' })
+	vi.stubGlobal('window', { margin: { bible: { getPassage } } })
+	const { submit } = render()
+	submit()
+	await settle()
+	expect(toast.error).toHaveBeenCalledWith("Margin couldn't load the verses. Try again.")
+	submit()
+	await settle()
+	expect(insertPassage).toHaveBeenCalledTimes(1)
 })

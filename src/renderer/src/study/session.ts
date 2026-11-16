@@ -56,8 +56,11 @@ export function ensureStudyOpen() {
 async function openInitialStudy() {
 	const state = useStudySession.getState()
 	if (state.setup !== 'done' || state.currentId || state.closing) return
-	const last = await window.margin.prefs.get()
-	const lastId = last.ok ? last.data.lastOpenedStudyId : undefined
+	const last = await window.margin.prefs.get().catch((error: unknown) => {
+		report(error)
+		return null
+	})
+	const lastId = last?.ok ? last.data.lastOpenedStudyId : undefined
 	const recent = [...state.studies].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
 	const pick = state.studies.find((study) => study.id === lastId) ?? recent
 	if (pick) return openStudy(pick.id)

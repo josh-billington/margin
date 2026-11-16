@@ -15,17 +15,31 @@ const subscribe = (listener: () => void) => {
 	return () => listeners.delete(listener)
 }
 const load = () =>
-	(loading ??= window.margin.prefs.get().then((result) => {
-		if (result.ok) publish(result.data)
-		else loading = null
-	}))
+	(loading ??= window.margin.prefs
+		.get()
+		.then((result) => {
+			if (result.ok) publish(result.data)
+			else {
+				loading = null
+				toast.error(result.error.message)
+			}
+		})
+		.catch(() => {
+			loading = null
+			toast.error("Margin couldn't load your settings. Try again.")
+		}))
 
 /** Saves a preference change and shares the result with every reader. */
 export async function updatePrefs(patch: Partial<Preferences>) {
-	const result = await window.margin.prefs.set(patch)
-	if (result.ok) publish(result.data)
-	else toast.error(result.error.message)
-	return result.ok
+	try {
+		const result = await window.margin.prefs.set(patch)
+		if (result.ok) publish(result.data)
+		else toast.error(result.error.message)
+		return result.ok
+	} catch {
+		toast.error("Margin couldn't save your settings. Try again.")
+		return false
+	}
 }
 
 /** App preferences from the main process. `prefs` is null until the first read completes. */

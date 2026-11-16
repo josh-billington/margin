@@ -1,10 +1,12 @@
 import type * as ReactModule from 'react'
+import { toast } from 'sonner'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { ReactElement } from 'react'
 import type { Editor } from 'tldraw'
 import { TranslationControl } from './TranslationControl'
 import { amosFixture } from '../../fixtures/passages'
 import type { PassageShape } from '../types'
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 vi.mock('react', async (original) => ({
 	...(await original<typeof ReactModule>()),
 	useState: (initial: unknown) => [initial, vi.fn()],
@@ -77,5 +79,41 @@ it.each(['highlight', 'word arrow', 'text', 'deleted', 'unchanged'])(
 		resolve({ ok: true, data: 'new translation' })
 		await settle()
 		expect(editor.updateShape).toHaveBeenCalledTimes(mutation === 'unchanged' ? 1 : 0)
+	},
+)
+
+it.each(['mapPassage', 'getPassage'])(
+	'reports a rejected translation %s and allows retry',
+	async (method) => {
+		vi.clearAllMocks()
+		const shape = {
+			id: 'shape:one',
+			type: 'passage',
+			props: { text: amosFixture, highlights: [] },
+		} as unknown as PassageShape
+		const editor = {
+			getShape: () => shape,
+			getBindingsToShape: () => [],
+			markHistoryStoppingPoint: vi.fn(),
+			updateShape: vi.fn(),
+		}
+		const bible = {
+			mapPassage: vi.fn().mockResolvedValue({ ok: true, data: { kind: 'mapped', ranges: [] } }),
+			getPassage: vi.fn().mockResolvedValue({ ok: true, data: amosFixture }),
+		}
+		bible[method as keyof typeof bible].mockRejectedValueOnce(new Error('Transport failure'))
+		vi.stubGlobal('window', { margin: { bible } })
+		const tree = TranslationControl({
+			editor: editor as unknown as Editor,
+			shape,
+			lockReason: null,
+		})
+		const click = nodes(tree).find((node) => node.type === 'button')!.props.onClick
+		click()
+		await settle()
+		expect(toast.error).toHaveBeenCalledWith("Margin couldn't change the translation. Try again.")
+		click()
+		await settle()
+		expect(editor.updateShape).toHaveBeenCalledTimes(1)
 	},
 )

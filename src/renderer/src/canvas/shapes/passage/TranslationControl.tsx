@@ -63,6 +63,8 @@ export function TranslationControl({
 			if (!mapped.ok) return void toast.error(mapped.error.message)
 			if (mapped.data.kind === 'mapped') await apply(mapped.data.ranges)
 			else setPending(mapped.data)
+		} catch {
+			toast.error("Margin couldn't change the translation. Try again.")
 		} finally {
 			inFlight.current = false
 			setBusy(false)
