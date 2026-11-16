@@ -259,7 +259,17 @@ export class Library {
 				updatedAt: new Date().toISOString(),
 			}
 			await this.recoverThrottled(known.study)
-			await this.persist(saved)
+			await this.persist(saved, async () => {
+				const current = await this.read(study.id)
+				if (current.hash === disk.hash) return
+				await this.create(`${current.study.title} (conflict copy)`, current.study.document)
+				this.onEvent({
+					kind: 'error',
+					studyId: '',
+					message:
+						'This study changed outside Margin while saving. Margin kept that version in a conflict copy.',
+				})
+			})
 			this.committed.set(study.id, sequence)
 			if (this.staged.get(study.id)?.sequence === sequence) this.staged.delete(study.id)
 			await this.refreshIndex()
@@ -285,9 +295,9 @@ export class Library {
 		this.onEvent({ kind: 'list' })
 	}
 
-	private async persist(study: PersistedStudy) {
+	private async persist(study: PersistedStudy, beforeReplace?: () => Promise<void>) {
 		const content = JSON.stringify(study)
-		await this.write(this.file(study.id), content)
+		await this.write(this.file(study.id), content, beforeReplace)
 		this.known.set(study.id, { study, hash: hash(content) })
 		const baselines = this.baselines.get(study.id) ?? new Set<string>()
 		baselines.add(hash(content))
