@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 const electron = vi.hoisted(() => ({
 	app: { getVersion: () => '0.9.0-beta.1' },
@@ -8,6 +8,8 @@ const electron = vi.hoisted(() => ({
 }))
 vi.mock('electron', () => electron)
 import { checkForUpdates } from './updates'
+
+afterEach(() => vi.unstubAllGlobals())
 
 const url = 'https://github.com/josh-billington/margin/releases/tag/v0.9.0-beta.10'
 beforeEach(() => {
@@ -100,4 +102,12 @@ it('coalesces repeated clicks until the check finishes', async () => {
 	await pending
 	electron.net.fetch.mockResolvedValue({ ok: false })
 	await checkForUpdates()
+})
+
+it('does not fetch, prompt, or open a link in Mac App Store builds', async () => {
+	vi.stubGlobal('process', { ...process, mas: true })
+	await checkForUpdates()
+	expect(electron.net.fetch).not.toHaveBeenCalled()
+	expect(electron.dialog.showMessageBox).not.toHaveBeenCalled()
+	expect(electron.shell.openExternal).not.toHaveBeenCalled()
 })

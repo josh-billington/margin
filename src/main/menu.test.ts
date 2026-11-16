@@ -1,5 +1,5 @@
 import type { MenuItemConstructorOptions } from 'electron'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
 	build: vi.fn<(template: MenuItemConstructorOptions[]) => MenuItemConstructorOptions[]>(
@@ -24,6 +24,7 @@ vi.mock('./help', () => ({
 import { installAppMenu } from './menu'
 
 beforeEach(() => vi.clearAllMocks())
+afterEach(() => vi.unstubAllGlobals())
 
 it('places explicit updates under About and never checks while installing the menu', () => {
 	installAppMenu(() => null)
@@ -32,6 +33,7 @@ it('places explicit updates under About and never checks while installing the me
 	if (!Array.isArray(submenu)) throw new Error('Missing app submenu')
 	expect(submenu[0]?.role).toBe('about')
 	expect(submenu[1]?.label).toBe('Check for Updates…')
+	expect(submenu[1]?.visible).toBe(true)
 	expect(mocks.check).not.toHaveBeenCalled()
 	const click = submenu[1]?.click
 	if (!click) throw new Error('Missing update action')
@@ -39,7 +41,7 @@ it('places explicit updates under About and never checks while installing the me
 	expect(mocks.check).toHaveBeenCalledOnce()
 })
 
-it('exposes feedback, local logs, and the website in Help', () => {
+it('exposes feedback, local logs, the website, and the privacy policy in Help', () => {
 	installAppMenu(() => null)
 	const template = mocks.build.mock.calls[0]?.[0] ?? []
 	const submenu = template.find((item) => item.role === 'help')?.submenu
@@ -48,13 +50,26 @@ it('exposes feedback, local logs, and the website in Help', () => {
 		'Send Feedback…',
 		'Show Logs in Finder',
 		'Margin Website',
+		'Privacy policy',
 	])
 	expect(mocks.open).not.toHaveBeenCalled()
 	const reveal = submenu.find((item) => item.label === 'Show Logs in Finder')?.click
 	const website = submenu.find((item) => item.label === 'Margin Website')?.click
-	if (!reveal || !website) throw new Error('Missing Help actions')
+	const privacy = submenu.find((item) => item.label === 'Privacy policy')?.click
+	if (!reveal || !website || !privacy) throw new Error('Missing Help actions')
 	Reflect.apply(reveal, undefined, [])
 	Reflect.apply(website, undefined, [])
+	Reflect.apply(privacy, undefined, [])
 	expect(mocks.reveal).toHaveBeenCalledOnce()
 	expect(mocks.open).toHaveBeenCalledWith('https://margin-bible.pages.dev')
+	expect(mocks.open).toHaveBeenCalledWith('https://margin-bible.pages.dev/privacy/')
+})
+
+it('hides the update action in Mac App Store builds', () => {
+	vi.stubGlobal('process', { ...process, mas: true })
+	installAppMenu(() => null)
+	const submenu = mocks.build.mock.calls[0]?.[0]?.[0]?.submenu
+	if (!Array.isArray(submenu)) throw new Error('Missing app submenu')
+	expect(submenu.find((item) => item.label === 'Check for Updates…')?.visible).toBe(false)
+	expect(mocks.check).not.toHaveBeenCalled()
 })

@@ -35,7 +35,7 @@ export function installAppMenu(
 			label: app.name,
 			submenu: [
 				{ role: 'about' },
-				{ label: 'Check for Updates…', click: () => void checkForUpdates() },
+				{ label: 'Check for Updates…', visible: !process.mas, click: () => void checkForUpdates() },
 				{ type: 'separator' },
 				command('Settings…', 'settings.open', 'Cmd+,'),
 				{ type: 'separator' },
@@ -121,6 +121,7 @@ export function installAppMenu(
 				{ label: 'Show Logs in Finder', click: revealLogs },
 				{ type: 'separator' },
 				{ label: 'Margin Website', click: () => openLink(WEBSITE) },
+				{ label: 'Privacy policy', click: () => openLink(`${WEBSITE}/privacy/`) },
 			],
 		},
 	]
