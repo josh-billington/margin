@@ -869,3 +869,26 @@ input[type='checkbox']:focus-visible {
 .setup-panel > .dialog-actions {
 	margin-top: var(--space-2);
 }
+
+.render-error {
+	max-width: 20rem;
+	margin: 1rem;
+	padding: 1rem;
+	align-self: flex-start;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--surface);
+	color: var(--ink);
+	font-size: 0.875rem;
+	pointer-events: auto;
+}
+.render-error p {
+	margin: 0 0 0.75rem;
+}
+.dialog-error,
+.lookup-error {
+	position: absolute;
+	top: 3rem;
+	right: 1rem;
+	z-index: 1000;
+}
