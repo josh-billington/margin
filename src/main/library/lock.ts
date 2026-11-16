@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { hostname } from 'node:os'
 import { readFile, open, rm, link, stat } from 'node:fs/promises'
@@ -24,32 +23,19 @@ export interface LibraryLock {
 const lockContent = () =>
 	JSON.stringify({ pid: process.pid, hostname: hostname(), acquiredAt: new Date().toISOString() })
 
-// lockf releases the local acquisition guard on exit, including a crash; the guard file stays.
-async function guarded<T>(path: string, action: () => Promise<T>): Promise<T> {
-	const guard = spawn('/usr/bin/lockf', [
-		'-k',
-		'-t',
-		'5',
-		`${path}.guard`,
-		'/bin/sh',
-		'-c',
-		'printf ready; cat >/dev/null',
-	])
-	const exited = new Promise<void>((resolve) => guard.once('close', () => resolve()))
-	try {
-		await new Promise<void>((resolve, reject) => {
-			guard.once('error', reject)
-			guard.stdout.once('data', () => resolve())
-			guard.once('exit', () => reject(new Error('Could not acquire the library lock guard.')))
-		})
-		return await action()
-	} finally {
-		guard.stdin.end()
-		await exited
-	}
+// Another process is already excluded by the single-instance lock; this orders overlapping calls in this one.
+const queues = new Map<string, Promise<unknown>>()
+function serial<T>(path: string, action: () => Promise<T>): Promise<T> {
+	const next = (queues.get(path) ?? Promise.resolve()).then(action, action)
+	queues.set(
+		path,
+		next.catch(() => {}),
+	)
+	return next
 }
+
 const releaser = (path: string, content: string) => () =>
-	guarded(path, async () => {
+	serial(path, async () => {
 		if ((await readFile(path, 'utf8').catch(() => '')) === content) await rm(path, { force: true })
 	})
 
@@ -57,7 +43,7 @@ export async function acquireLibraryLock(folder: string): Promise<LibraryLock> {
 	const path = join(folder, '.margin-lock')
 	let owner: LibraryLockOwner | null = null
 	const takeOver = () =>
-		guarded(path, async () => {
+		serial(path, async () => {
 			if (!owner || owner.hostname === hostname()) return null
 			const current = lockSchema.parse(JSON.parse(await readFile(path, 'utf8')))
 			if (JSON.stringify(current) !== JSON.stringify(owner)) return null
@@ -66,7 +52,7 @@ export async function acquireLibraryLock(folder: string): Promise<LibraryLock> {
 			owner = null
 			return releaser(path, content)
 		})
-	return guarded(path, async () => {
+	return serial(path, async () => {
 		for (let attempt = 0; attempt < 2; attempt++) {
 			const content = lockContent()
 			const temporary = join(folder, `.${randomUUID()}.lock.tmp`)
