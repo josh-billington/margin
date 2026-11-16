@@ -104,17 +104,30 @@ export async function flushBeforeClose() {
 	}
 	return ok
 }
+let navigation = 0
+const openTasks = new Map<string, Promise<PersistedStudy>>()
 export async function openStudy(id: string) {
-	if (
-		useStudySession.getState().closing ||
-		id === useStudySession.getState().currentId ||
-		!(await flushStudies())
-	)
-		return
+	const request = ++navigation
+	if (useStudySession.getState().closing || id === useStudySession.getState().currentId) return
+	if (!(await flushStudies())) return
 	try {
-		const existing = useStudySession.getState().sessions[id]
-		if (existing) useStudySession.setState({ currentId: id })
-		else install(unwrap(await window.margin.library.openStudy({ studyId: id })))
+		if (!useStudySession.getState().sessions[id]) {
+			let task = openTasks.get(id)
+			if (!task) {
+				task = window.margin.library.openStudy({ studyId: id }).then(unwrap)
+				openTasks.set(id, task)
+			}
+			let study: PersistedStudy
+			try {
+				study = await task
+			} finally {
+				if (openTasks.get(id) === task) openTasks.delete(id)
+			}
+			if (request !== navigation || useStudySession.getState().closing) return
+			if (!useStudySession.getState().sessions[id]) install(study)
+		}
+		if (request === navigation && !useStudySession.getState().closing)
+			useStudySession.setState({ currentId: id })
 	} catch (error) {
 		report(error)
 	}
@@ -244,8 +257,13 @@ export function renameStudy(title: string) {
 	)
 		return
 	const id = session.study.id
+	const editor = editors.get(id)
 	update(id, {
-		study: { ...session.study, title: title.trim() },
+		study: {
+			...session.study,
+			title: title.trim(),
+			document: editor ? snapshot(editor) : session.study.document,
+		},
 		sequence: nextSequence(),
 		state: 'unsaved',
 	})
@@ -312,6 +330,8 @@ export async function chooseLibrary() {
 	try {
 		const result = unwrap(await window.margin.library.chooseLibraryFolder())
 		if (result) {
+			navigation++
+			openTasks.clear()
 			for (const autosave of autosaves.values()) autosave.cancel()
 			autosaves.clear()
 			editors.clear()

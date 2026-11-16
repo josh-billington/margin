@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createTLStore, getSnapshot, type Editor } from 'tldraw'
+import { createTLStore, type Editor } from 'tldraw'
 import type * as TldrawModule from 'tldraw'
 import { migrateStudy } from '@shared/study/migrations'
 import { Autosave } from './autosave'
@@ -11,11 +11,19 @@ import {
 	update,
 	useStudySession,
 } from './state'
-import { flushBeforeClose, flushStudies, handleLibraryEvent, openStudy, saveCopy } from './session'
+import {
+	chooseLibrary,
+	flushBeforeClose,
+	flushStudies,
+	handleLibraryEvent,
+	openStudy,
+	renameStudy,
+	saveCopy,
+} from './session'
 
 vi.mock('./editor', () => ({
 	attachEditor: vi.fn(),
-	snapshot: (editor: Editor) => getSnapshot(editor.store).document,
+	snapshot: (editor: Editor) => editor.store.getStoreSnapshot(),
 	studySnapshot: (study: ReturnType<typeof migrateStudy>) => study.document,
 }))
 vi.mock('tldraw', async (original) => ({
@@ -51,11 +59,21 @@ const success = <T>(data: T) => ({ ok: true as const, data })
 const api = {
 	library: {
 		flush: vi.fn(async () => success(null)),
+		chooseLibraryFolder: vi.fn(async () =>
+			success({
+				setup: 'pending' as const,
+				path: '/new-library',
+				folder: null,
+				readOnly: false,
+				lock: null,
+			}),
+		),
 		listStudies: vi.fn(async () => success([])),
 		createStudy: vi.fn(async () => success(makeStudy('Copy', copyId))),
 		closeStudy: vi.fn(async () => success(null)),
 		openStudy: vi.fn(async () => success(makeStudy('Second', copyId))),
 		saveStudy: vi.fn(),
+		stageStudy: vi.fn(async () => success(null)),
 	},
 	camera: { set: vi.fn(async () => success(null)) },
 }
@@ -164,5 +182,79 @@ describe('study session boundaries', () => {
 		expect(editor.clearHistory).toHaveBeenCalledTimes(1)
 		expect(editor.setCamera).toHaveBeenCalledWith(camera)
 		expect(useStudySession.getState().sessions[id]?.state).toBe('saved')
+	})
+})
+
+function deferred<T>() {
+	let resolve!: (value: T) => void
+	const promise = new Promise<T>((done) => {
+		resolve = done
+	})
+	return { promise, resolve }
+}
+async function settle() {
+	for (let i = 0; i < 20; i++) await Promise.resolve()
+}
+it('deduplicates overlapping opens without replacing intervening edits', async () => {
+	const response = deferred<ReturnType<typeof success<ReturnType<typeof makeStudy>>>>()
+	api.library.openStudy.mockReturnValue(response.promise)
+	const first = openStudy(copyId),
+		second = openStudy(copyId)
+	await settle()
+	expect(api.library.openStudy).toHaveBeenCalledTimes(1)
+	response.resolve(success(makeStudy('Second', copyId)))
+	await first
+	renameStudy('My edit')
+	await second
+	expect(useStudySession.getState().sessions[copyId]?.study.title).toBe('My edit')
+})
+it('keeps the latest navigation when opens finish in reverse order', async () => {
+	const thirdId = '01ARZ3NDEKTSV4RRFFQ69G5FAX'
+	const old = deferred<ReturnType<typeof success<ReturnType<typeof makeStudy>>>>()
+	const latest = deferred<ReturnType<typeof success<ReturnType<typeof makeStudy>>>>()
+	api.library.openStudy.mockReturnValueOnce(old.promise).mockReturnValueOnce(latest.promise)
+	const first = openStudy(copyId),
+		second = openStudy(thirdId)
+	await settle()
+	latest.resolve(success(makeStudy('Third', thirdId)))
+	await second
+	old.resolve(success(makeStudy('Second', copyId)))
+	await first
+	expect(useStudySession.getState().currentId).toBe(thirdId)
+})
+it('renames using the live editor document before its change notification', () => {
+	const store = createTLStore()
+	const document = store.getStoreSnapshot()
+	editors.set(id, { store } as Editor)
+	renameStudy('New title')
+	expect(api.library.stageStudy).toHaveBeenCalledWith(
+		expect.objectContaining({
+			study: expect.objectContaining({ title: 'New title', document }),
+		}),
+	)
+})
+it('ignores an open response from the previous library', async () => {
+	const response = deferred<ReturnType<typeof success<ReturnType<typeof makeStudy>>>>()
+	api.library.openStudy.mockReturnValueOnce(response.promise)
+	const opening = openStudy(copyId)
+	await settle()
+	await chooseLibrary()
+	response.resolve(success(makeStudy('Old library', copyId)))
+	await opening
+	expect(useStudySession.getState().currentId).toBeNull()
+	expect(useStudySession.getState().sessions).toEqual({})
+})
+it('does not reinstall a session created while its open request was pending', async () => {
+	const response = deferred<ReturnType<typeof success<ReturnType<typeof makeStudy>>>>()
+	api.library.openStudy.mockReturnValueOnce(response.promise)
+	const opening = openStudy(copyId)
+	await settle()
+	install(makeStudy('Live session', copyId))
+	update(copyId, { state: 'unsaved' })
+	response.resolve(success(makeStudy('Old disk snapshot', copyId)))
+	await opening
+	expect(useStudySession.getState().sessions[copyId]).toMatchObject({
+		study: { title: 'Live session' },
+		state: 'unsaved',
 	})
 })
