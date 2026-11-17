@@ -75,7 +75,7 @@ test('right-click in every tool, transient lookup, dark/light popover, note + bo
 		}
 		expect(
 			await app.evaluate(() => (globalThis as { lookupMenuLabel?: string }).lookupMenuLabel),
-		).toBe('Look Up "created"')
+		).toBe('Look Up “created”')
 		await page.waitForTimeout(1000)
 		expect(await readFile(file, 'utf8')).toBe(before)
 		await created(page).click({ button: 'right' })

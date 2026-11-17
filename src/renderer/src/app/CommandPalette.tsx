@@ -76,23 +76,20 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 						<Command.List>
 							{/* A typed query always offers "Add verses ‹query›", so it is never empty then. */}
 							{!typed && <Command.Empty>No matching commands.</Command.Empty>}
-							{groups.map((group) => (
-								<Command.Group
-									key={group}
-									heading={group}
-									// cmdk hides a group with no matching items, forced ones included.
-									forceMount={group === 'Study' && !!typed}
+							{/* Outside the groups: cmdk hides a group with no matching items (forced ones too), and
+							    forcing the group would force every command in it. */}
+							{typed && (
+								<Command.Item
+									forceMount
+									value={`add verses ${typed}`}
+									onSelect={() => run(() => useUiStore.getState().openInsert(typed))}
 								>
-									{group === 'Study' && typed && (
-										<Command.Item
-											forceMount
-											value={`add verses ${typed}`}
-											onSelect={() => run(() => useUiStore.getState().openInsert(typed))}
-										>
-											<BookOpen {...iconMd} aria-hidden="true" />
-											Add verses<span>{typed}</span>
-										</Command.Item>
-									)}
+									<BookOpen {...iconMd} aria-hidden="true" />
+									Add verses<span>{typed}</span>
+								</Command.Item>
+							)}
+							{groups.map((group) => (
+								<Command.Group key={group} heading={group}>
 									{paletteCommands
 										.filter((command) => command.group === group)
 										.map((command) => {

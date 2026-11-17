@@ -14,10 +14,10 @@ test('first launch sets the translation and never shows setup again', async () =
 		await expect(setup).toBeFocused()
 		await expect(setup.locator('.setup-folder')).toHaveAttribute('title', dirs.library)
 		await expect(setup.getByLabel('Default translation').locator('option')).toHaveText([
+			'King James Version',
 			'Berean Standard Bible',
 			'World English Bible',
 			'American Standard Version (1901)',
-			'King James Version',
 		])
 		await page.keyboard.press('Tab')
 		await expect(setup.getByRole('button', { name: 'Choose a folder…' })).toBeFocused()

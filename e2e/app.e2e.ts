@@ -150,8 +150,16 @@ test('palette: typing a reference offers Add verses for it', async () => {
 		await input.fill(reference)
 		const row = page.getByRole('option', { name: new RegExp(`Add verses\\s*${reference}`) })
 		await expect(row).toBeVisible()
+		// It is the only row, and the one Enter runs.
+		await expect(row).toHaveAttribute('aria-selected', 'true')
+		await expect(page.getByRole('option')).toHaveCount(1)
 		await expect(page.getByText('No matching commands.')).toHaveCount(0)
 	}
+	// A word that names a command still leads with the command.
+	await input.fill('new')
+	await expect(page.getByRole('option').first()).toHaveText(/New study/)
+	await expect(page.getByRole('option').first()).toHaveAttribute('aria-selected', 'true')
+	await input.fill('Amos 1:3-5')
 	await page.keyboard.press('Enter')
 	await expect(page.getByLabel('Reference')).toHaveValue('Amos 1:3-5')
 	await closeApp(app)

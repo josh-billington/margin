@@ -32,8 +32,9 @@ test('tag sidebar: create, rename, recolor, delete with reassign', async () => {
 		await create.getByRole('button', { name: /^(Create|Add)/ }).click()
 		await expect(sidebar.getByRole('button', { name: 'Mercy. Show 0 highlights' })).toBeVisible()
 
-		// The New tag popover is still open here; opening Edit tag must not blank the canvas.
-		// Rename and recolor.
+		// Creating closes the New tag popover, as the canvas one does; opening Edit tag must not blank
+		// the canvas. Rename and recolor.
+		await expect(create).toBeHidden()
 		await sidebar.getByRole('button', { name: 'Edit tag Judgment' }).click()
 		const edit = page.getByRole('dialog', { name: 'Edit tag Judgment' })
 		await expect(page.locator('.passage-block').first()).toBeVisible()

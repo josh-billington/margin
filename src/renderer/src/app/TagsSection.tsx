@@ -167,6 +167,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 	const selected = useTagFocus((state) => state.tagId)
 	const index = useTagFocus((state) => state.index)
 	const [pendingDelete, setPendingDelete] = useState<Tag | null>(null)
+	const [creating, setCreating] = useState(false)
 	const matchCount = useValue(
 		'tag matches',
 		() => (editor && selected ? tagMatches(editor, selected).length : 0),
@@ -183,7 +184,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 			<div className="section-heading">
 				<h2 id="tags-heading">Tags</h2>
 				{!readOnly && (
-					<Popover.Root>
+					<Popover.Root open={creating} onOpenChange={setCreating}>
 						<Popover.Trigger asChild>
 							<ToolButton label="New tag">
 								<Plus {...iconMd} aria-hidden="true" />
@@ -193,7 +194,10 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 							<Popover.Content className="margin-popover" align="start" aria-label="New tag">
 								<NewTagForm
 									submitLabel="Create tag"
-									onCreate={(name, color) => createTag(editor, name, color)}
+									onCreate={(name, color) => {
+										createTag(editor, name, color)
+										setCreating(false)
+									}}
 								/>
 							</Popover.Content>
 						</Popover.Portal>
