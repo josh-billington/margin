@@ -9,13 +9,10 @@ import {
 } from '../canvas/highlights/tagging'
 import { caretRequest, useLookup } from '../canvas/lookup/store'
 import { duplicateSelection, requestDeleteSelection } from '../canvas/annotations/editorOps'
-import { fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
+import { KEYBOARD_ZOOM, fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
 import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
-
-// ⌘+ / ⌘− are pressed many times in a row and never animate; toolbar clicks do (Toolbar.tsx).
-const KEYBOARD_ZOOM = { animation: { duration: 0 } }
 
 export type CommandId = AppCommandId | 'selection.tag' | 'selection.duplicate' | 'selection.delete'
 

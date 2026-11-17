@@ -56,6 +56,20 @@ test('focus dims and undims with a fade; toolbar zoom animates', async () => {
 		await page.getByRole('button', { name: 'Zoom in' }).click()
 		const steps = [...new Set((await zoomP).map((r) => r.split(':')[1]))]
 		expect(steps.length, 'zoom passes through intermediate values').toBeGreaterThan(3)
+
+		// ⌘+ and ⌘− are keyboard actions: they land in one step, with no animation.
+		for (const [key, from, to] of [
+			['Meta+=', '100%', '150%'],
+			['Meta+-', '150%', '100%'],
+		] as const) {
+			await page.waitForTimeout(400)
+			if (key === 'Meta+=') await page.locator('.zoom-button').click()
+			await expect(page.locator('.zoom-button')).toHaveText(from)
+			await page.waitForTimeout(100)
+			const keyP = sample(page, zoomRead, 300)
+			await page.keyboard.press(key)
+			expect([...new Set((await keyP).map((r) => r.split(':')[1]))], key).toEqual([from, to])
+		}
 	} finally {
 		await closeApp(app)
 		await removeDirs(dirs)
