@@ -8,7 +8,6 @@ import {
 	GLASS_CHANNEL,
 	glassModeSchema,
 	ipcContract,
-	libraryEventSchema,
 } from '@shared/ipc/contract'
 import { appCommandSchema, COMMAND_CHANNEL } from '@shared/ipc/commands'
 import type { AppCommandId } from '@shared/ipc/commands'
@@ -20,9 +19,7 @@ function bind<I extends z.ZodType, O extends z.ZodType>(operation: {
 	response: O
 }) {
 	return async (request: z.input<I>): Promise<z.output<O>> => {
-		const payload = operation.request.parse(request)
-		const response: unknown = await ipcRenderer.invoke(operation.channel, payload)
-		return operation.response.parse(response)
+		return ipcRenderer.invoke(operation.channel, request)
 	}
 }
 
@@ -94,10 +91,8 @@ const api = {
 	prefs: { get: bind(ipcContract.prefs.get), set: bind(ipcContract.prefs.set) },
 	events: {
 		onLibrary: (listener: (event: LibraryEvent) => void) => {
-			const handler = (_event: Electron.IpcRendererEvent, payload: unknown) => {
-				const parsed = libraryEventSchema.safeParse(payload)
-				if (parsed.success) listener(parsed.data)
-			}
+			const handler = (_event: Electron.IpcRendererEvent, payload: LibraryEvent) =>
+				listener(payload)
 			ipcRenderer.on('margin:library:event', handler)
 			return () => {
 				ipcRenderer.removeListener('margin:library:event', handler)

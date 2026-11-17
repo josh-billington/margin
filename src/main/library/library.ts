@@ -126,8 +126,10 @@ export class Library {
 		for (const filename of await readdir(join(this.path, 'studies'))) {
 			if (!filename.endsWith('.study.json')) continue
 			try {
-				const study = migrateStudy(
-					JSON.parse(await readFile(join(this.path, 'studies', filename), 'utf8')),
+				const id = filename.replace('.study.json', '')
+				const { study } = this.parse(
+					id,
+					await readFile(join(this.path, 'studies', filename), 'utf8'),
 				)
 				if (filename !== `${study.id}.study.json`)
 					throw new UserFacingError(
@@ -158,12 +160,18 @@ export class Library {
 	}
 	private async read(id: string) {
 		const content = await readFile(this.file(id), 'utf8')
+		return this.parse(id, content)
+	}
+	private parse(id: string, content: string) {
+		const digest = hash(content)
+		const cached = this.known.get(id)
+		if (cached?.hash === digest) return cached
 		const study = migrateStudy(JSON.parse(content))
 		if (study.id !== id)
 			throw new UserFacingError(
 				"Margin couldn't open this study because its filename has changed. Restore its original filename and try again.",
 			)
-		return { study, hash: hash(content) }
+		return { study, hash: digest }
 	}
 	async open(id: string) {
 		const disk = await this.read(id).catch(async (error: unknown) => {
@@ -298,9 +306,10 @@ export class Library {
 	private async persist(study: PersistedStudy, beforeReplace?: () => Promise<void>) {
 		const content = JSON.stringify(study)
 		await this.write(this.file(study.id), content, beforeReplace)
-		this.known.set(study.id, { study, hash: hash(content) })
+		const digest = hash(content)
+		this.known.set(study.id, { study, hash: digest })
 		const baselines = this.baselines.get(study.id) ?? new Set<string>()
-		baselines.add(hash(content))
+		baselines.add(digest)
 		this.baselines.set(study.id, baselines)
 	}
 	private async conflict(local: PersistedStudy, external: Awaited<ReturnType<Library['read']>>) {
@@ -366,12 +375,10 @@ export class Library {
 	}
 	private async recover(study: PersistedStudy) {
 		const folder = join(this.appData, 'recovery', study.id)
+		const content = JSON.stringify(study)
 		await this.write(
-			join(
-				folder,
-				`${String(study.revision).padStart(16, '0')}-${hash(JSON.stringify(study))}.json`,
-			),
-			JSON.stringify(study),
+			join(folder, `${String(study.revision).padStart(16, '0')}-${hash(content)}.json`),
+			content,
 		)
 		this.recovered.set(study.id, Date.now())
 		const versions = (await readdir(folder))

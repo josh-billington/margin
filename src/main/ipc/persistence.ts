@@ -5,7 +5,7 @@ import { hostname, homedir } from 'node:os'
 import { z } from 'zod'
 import { AppDataStore } from '../appData/store'
 import { Library } from '../library/library'
-import { migrateStudy } from '../../shared/study/migrations'
+import { validateDocument } from '../../shared/study/validation'
 import { ipcContract } from '../../shared/ipc/contract'
 import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
 import { logEvent, logFailure } from '../logger'
@@ -100,7 +100,9 @@ export async function registerPersistence(
 	})
 	function handle<I extends z.ZodType, O extends z.ZodType>(
 		operation: { channel: string; request: I; response: O },
-		action: (request: z.output<I>) => Promise<unknown>,
+		action: (
+			request: z.output<I>,
+		) => Promise<Extract<z.output<O>, { ok: true }> extends { data: infer D } ? D : never>,
 		failureMessage = "Margin couldn't update the library. Check that you can open the library folder and try again.",
 	) {
 		ipcMain.removeHandler(operation.channel)
@@ -128,7 +130,7 @@ export async function registerPersistence(
 					},
 				})
 			try {
-				return operation.response.parse({ ok: true, data: await action(parsed.data) })
+				return { ok: true, data: await action(parsed.data) }
 			} catch (error) {
 				logFailure('persistence-operation-failed', error)
 				return operation.response.parse({
@@ -199,7 +201,10 @@ export async function registerPersistence(
 	handle(ipcContract.library.createStudy, ({ title, document }) => library.create(title, document))
 	handle(
 		ipcContract.library.saveStudy,
-		({ study, sequence, base }) => library.save(migrateStudy(study), sequence, base),
+		({ study, sequence, base }) => {
+			validateDocument(study.document)
+			return library.save(study, sequence, base)
+		},
 		"Margin couldn't save your changes. Check that you can save files in the library folder, then try again or save a copy.",
 	)
 	handle(ipcContract.library.closeStudy, async ({ studyId }) => {
@@ -207,7 +212,8 @@ export async function registerPersistence(
 		return null
 	})
 	handle(ipcContract.library.stageStudy, async ({ study, sequence }) => {
-		library.stage(migrateStudy(study), sequence)
+		validateDocument(study.document)
+		library.stage(study, sequence)
 		return null
 	})
 	handle(ipcContract.library.deleteStudy, async ({ studyId }) => {

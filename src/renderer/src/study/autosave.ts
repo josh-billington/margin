@@ -3,16 +3,20 @@ export class Autosave {
 	private maximum?: ReturnType<typeof setTimeout>
 	private pending = false
 	private running: Promise<void> = Promise.resolve()
-	constructor(private save: () => Promise<void>) {}
+	constructor(
+		private save: () => Promise<void>,
+		private debounceMs = 500,
+		private maximumMs = 2000,
+	) {}
 	schedule() {
 		this.pending = true
 		clearTimeout(this.debounce)
 		this.debounce = setTimeout(() => {
 			void this.flush().catch(() => {})
-		}, 500)
+		}, this.debounceMs)
 		this.maximum ??= setTimeout(() => {
 			void this.flush().catch(() => {})
-		}, 2000)
+		}, this.maximumMs)
 	}
 	cancel() {
 		clearTimeout(this.debounce)

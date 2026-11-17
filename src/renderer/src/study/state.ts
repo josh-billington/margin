@@ -40,6 +40,7 @@ export const useStudySession = create<StudyState>(() => ({
 }))
 export const editors = new Map<string, Editor>()
 export const pendingDocumentChanges = new Set<string>()
+export const stagings = new Map<string, Autosave>()
 export const autosaves = new Map<string, Autosave>()
 let bootstrap: Editor | null = null
 let sequence = 0
