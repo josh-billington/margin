@@ -2,6 +2,19 @@ import type { TLStoreSnapshot } from 'tldraw'
 import { z } from 'zod'
 import { passageTextSchema, verseRefSchema } from '../bible/types'
 
+// Same accepted values as z.json(), checked in one pass: zod's recursive union costs ~50 ms on a large study.
+const MAX_JSON_DEPTH = 200
+function isJson(value: unknown, depth = 0): boolean {
+	if (value === null || typeof value === 'string' || typeof value === 'boolean') return true
+	if (typeof value === 'number') return Number.isFinite(value)
+	if (typeof value !== 'object' || depth > MAX_JSON_DEPTH) return false
+	if (Array.isArray(value)) return value.every((item) => isJson(item, depth + 1))
+	const prototype: unknown = Object.getPrototypeOf(value)
+	if (prototype !== Object.prototype && prototype !== null) return false
+	return Object.values(value).every((item) => isJson(item, depth + 1))
+}
+export const jsonSchema = z.custom<z.core.util.JSONType>((value) => isJson(value), 'Invalid JSON')
+
 export const ulidSchema = z.ulid()
 export type ULID = z.infer<typeof ulidSchema>
 export const paletteColorSchema = z.enum(['sky', 'violet', 'rose', 'coral', 'amber', 'green'])
@@ -16,7 +29,7 @@ export const marginPageMetadataSchema = z.object({
 	schemaVersion: z.literal(1),
 	tags: z.array(tagSchema),
 	// Annotations that failed load validation (SPEC §7.4); kept for recovery, never reattached.
-	invalidAnnotations: z.array(z.json()).optional(),
+	invalidAnnotations: z.array(jsonSchema).optional(),
 })
 export type MarginPageMetadata = z.infer<typeof marginPageMetadataSchema>
 export const wordTargetSchema = z.object({
@@ -84,7 +97,7 @@ export type StudyFile = z.infer<typeof studyMetadataSchema> & {
 // registered tldraw schema in the study loader, which is intentionally not implemented yet.
 export const studyFileEnvelopeSchema = studyMetadataSchema.extend({
 	document: z.object({
-		store: z.record(z.string(), z.json()),
-		schema: z.json(),
+		store: z.record(z.string(), jsonSchema),
+		schema: jsonSchema,
 	}),
 })

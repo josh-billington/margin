@@ -1,22 +1,13 @@
 import { getSnapshot, loadSnapshot, type Editor } from 'tldraw'
-import { studyFileEnvelopeSchema } from '@shared/study/types'
 import { UserFacingError } from '@shared/errors'
 import type { TldrawDocumentSnapshot } from '@shared/study/types'
 import type { PersistedStudy } from '@shared/study/migrations'
 import { Autosave } from './autosave'
 import { limitStudyHistory } from './history'
-import {
-	useStudySession,
-	setBootstrap,
-	editors,
-	autosaves,
-	pendingDocumentChanges,
-	unwrap,
-	report,
-	update,
-} from './state'
+import { useStudySession, setBootstrap, editors, autosaves, unwrap, report, update } from './state'
+// The SDK owns these records; transport validation runs in the main IPC handler.
 export const snapshot = (editor: Editor) =>
-	studyFileEnvelopeSchema.shape.document.parse(getSnapshot(editor.store).document)
+	getSnapshot(editor.store).document as unknown as PersistedStudy['document']
 export function attachEditor(
 	id: string | null,
 	editor: Editor,
@@ -45,7 +36,7 @@ export function attachEditor(
 	const historyEdited = limitStudyHistory(editor)
 	const edited = () => {
 		historyEdited()
-		pendingDocumentChanges.add(id)
+		changed()
 	}
 	for (const type of editor.store.scopedTypes.document) {
 		editor.disposables.add(
@@ -64,7 +55,6 @@ export function attachEditor(
 			}),
 		)
 	}
-	editor.disposables.add(editor.store.listen(changed, { source: 'user', scope: 'document' }))
 	void window.margin.camera
 		.get({ studyId: id })
 		.then((result) => {

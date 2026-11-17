@@ -8,7 +8,7 @@ import {
 } from './types'
 
 const base = z
-	.object({ id: z.string().min(1), typeName: z.string(), meta: z.record(z.string(), z.json()) })
+	.object({ id: z.string().min(1), typeName: z.string(), meta: z.record(z.string(), z.unknown()) })
 	.passthrough()
 const shape = base.extend({
 	typeName: z.literal('shape'),
@@ -21,7 +21,7 @@ const shape = base.extend({
 	parentId: z.string().regex(/^(page|shape):.+/),
 	isLocked: z.boolean(),
 	opacity: z.number().min(0).max(1),
-	props: z.record(z.string(), z.json()),
+	props: z.record(z.string(), z.unknown()),
 })
 const binding = base.extend({
 	typeName: z.literal('binding'),
@@ -29,7 +29,7 @@ const binding = base.extend({
 	type: z.string().min(1),
 	fromId: z.string().startsWith('shape:'),
 	toId: z.string().startsWith('shape:'),
-	props: z.record(z.string(), z.json()),
+	props: z.record(z.string(), z.unknown()),
 })
 // SDK migrations and registered shape validators still run in loadSnapshot. These
 // checks reject malformed documents before they can enter the library index.
@@ -73,7 +73,7 @@ export function validateDocument(document: z.infer<typeof studyFileEnvelopeSchem
 			z.object({
 				id: z.string().startsWith('asset:'),
 				type: z.string(),
-				props: z.record(z.string(), z.json()),
+				props: z.record(z.string(), z.unknown()),
 			}).parse(record)
 		else throw new Error(`Unexpected document record: ${record.typeName}`)
 		return record

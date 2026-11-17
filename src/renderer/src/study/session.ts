@@ -5,10 +5,12 @@ import { UserFacingError } from '@shared/errors'
 import type { PersistedStudy } from '@shared/study/migrations'
 import type { LibraryEvent } from '@shared/ipc/contract'
 import { attachEditor, snapshot, studySnapshot } from './editor'
+import { Autosave } from './autosave'
 import {
 	useStudySession,
 	editors,
 	autosaves,
+	stagings,
 	pendingDocumentChanges,
 	getBootstrap,
 	current,
@@ -76,9 +78,15 @@ export async function completeSetup() {
 	unwrap(await window.margin.library.completeSetup())
 	await initializeStudies()
 }
+// Edits are marked dirty immediately; the whole-document snapshot and IPC stage run at most this often.
+const STAGING_MS = 250
 export async function flushStudies() {
 	try {
-		for (const id of pendingDocumentChanges) changed(id)
+		const staged = await Promise.allSettled([
+			...[...pendingDocumentChanges].map(stage),
+			...[...stagings.values()].map((staging) => staging.flush()),
+		])
+		for (const result of staged) if (result.status === 'rejected') throw result.reason
 		for (const [id, session] of Object.entries(useStudySession.getState().sessions)) {
 			if (session.state === 'error')
 				throw new UserFacingError(
@@ -182,6 +190,8 @@ async function createStudyNow() {
 	}
 }
 async function save(id: string) {
+	await stage(id)
+	await stagings.get(id)?.flush()
 	const session = useStudySession.getState().sessions[id]
 	if (!session || session.state === 'saved') return
 	if (session.blocked)
@@ -219,26 +229,41 @@ async function save(id: string) {
 		throw error
 	}
 }
-function changed(id: string) {
-	pendingDocumentChanges.delete(id)
+async function stage(id: string) {
+	if (!pendingDocumentChanges.has(id)) return
 	const session = useStudySession.getState().sessions[id]
 	const editor = editors.get(id)
 	if (!session || !editor || useStudySession.getState().readOnly) return
 	const study = { ...session.study, document: snapshot(editor) }
-	const next = nextSequence()
-	update(id, { study, sequence: next, state: session.blocked ? 'error' : 'unsaved' })
-	void window.margin.library
-		.stageStudy({ study, sequence: next })
-		.then((result) => {
-			if (!result.ok) {
-				update(id, { state: 'error' })
-				report(new UserFacingError(result.error.message))
-			}
-		})
-		.catch(report)
+	pendingDocumentChanges.delete(id)
+	update(id, { study })
+	try {
+		unwrap(await window.margin.library.stageStudy({ study, sequence: session.sequence }))
+	} catch (error) {
+		pendingDocumentChanges.add(id)
+		update(id, { state: 'error' })
+		report(error)
+		throw error
+	}
+}
+function changed(id: string) {
+	const session = useStudySession.getState().sessions[id]
+	if (!session || useStudySession.getState().readOnly) return
+	pendingDocumentChanges.add(id)
+	update(id, { sequence: nextSequence(), state: session.blocked ? 'error' : 'unsaved' })
+	stagings.get(id)?.schedule()
 	if (!session.blocked) autosaves.get(id)?.schedule()
 }
 export function attachStudyEditor(id: string | null, editor: Editor) {
+	if (id) {
+		stagings.get(id)?.cancel()
+		const staging = new Autosave(() => stage(id), STAGING_MS, STAGING_MS)
+		stagings.set(id, staging)
+		editor.disposables.add(() => {
+			staging.cancel()
+			if (stagings.get(id) === staging) stagings.delete(id)
+		})
+	}
 	attachEditor(
 		id,
 		editor,
@@ -296,6 +321,8 @@ export async function saveCopy() {
 	const editor = editors.get(session.study.id)
 	editor?.updateInstanceState({ isReadonly: true })
 	try {
+		await stage(session.study.id)
+		await stagings.get(session.study.id)?.flush()
 		const copy = unwrap(
 			await window.margin.library.createStudy({
 				title: `${session.study.title} (copy)`,
@@ -318,6 +345,9 @@ export async function deleteStudy(id: string) {
 		unwrap(await window.margin.library.deleteStudy({ studyId: id }))
 		autosaves.get(id)?.cancel()
 		autosaves.delete(id)
+		stagings.get(id)?.cancel()
+		stagings.delete(id)
+		pendingDocumentChanges.delete(id)
 		editors.delete(id)
 		useStudySession.setState((state) => {
 			const sessions = { ...state.sessions }
@@ -339,6 +369,9 @@ export async function chooseLibrary() {
 			openTasks.clear()
 			for (const autosave of autosaves.values()) autosave.cancel()
 			autosaves.clear()
+			for (const staging of stagings.values()) staging.cancel()
+			stagings.clear()
+			pendingDocumentChanges.clear()
 			editors.clear()
 			useStudySession.setState({
 				sessions: {},
@@ -362,6 +395,7 @@ export async function takeOverLibrary() {
 		useStudySession.setState({ readOnly: library.readOnly, lock: library.lock })
 		for (const editor of editors.values())
 			editor.updateInstanceState({ isReadonly: library.readOnly })
+		if (!(await flushStudies())) return
 		await refreshStudies()
 		toast.success('Margin can now save changes to this library.')
 	} catch (error) {
@@ -389,6 +423,7 @@ function reload(study: PersistedStudy) {
 		// Externally changed text may no longer match highlights/arrows (SPEC §7.4).
 		validateLoadedAnnotations(editor)
 	}
+	stagings.get(study.id)?.cancel()
 	pendingDocumentChanges.delete(study.id)
 	update(study.id, { study, base: JSON.stringify(study), state: 'saved', blocked: false })
 }
@@ -537,6 +572,8 @@ export function handleLibraryEvent(event: LibraryEvent) {
 async function closeMissing(id: string) {
 	unwrap(await window.margin.library.closeStudy({ studyId: id }))
 	pendingDocumentChanges.delete(id)
+	stagings.get(id)?.cancel()
+	stagings.delete(id)
 	autosaves.get(id)?.cancel()
 	autosaves.delete(id)
 	editors.delete(id)
