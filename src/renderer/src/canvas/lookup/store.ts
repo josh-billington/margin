@@ -4,7 +4,8 @@ import type { Editor } from 'tldraw'
 import type { TagRequest } from '../highlights/tagging'
 import { readTextSelection, useTagging, wordFor } from '../highlights/tagging'
 import { targetFromElement } from '../bindings/words'
-import { highlightAt, wordIndex, wordKey } from '../highlights/ranges'
+import { wordKey } from '../highlights/ranges'
+import { contextLookupRequest } from './contextRange'
 
 export const useLookup = create<{
 	editor: Editor | null
@@ -63,31 +64,13 @@ export function installLookupContextMenu(editor: Editor) {
 		event.preventDefault()
 		event.stopPropagation()
 		const target = targetFromElement(element)
-		let request = readTextSelection(editor)
-		const at = wordIndex(shape.props.text, target)
-		if (
-			!request ||
-			request.passageId !== shape.id ||
-			at <
-				Math.min(
-					wordIndex(shape.props.text, request.start),
-					wordIndex(shape.props.text, request.end),
-				) ||
-			at >
-				Math.max(
-					wordIndex(shape.props.text, request.start),
-					wordIndex(shape.props.text, request.end),
-				)
-		) {
-			const highlight = highlightAt(shape.props.text, shape.props.highlights, target)
-			request = {
-				passageId: shape.id,
-				start: highlight?.tagId ? highlight.start : target,
-				end: highlight?.tagId ? highlight.end : target,
-				x: event.clientX,
-				y: event.clientY,
-			}
-		}
+		const request = contextLookupRequest(
+			shape.props.text,
+			shape.id,
+			readTextSelection(editor),
+			target,
+			{ x: event.clientX, y: event.clientY },
+		)
 		useLookup.setState({ captured: request })
 		const token = shape.props.text.verses.find(
 			(verse) =>

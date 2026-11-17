@@ -12,6 +12,9 @@ import {
 import { centerOn, fitCamera } from './camera'
 import { focusFor } from './store'
 
+/** ⌘+ / ⌘− are pressed many times in a row, so they never animate; toolbar clicks do (Toolbar.tsx). */
+export const KEYBOARD_ZOOM = { animation: { duration: 0 } }
+
 /** Fit-all / fit-selection never magnify past this (a lone note would otherwise fill the screen). */
 const FIT_MAX_ZOOM = 2
 const isVisible = (editor: Editor) =>

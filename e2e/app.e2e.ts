@@ -213,6 +213,8 @@ test('holding ⌘N creates one study, not one per key repeat', async () => {
 		for (let i = 0; i < 20; i++) send(true)
 	})
 	await expect(page.getByLabel('Library').getByText('Untitled study')).toHaveCount(2)
+	// Numbered like new macOS documents, so the two rows read differently.
+	await expect(page.getByLabel('Library').getByText('Untitled study 2', { exact: true })).toBeVisible()
 	await saved(page)
 	await page.waitForTimeout(500)
 	expect(await studyFiles(dirs)).toHaveLength(2)

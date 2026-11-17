@@ -9,7 +9,7 @@ import {
 } from '../canvas/highlights/tagging'
 import { caretRequest, useLookup } from '../canvas/lookup/store'
 import { duplicateSelection, requestDeleteSelection } from '../canvas/annotations/editorOps'
-import { fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
+import { KEYBOARD_ZOOM, fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
 import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
@@ -179,14 +179,14 @@ export const commands: AppCommand[] = [
 		title: 'Zoom in',
 		group: 'View',
 		shortcut: '⌘+',
-		run: withEditor((e) => e.zoomIn()),
+		run: withEditor((e) => e.zoomIn(undefined, KEYBOARD_ZOOM)),
 	},
 	{
 		id: 'view.zoomOut',
 		title: 'Zoom out',
 		group: 'View',
 		shortcut: '⌘−',
-		run: withEditor((e) => e.zoomOut()),
+		run: withEditor((e) => e.zoomOut(undefined, KEYBOARD_ZOOM)),
 	},
 	{
 		id: 'appearance.system',

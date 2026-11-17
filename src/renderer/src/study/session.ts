@@ -6,6 +6,7 @@ import type { PersistedStudy } from '@shared/study/migrations'
 import type { LibraryEvent } from '@shared/ipc/contract'
 import { attachEditor, snapshot, studySnapshot } from './editor'
 import { Autosave } from './autosave'
+import { untitledTitle } from './untitled'
 import {
 	useStudySession,
 	editors,
@@ -172,7 +173,8 @@ async function createStudyNow() {
 				return record.typeName === 'document' || record.typeName === 'user' ? [[key, record]] : []
 			}),
 		)
-		install(unwrap(await window.margin.library.createStudy({ title: 'Untitled study', document })))
+		const title = untitledTitle(useStudySession.getState().studies.map((study) => study.title))
+		install(unwrap(await window.margin.library.createStudy({ title, document })))
 		await refreshStudies()
 	} catch (error) {
 		report(error)

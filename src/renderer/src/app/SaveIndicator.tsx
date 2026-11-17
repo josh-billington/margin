@@ -16,17 +16,22 @@ const states = {
 /**
  * Autosave writes within about 2.5s of an edit (500ms debounce, 2s cap), so most changes are
  * pending for a moment and then saved. Narrating that would change the label on every keystroke.
- * Instead the indicator goes quiet while a save is ordinary, and speaks only when it means
- * something. It never says "Saved" before the data is on disk.
+ * Instead, while a save is ordinary, the title bar keeps showing the last "Saved", unchanged and
+ * without a fade. The label changes only when something means it: a slow save, changes autosave
+ * hasn't picked up, or an error. Once it has said any of those, it says "Saved" again only when
+ * the study is on disk.
  */
 export const SAVE_TIMING = {
 	/** A single save still running this long is slow enough to mention (a busy or remote disk). */
 	savingAfterMs: 1000,
 	/** Unsaved this long without a save starting means autosave isn't keeping up. */
 	unsavedAfterMs: 4000,
-	/** "Saved" returns only once the study has stayed saved this long, so typing doesn't flash it. */
-	savedAfterMs: 600,
 }
+
+/** 'quiet' keeps showing the last "Saved"; it is only ever reached from "Saved". */
+const showsSaved = (shown: ShownSaveState) => shown === 'saved' || shown === 'quiet'
+/** The words on screen for what is shown. */
+export const shownLabel = (shown: ShownSaveState) => states[shown === 'quiet' ? 'saved' : shown].label
 
 /**
  * The next thing to show when the real state changes, given what is on screen now. Returns what to
@@ -40,21 +45,18 @@ export function nextShown(
 		case 'error':
 			return { show: 'error' }
 		case 'saved':
-			// After a visible message, confirm at once; after quiet autosave, wait so typing never flashes it.
-			return now === 'quiet'
-				? { show: 'quiet', later: { show: 'saved', afterMs: SAVE_TIMING.savedAfterMs } }
-				: { show: 'saved' }
+			return { show: 'saved' }
 		case 'saving':
-			// A retry after an error, or a slow save already on screen, keeps saying so.
-			return now === 'saving' || now === 'error'
-				? { show: 'saving' }
-				: { show: 'quiet', later: { show: 'saving', afterMs: SAVE_TIMING.savingAfterMs } }
+			// A save after a message on screen is progress worth showing; after "Saved" it is ordinary.
+			return showsSaved(now)
+				? { show: 'quiet', later: { show: 'saving', afterMs: SAVE_TIMING.savingAfterMs } }
+				: { show: 'saving' }
 		case 'unsaved':
 			if (now === 'unsaved') return { show: 'unsaved' }
 			return {
 				// Autosave queued behind a slow save, or a retry after an error, is saving as far as the
 				// reader is concerned: the error steps aside for progress, not for silence.
-				show: now === 'saving' || now === 'error' ? 'saving' : 'quiet',
+				show: showsSaved(now) ? 'quiet' : 'saving',
 				later: { show: 'unsaved', afterMs: SAVE_TIMING.unsavedAfterMs },
 			}
 	}
@@ -75,7 +77,7 @@ function useShownState(state: SaveState): ShownSaveState {
 		const timer = setTimeout(() => setShown(later.show), later.afterMs)
 		return () => clearTimeout(timer)
 	}, [state])
-	// The effect runs after paint; never let one frame say "Saved" while the state is not saved.
+	// The effect runs after paint; for that frame a change of state reads as ordinary autosave.
 	return shown === 'saved' && state !== 'saved' ? 'quiet' : shown
 }
 
@@ -89,18 +91,14 @@ export function SaveIndicator({
 	onSaveCopy?: () => void
 }) {
 	const shown = useShownState(state)
-	// Quiet keeps "Saved" laid out but hidden, so nothing shifts and it can fade back in place.
-	const { label, icon: Icon } = states[shown === 'quiet' ? 'saved' : shown]
+	const message = shown === 'quiet' ? 'saved' : shown
+	const Icon = states[message].icon
 	return (
 		<span className="save-indicator" data-state={shown} role="status">
-			{/* Saved ↔ quiet is a fade on one element; only a real change of message swaps it in. */}
-			<span
-				className="save-indicator-content"
-				key={shown === 'quiet' ? 'saved' : shown}
-				aria-hidden={shown === 'quiet' || undefined}
-			>
+			{/* Keyed by the words, so ordinary autosave (quiet ↔ saved) changes nothing on screen. */}
+			<span className="save-indicator-content" key={message}>
 				<Icon {...iconSm} aria-hidden="true" />
-				{label}
+				{shownLabel(shown)}
 			</span>
 			{shown === 'error' && (
 				<>

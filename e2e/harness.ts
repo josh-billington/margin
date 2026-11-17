@@ -111,8 +111,9 @@ export async function readStudy(path: string) {
 	return JSON.parse(await readFile(path, 'utf8')) as Record<string, any>
 }
 
+/** On disk: "Saved" also stays on screen through ordinary autosave, so wait for the saved state. */
 export const saved = (page: Page) =>
-	expect(page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible()
+	expect(page.locator('.save-indicator[data-state="saved"]')).toHaveText('Saved')
 
 export async function addAmos(page: Page) {
 	await page.getByRole('button', { name: 'Add verses' }).first().click()

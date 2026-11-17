@@ -1,9 +1,10 @@
-import { EASINGS, createShapeId } from 'tldraw'
+import { createShapeId } from 'tldraw'
 import type { Editor, TLShapeId } from 'tldraw'
 import type { VerseRef } from '@shared/bible/types'
 import { verseKey } from '../highlights/ranges'
 import type { PassageShape } from '../shapes/types'
-import { CAMERA_MS, estimateVerseBounds, planFocusCamera, prefersReducedMotion } from './camera'
+import { estimateVerseBounds, planFocusCamera, prefersReducedMotion } from './camera'
+import { animateCamera, stopCamera } from './cameraMotion'
 import type { Box, Camera } from './camera'
 import { focusFor, resetFocus, useFocus } from './store'
 import { pulledOutProps } from './pullOut'
@@ -93,18 +94,22 @@ export function verseCamera(editor: Editor, shape: PassageShape, verse: VerseRef
 	}).camera
 }
 
-/** 280ms ease-out, or an immediate move under the OS reduced-motion setting. */
+/**
+ * 280ms ease-out; a move that interrupts another turns with a spring that keeps its velocity
+ * (cameraMotion.ts). Immediate under the OS reduced-motion setting.
+ */
 export function moveCamera(editor: Editor, camera: Camera) {
 	const current = editor.getCamera()
 	if (
 		Math.abs(current.x - camera.x) < 0.5 &&
 		Math.abs(current.y - camera.y) < 0.5 &&
 		Math.abs(current.z - camera.z) < 0.001
-	)
+	) {
+		stopCamera(editor)
 		return
+	}
 	if (prefersReducedMotion()) editor.setCamera(camera, { immediate: true })
-	else
-		editor.setCamera(camera, { animation: { duration: CAMERA_MS, easing: EASINGS.easeOutCubic } })
+	else animateCamera(editor, camera)
 }
 
 /** Screen padding kept around a shape that is panned into view. */

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { SelectionForegroundOverlayUtil, ShapeIndicatorOverlayUtil, Tldraw } from 'tldraw'
-import type { Editor, TLContent } from 'tldraw'
+import type { Editor, TLContent, TLUiOverrides } from 'tldraw'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 
 import { PassageShapeUtil } from './shapes/passage/PassageShapeUtil'
@@ -17,7 +17,7 @@ import { validateLoadedAnnotations } from './annotations/recovery'
 import { LookupOverlay } from './lookup/LookupPopover'
 import { installLookupContextMenu } from './lookup/store'
 import { FocusLayer } from './focus/FocusLayer'
-import { installFocusShortcuts } from './focus/shortcuts'
+import { KEYBOARD_ZOOM, installFocusShortcuts } from './focus/shortcuts'
 import { useAppearance } from '../app/glass'
 import './canvas.css'
 
@@ -59,6 +59,21 @@ const canvasOptions = {
 	onBeforeCopyToClipboard: ({ editor, content }: { editor: Editor; content: TLContent }) =>
 		withReferencedTags(editor, content),
 }
+/** tldraw binds its own ⌘= / ⌘− (and = / −) zoom keys; keep them immediate, like the menu's. */
+const overrides: TLUiOverrides = {
+	actions(editor, actions) {
+		const zoom = (id: string, run: () => void) => {
+			const action = actions[id]
+			if (action) actions[id] = { ...action, onSelect: run }
+		}
+		const cursor = () => editor.inputs.getCurrentScreenPoint()
+		zoom('zoom-in', () => editor.zoomIn(undefined, KEYBOARD_ZOOM))
+		zoom('zoom-out', () => editor.zoomOut(undefined, KEYBOARD_ZOOM))
+		zoom('zoom-in-on-cursor', () => editor.zoomIn(cursor(), KEYBOARD_ZOOM))
+		zoom('zoom-out-on-cursor', () => editor.zoomOut(cursor(), KEYBOARD_ZOOM))
+		return actions
+	},
+}
 const assetUrls = getAssetUrlsByImport((url) => new URL(url, document.baseURI).href)
 
 export function MarginCanvas({ onMount }: { onMount: (editor: Editor) => void }) {
@@ -78,6 +93,7 @@ export function MarginCanvas({ onMount }: { onMount: (editor: Editor) => void })
 				options={canvasOptions}
 				shapeUtils={shapeUtils}
 				tools={tools}
+				overrides={overrides}
 				colorScheme={appearance}
 				assetUrls={assetUrls}
 				licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY || undefined}

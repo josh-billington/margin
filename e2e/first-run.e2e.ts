@@ -75,7 +75,7 @@ for (const key of ['Enter', 'Escape']) {
 			expect(prefs.ok && prefs.data.defaultTranslation).toBe('kjv')
 			await closeApp(running.app)
 			running = await launch(dirs, {}, { firstRun: true })
-			await expect(running.page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible()
+			await saved(running.page)
 			await expect(running.page.getByRole('dialog', { name: 'Set up Margin' })).toHaveCount(0)
 		} finally {
 			if (running) await closeApp(running.app)
