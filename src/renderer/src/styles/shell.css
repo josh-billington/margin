@@ -669,10 +669,11 @@ select:focus-visible {
 	justify-content: space-between;
 	gap: var(--space-5);
 }
-/* One width for every pop-up in a settings column, so the values and chevrons line up. */
+/* One width for every pop-up in a settings column, so the values and chevrons line up. Wide
+   enough for the longest choice, "System for all notes". */
 .select-row select {
 	flex: none;
-	width: 104px;
+	width: 168px;
 }
 .select-row small {
 	display: block;
