@@ -114,3 +114,33 @@ test('Highlight mode applies a plain highlight at once; a click recolours it', a
 		await removeDirs(dirs)
 	}
 })
+
+test('a tagged study keeps its tags and keeps saving after switching away and back', async () => {
+	const dirs = await makeDirs()
+	try {
+		const { app, page } = await launch(dirs)
+		await addAmos(page)
+		await selectWords(page, 1)
+		await page.keyboard.press('Meta+Shift+H')
+		await createTagFromPopover(page, 'Love')
+		await saved(page)
+
+		const sidebar = page.locator('#sidebar')
+		await page.getByRole('button', { name: 'New study', exact: true }).click()
+		await expect(sidebar.getByRole('button', { name: /^Love\./ })).toBeHidden()
+		await sidebar
+			.getByRole('button', { name: 'Untitled study', exact: true })
+			.and(page.locator(':not([aria-current])'))
+			.click()
+		await expect(sidebar.getByRole('button', { name: /^Love\./ })).toBeVisible()
+
+		await page.getByRole('button', { name: 'Add verses' }).first().click()
+		await page.getByLabel('Reference').fill('John 3:16')
+		await page.getByRole('button', { name: 'Add verses' }).last().click()
+		await saved(page)
+		await expect(page.getByRole('status').filter({ hasText: /couldn.t save/ })).toHaveCount(0)
+		await closeApp(app)
+	} finally {
+		await removeDirs(dirs)
+	}
+})
