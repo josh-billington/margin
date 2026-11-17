@@ -3,8 +3,14 @@ import type { BrowserWindow } from 'electron'
 import { ipcContract } from '@shared/ipc/contract'
 import { handleBibleRequest } from './bible'
 import { handleLexiconRequest } from './lexicon'
+import { SIDEBAR_CHANNEL } from '@shared/ipc/commands'
+import { setSidebarShown } from '../menu'
 
 export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
+	ipcMain.on(SIDEBAR_CHANNEL, (event, shown: unknown) => {
+		if (event.sender === getWindow()?.webContents && typeof shown === 'boolean')
+			setSidebarShown(shown)
+	})
 	for (const group of Object.values(ipcContract)) {
 		for (const operation of Object.values(group)) {
 			ipcMain.handle(operation.channel, async (event, payload: unknown) => {
@@ -29,7 +35,7 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
 						ok: false,
 						error: {
 							code: 'INVALID_REQUEST',
-							message: "Margin couldn't read this request. Try again.",
+							message: 'Margin couldn’t read this request. Try again.',
 						},
 					})
 				}
@@ -41,7 +47,7 @@ export function registerIpcHandlers(getWindow: () => BrowserWindow | null) {
 					ok: false,
 					error: {
 						code: 'NOT_IMPLEMENTED',
-						message: 'Margin cannot use this command yet. Choose another command.',
+						message: 'Margin can’t use this command yet. Choose another command.',
 					},
 				})
 			})

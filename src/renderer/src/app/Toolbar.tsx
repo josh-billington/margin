@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { EASINGS, useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
-import { runCommand, shortcutFor } from './commands'
+import { runCommand, shortcutFor, titleFor } from './commands'
 import { requestTagSelection } from '../canvas/highlights/tagging'
 import { ToolButton } from './ToolButton'
 import { noteFromSelection } from '../canvas/tools/noteFromSelection'
@@ -83,26 +83,30 @@ export function Toolbar({ editor }: ToolbarProps) {
 				<Tag {...iconLg} />
 			</ToolButton>
 			<span className="toolbar-divider" aria-hidden="true" />
-			<ToolButton
-				label="Add verses"
-				shortcut={shortcutFor('palette.toggle')}
-				onClick={() => runCommand('passage.add')}
-			>
+			<ToolButton label={titleFor('passage.add')} onClick={() => runCommand('passage.add')}>
 				<BookOpen {...iconLg} />
 			</ToolButton>
 			<span className="toolbar-divider" aria-hidden="true" />
-			<ToolButton label="Zoom out" onClick={() => editor?.zoomOut(undefined, zoomMotion())}>
+			<ToolButton
+				label={titleFor('view.zoomOut')}
+				shortcut={shortcutFor('view.zoomOut')}
+				onClick={() => editor?.zoomOut(undefined, zoomMotion())}
+			>
 				<Minus {...iconLg} />
 			</ToolButton>
 			<ToolButton
-				label="Reset zoom to 100%"
-				shortcut="⌘1"
+				label={titleFor('view.actualSize')}
+				shortcut={shortcutFor('view.actualSize')}
 				className="zoom-button"
 				onClick={() => editor?.resetZoom(undefined, zoomMotion())}
 			>
 				{zoom}%
 			</ToolButton>
-			<ToolButton label="Zoom in" onClick={() => editor?.zoomIn(undefined, zoomMotion())}>
+			<ToolButton
+				label={titleFor('view.zoomIn')}
+				shortcut={shortcutFor('view.zoomIn')}
+				onClick={() => editor?.zoomIn(undefined, zoomMotion())}
+			>
 				<Plus {...iconLg} />
 			</ToolButton>
 		</div>

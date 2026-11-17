@@ -3,7 +3,7 @@ import { Command, PanelLeft, Settings } from 'lucide-react'
 import { ToolButton } from './ToolButton'
 import { SaveIndicator } from './SaveIndicator'
 import type { SaveState } from './SaveIndicator'
-import { runCommand, shortcutFor } from './commands'
+import { runCommand, shortcutFor, titleFor } from './commands'
 import { useUiStore } from './uiStore'
 import { iconLg } from '../lib/icons'
 
@@ -49,7 +49,7 @@ export function TitleBar({ title, onRename, onRetry, onSaveCopy, saveState }: Ti
 		<header className="title-bar">
 			<div className="title-leading">
 				<ToolButton
-					label="Toggle sidebar"
+					label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
 					shortcut={shortcutFor('sidebar.toggle')}
 					onClick={() => runCommand('sidebar.toggle')}
 					aria-expanded={sidebarOpen}
@@ -64,14 +64,14 @@ export function TitleBar({ title, onRename, onRetry, onSaveCopy, saveState }: Ti
 			<div className="title-actions">
 				{saveState && <SaveIndicator state={saveState} onRetry={onRetry} onSaveCopy={onSaveCopy} />}
 				<ToolButton
-					label="Open command palette"
+					label={titleFor('palette.toggle')}
 					shortcut={shortcutFor('palette.toggle')}
 					onClick={() => runCommand('palette.toggle')}
 				>
 					<Command {...iconLg} />
 				</ToolButton>
 				<ToolButton
-					label="Settings"
+					label={titleFor('settings.open')}
 					shortcut={shortcutFor('settings.open')}
 					onClick={() => runCommand('settings.open')}
 				>

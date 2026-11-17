@@ -68,14 +68,14 @@ test('keyboard: tool shortcuts, palette, sidebar, focus mode, word selection', a
 
 	const sidebar = page.locator('#sidebar')
 	await expect(sidebar).toBeVisible()
-	await page.keyboard.press('Meta+\\')
+	await page.keyboard.press('Control+Meta+s')
 	await expect(sidebar).toBeHidden()
-	await page.keyboard.press('Meta+\\')
+	await page.keyboard.press('Control+Meta+s')
 	await expect(sidebar).toBeVisible()
 
 	// Select the passage, F enters reading focus, Esc leaves it.
 	await page.locator('.passage-header').click()
-	const zoom = page.getByRole('button', { name: 'Reset zoom to 100%' })
+	const zoom = page.getByRole('button', { name: 'Actual size' })
 	// The sidebar toggle resizes the canvas and inserting a passage animates the camera; wait for
 	// both to settle before taking the baseline (a zoom animation started while the viewport is
 	// still resizing ends at the wrong zoom).
@@ -112,21 +112,48 @@ test('keyboard: tool shortcuts, palette, sidebar, focus mode, word selection', a
 	await closeApp(app)
 })
 
-test('native menu: New Study and Toggle Sidebar', async () => {
+test('native menu: New Study, and Hide / Show Sidebar tracks the sidebar', async () => {
 	const { app, page } = await launch(dirs)
 	const click = (id: string) =>
 		app.evaluate(
 			({ Menu }, itemId) => Menu.getApplicationMenu()!.getMenuItemById(itemId)!.click(),
 			id,
 		)
+	const sidebarLabel = () =>
+		app.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('sidebar.toggle')!.label)
+	expect(await sidebarLabel()).toBe('Hide Sidebar')
 	await click('sidebar.toggle')
 	await expect(page.locator('#sidebar')).toBeHidden()
+	await expect.poll(sidebarLabel).toBe('Show Sidebar')
 	await click('sidebar.toggle')
 	await expect(page.locator('#sidebar')).toBeVisible()
+	await expect.poll(sidebarLabel).toBe('Hide Sidebar')
 	await click('study.new')
 	await expect.poll(async () => (await studyFiles(dirs)).length).toBe(2)
 	await click('passage.add')
 	await expect(page.getByLabel('Reference')).toBeVisible()
+	await closeApp(app)
+})
+
+test('palette: typing a reference offers Add verses for it', async () => {
+	const { app, page } = await launch(dirs)
+	await saved(page)
+	await page.keyboard.press('Meta+k')
+	const input = page.locator('[cmdk-input]')
+	await expect(input).toBeVisible()
+	// With nothing selected, selection commands are listed but dimmed, as in native menus.
+	await expect(page.getByRole('option', { name: /Delete selection/ })).toHaveAttribute(
+		'aria-disabled',
+		'true',
+	)
+	for (const reference of ['John 3', 'Amos 1:3-5']) {
+		await input.fill(reference)
+		const row = page.getByRole('option', { name: new RegExp(`Add verses\\s*${reference}`) })
+		await expect(row).toBeVisible()
+		await expect(page.getByText('No matching commands.')).toHaveCount(0)
+	}
+	await page.keyboard.press('Enter')
+	await expect(page.getByLabel('Reference')).toHaveValue('Amos 1:3-5')
 	await closeApp(app)
 })
 
@@ -189,7 +216,7 @@ test('save failure: read-only study folder shows the save error and trying again
 	await saved(page)
 	await chmod(join(dirs.library, 'studies'), 0o555)
 	await addAmos(page)
-	const status = page.getByRole('status').filter({ hasText: "Margin couldn't save" })
+	const status = page.getByRole('status').filter({ hasText: 'Margin couldn’t save' })
 	await expect(status).toBeVisible({ timeout: 20_000 })
 	await chmod(join(dirs.library, 'studies'), 0o755)
 	await status.getByRole('button', { name: 'Try again' }).click()
@@ -204,7 +231,7 @@ test('save failure: quitting offers Quit Anyway and the next launch offers the r
 	await saved(page)
 	await chmod(join(dirs.library, 'studies'), 0o555)
 	await addAmos(page)
-	await expect(page.getByRole('status').filter({ hasText: "Margin couldn't save" })).toBeVisible({
+	await expect(page.getByRole('status').filter({ hasText: 'Margin couldn’t save' })).toBeVisible({
 		timeout: 20_000,
 	})
 	// Native dialogs can't be clicked from Playwright; answer "Quit Anyway" in the main process.

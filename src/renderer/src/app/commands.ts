@@ -1,7 +1,13 @@
 import type { AppCommandId } from '@shared/ipc/commands'
 import { captureLookupSelection, requestWordLookup } from '../canvas/lookup/store'
 import { createStudy } from '../study/session'
-import { captureTextSelection, requestTagSelection } from '../canvas/highlights/tagging'
+import {
+	captureTextSelection,
+	readTextSelection,
+	requestTagSelection,
+	useTagging,
+} from '../canvas/highlights/tagging'
+import { caretRequest, useLookup } from '../canvas/lookup/store'
 import { duplicateSelection, requestDeleteSelection } from '../canvas/annotations/editorOps'
 import { fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
 import { getActiveEditor } from './editorStore'
@@ -13,6 +19,8 @@ export type CommandId = AppCommandId | 'selection.tag' | 'selection.duplicate' |
 export interface AppCommand {
 	id: CommandId
 	title: string
+	/** A title that tracks state ("Hide sidebar" / "Show sidebar"), as native menus do. */
+	label?: () => string
 	group: 'Study' | 'Selection' | 'Workspace' | 'View'
 	/** Keycap label shown in the palette and tooltips. */
 	shortcut?: string
@@ -20,6 +28,12 @@ export interface AppCommand {
 	binding?: { key: string; shift?: boolean; ctrl?: boolean }
 	/** Listed in the command palette. */
 	palette?: boolean
+	/**
+	 * Whether the palette row is available, read when the palette renders (selection was captured as
+	 * it opened). Rows that can't act are dimmed, as in native menus. The menu and the shortcut still
+	 * run the command, which explains what to select.
+	 */
+	available?: () => boolean
 	enabled?: () => boolean
 	run: () => void
 }
@@ -30,6 +44,14 @@ const withEditor =
 		const editor = getActiveEditor()
 		if (editor) run(editor)
 	}
+const hasShapeSelection = () => (getActiveEditor()?.getSelectedShapeIds().length ?? 0) > 0
+const hasWordSelection = () => {
+	const editor = getActiveEditor()
+	return (
+		!!editor &&
+		!!(useTagging.getState().captured ?? useLookup.getState().captured ?? readTextSelection(editor))
+	)
+}
 const isEditingText = () => {
 	const active = document.activeElement
 	return (
@@ -63,6 +85,10 @@ export const commands: AppCommand[] = [
 		shortcut: '⌃⌘D',
 		binding: { key: 'd', ctrl: true },
 		palette: true,
+		available: () => {
+			const editor = getActiveEditor()
+			return hasWordSelection() || (!!editor && !!caretRequest(editor))
+		},
 		run: withEditor(requestWordLookup),
 	},
 	{
@@ -71,6 +97,7 @@ export const commands: AppCommand[] = [
 		group: 'Selection',
 		shortcut: '⇧⌘H',
 		palette: true,
+		available: hasWordSelection,
 		run: withEditor(requestTagSelection),
 	},
 	{
@@ -79,27 +106,31 @@ export const commands: AppCommand[] = [
 		group: 'Selection',
 		shortcut: '⌘D',
 		palette: true,
+		available: hasShapeSelection,
 		run: withEditor(duplicateSelection),
 	},
 	{
 		id: 'selection.delete',
 		title: 'Delete selection',
 		group: 'Selection',
+		shortcut: '⌫',
 		palette: true,
+		available: hasShapeSelection,
 		run: withEditor(requestDeleteSelection),
 	},
 	{
 		id: 'sidebar.toggle',
-		title: 'Toggle sidebar',
+		title: 'Hide sidebar',
+		label: () => (ui().sidebarOpen ? 'Hide sidebar' : 'Show sidebar'),
 		group: 'Workspace',
-		shortcut: '⌘\\',
-		binding: { key: '\\' },
+		shortcut: '⌃⌘S',
+		binding: { key: 's', ctrl: true },
 		palette: true,
 		run: () => ui().toggleSidebar(),
 	},
 	{
 		id: 'palette.toggle',
-		title: 'Command palette',
+		title: 'Command palette…',
 		group: 'Workspace',
 		shortcut: '⌘K',
 		binding: { key: 'k' },
@@ -133,16 +164,30 @@ export const commands: AppCommand[] = [
 		group: 'Workspace',
 		run: () => (isEditingText() ? document.execCommand('redo') : getActiveEditor()?.redo()),
 	},
-	{ id: 'view.fit', title: 'Zoom to fit', group: 'View', shortcut: '⌘0', run: withEditor(fitAll) },
+	// macOS: ⌘0 is Actual Size (Preview, Safari, Pages). Canvas apps such as Sketch then use ⌘1 to
+	// fit everything and ⌘2 to fit the selection, the same 0 / 1 / 2 order as tldraw's ⇧ keys.
 	{
 		id: 'view.actualSize',
 		title: 'Actual size',
 		group: 'View',
-		shortcut: '⌘1',
+		shortcut: '⌘0',
 		run: withEditor(zoomTo100),
 	},
-	{ id: 'view.zoomIn', title: 'Zoom in', group: 'View', run: withEditor((e) => e.zoomIn()) },
-	{ id: 'view.zoomOut', title: 'Zoom out', group: 'View', run: withEditor((e) => e.zoomOut()) },
+	{ id: 'view.fit', title: 'Zoom to fit', group: 'View', shortcut: '⌘1', run: withEditor(fitAll) },
+	{
+		id: 'view.zoomIn',
+		title: 'Zoom in',
+		group: 'View',
+		shortcut: '⌘+',
+		run: withEditor((e) => e.zoomIn()),
+	},
+	{
+		id: 'view.zoomOut',
+		title: 'Zoom out',
+		group: 'View',
+		shortcut: '⌘−',
+		run: withEditor((e) => e.zoomOut()),
+	},
 	{
 		id: 'appearance.system',
 		title: 'Use system appearance',
@@ -165,6 +210,12 @@ export const commands: AppCommand[] = [
 
 const byId = new Map(commands.map((command) => [command.id, command]))
 export const shortcutFor = (id: CommandId) => byId.get(id)?.shortcut
+/** The one name for a command, shared by tooltips and the palette (tooltips drop the ellipsis). */
+export const labelFor = (command: AppCommand) => command.label?.() ?? command.title
+export const titleFor = (id: CommandId) => {
+	const command = byId.get(id)
+	return command ? labelFor(command).replace(/…$/, '') : id
+}
 
 export function runCommand(id: CommandId) {
 	const command = byId.get(id)

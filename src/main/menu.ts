@@ -6,6 +6,16 @@ import type { Appearance } from '../shared/ipc/contract'
 import { checkForUpdates } from './updates'
 import { feedbackUrl, openLink, revealLogs, WEBSITE } from './help'
 
+let sidebarShown = true
+let reinstall: (() => void) | null = null
+
+/** The View menu names the sidebar action for the state it will change, like Finder and Mail. */
+export function setSidebarShown(shown: boolean) {
+	if (shown === sidebarShown) return
+	sidebarShown = shown
+	reinstall?.()
+}
+
 /**
  * Items dispatch renderer commands over IPC. Accelerators are display-only
  * (registerAccelerator: false) because the renderer's shortcut hook handles the keys itself;
@@ -15,6 +25,7 @@ export function installAppMenu(
 	getWindow: () => BrowserWindow | null,
 	appearance: Appearance = 'system',
 ) {
+	reinstall = () => installAppMenu(getWindow, appearance)
 	const run = (id: AppCommandId) => () => {
 		const window = getWindow()
 		if (window && !window.webContents.isDestroyed()) window.webContents.send(COMMAND_CHANNEL, id)
@@ -96,12 +107,14 @@ export function installAppMenu(
 					],
 				},
 				{ type: 'separator' },
-				command('Toggle Sidebar', 'sidebar.toggle', 'Cmd+\\'),
+				command(sidebarShown ? 'Hide Sidebar' : 'Show Sidebar', 'sidebar.toggle', 'Ctrl+Cmd+S'),
 				{ type: 'separator' },
-				command('Zoom to Fit', 'view.fit', 'Cmd+0'),
-				command('Actual Size', 'view.actualSize', 'Cmd+1'),
-				command('Zoom In', 'view.zoomIn'),
-				command('Zoom Out', 'view.zoomOut'),
+				// ⌘0 is Actual Size across macOS (Preview, Safari, Pages); canvas apps such as Sketch add
+				// ⌘1 Zoom to Fit and ⌘2 Zoom to Selection.
+				command('Actual Size', 'view.actualSize', 'Cmd+0'),
+				command('Zoom to Fit', 'view.fit', 'Cmd+1'),
+				command('Zoom In', 'view.zoomIn', 'Cmd+Plus'),
+				command('Zoom Out', 'view.zoomOut', 'Cmd+-'),
 				{ type: 'separator' },
 				{ role: 'togglefullscreen' },
 				...(app.isPackaged
