@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextShown, SAVE_TIMING } from './SaveIndicator'
+import { nextShown, SAVE_TIMING, shownLabel } from './SaveIndicator'
 import type { SaveState, ShownSaveState } from './SaveIndicator'
 
 /** Replays real save states at the given times and records every label the title bar showed. */
@@ -31,18 +31,39 @@ function typing(forMs: number, saveMs = 30): [number, SaveState][] {
 }
 
 describe('save indicator', () => {
-	it('stays quiet while typing and says "Saved" once, after the last save', () => {
+	it('keeps "Saved" steady on screen while typing, through every ordinary autosave', () => {
 		const seen = replay(typing(10_000), 15_000)
-		expect(seen.map(([, label]) => label)).toEqual(['quiet', 'saved'])
+		expect(new Set(seen.map(([, shown]) => shownLabel(shown)))).toEqual(new Set(['Saved']))
+		expect(seen.at(-1)?.[1]).toBe('saved')
 	})
 
-	it('never says "Saved" while the study is not on disk', () => {
+	it('only claims "Saved" anew once the study is on disk', () => {
 		for (const state of ['unsaved', 'saving', 'error'] as const)
 			for (const now of ['saved', 'quiet', 'saving', 'unsaved', 'error'] as const) {
 				const next = nextShown(state, now)
 				expect(next.show).not.toBe('saved')
 				expect(next.later?.show).not.toBe('saved')
+				// Ordinary autosave may keep the last "Saved" up, but never brings it back after a message.
+				if (now !== 'saved' && now !== 'quiet') expect(next.show).not.toBe('quiet')
 			}
+	})
+
+	it('goes from a message on screen to progress, then "Saved" when the save lands', () => {
+		expect(
+			replay(
+				[
+					[0, 'unsaved'],
+					[5000, 'saving'],
+					[5100, 'saved'],
+				],
+				6000,
+			),
+		).toEqual([
+			[0, 'quiet'],
+			[SAVE_TIMING.unsavedAfterMs, 'unsaved'],
+			[5000, 'saving'],
+			[5100, 'saved'],
+		])
 	})
 
 	it('mentions a slow save, and unsaved changes autosave has not picked up', () => {
