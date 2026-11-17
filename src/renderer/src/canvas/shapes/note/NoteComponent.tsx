@@ -7,6 +7,13 @@ import { noteSizes } from './NoteShapeUtil'
 import { NoteOptions } from './NoteOptions'
 import { parseEmphasis, stripEmphasis } from './emphasis'
 import { usePreferences } from '../../../lib/preferences'
+import { revealShape } from '../../focus/actions'
+
+/**
+ * A note sizes itself to its text up to a margin-note measure, then wraps: about 320px at the
+ * default size, in ems so larger note text keeps the same number of words to a line.
+ */
+const NOTE_MEASURE = '14.5em'
 
 export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Editor }) {
 	const editing = useValue('editing note', () => editor.getEditingShapeId() === shape.id, [
@@ -57,10 +64,12 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 				// +2px slack: scrollWidth rounds down, and a textarea a hair narrower than its text wraps and scrolls.
 				const w = Math.ceil(current.props.width ?? Math.max(100, element.scrollWidth + 10))
 				const h = Math.max(36, Math.ceil(element.offsetHeight + 8))
-				if (w !== current.props.w || h !== current.props.h)
-					derived(editor, () =>
-						editor.updateShape({ id: shape.id, type: 'margin-note', props: { w, h } }),
-					)
+				if (w === current.props.w && h === current.props.h) return
+				derived(editor, () =>
+					editor.updateShape({ id: shape.id, type: 'margin-note', props: { w, h } }),
+				)
+				// A note growing while it is typed into keeps its text in view.
+				if (editor.getEditingShapeId() === shape.id) revealShape(editor, shape.id)
 			})
 		}
 		const observer = new ResizeObserver(resize)
@@ -98,7 +107,7 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 						position: 'absolute',
 						visibility: 'hidden',
 						width: shape.props.width ? shape.props.width - 8 : 'max-content',
-						maxWidth: shape.props.width ? undefined : 900,
+						maxWidth: shape.props.width ? undefined : NOTE_MEASURE,
 						whiteSpace: 'pre-wrap',
 					}}
 				>
