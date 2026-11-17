@@ -73,7 +73,7 @@ export class Library {
 						studyId: id,
 						message: userMessage(
 							error,
-							"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+							'Margin couldn’t reload this study. Save a copy or close the study and try opening it again.',
 						),
 					}),
 				)
@@ -84,8 +84,8 @@ export class Library {
 				kind: 'error',
 				studyId: '',
 				message: retry
-					? "Margin couldn't watch the library for changes. Trying again. Your unsaved studies are still open."
-					: "Margin couldn't watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.",
+					? 'Margin couldn’t watch the library for changes. Trying again. Your unsaved studies are still open.'
+					: 'Margin couldn’t watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.',
 			})
 			if (!retry) return
 			retry = false
@@ -131,7 +131,7 @@ export class Library {
 				)
 				if (filename !== `${study.id}.study.json`)
 					throw new UserFacingError(
-						"Margin couldn't open this study because its filename has changed. Restore its original filename and try again.",
+						'Margin couldn’t open this study because its filename has changed. Restore its original filename and try again.',
 					)
 				studies.push(study)
 			} catch (error) {
@@ -140,7 +140,7 @@ export class Library {
 					studyId: filename.replace('.study.json', ''),
 					message: userMessage(
 						error,
-						"Margin couldn't read this study file. Restore a backup or open another study.",
+						'Margin couldn’t read this study file. Restore a backup or open another study.',
 					),
 				})
 			}
@@ -161,7 +161,7 @@ export class Library {
 		const study = migrateStudy(JSON.parse(content))
 		if (study.id !== id)
 			throw new UserFacingError(
-				"Margin couldn't open this study because its filename has changed. Restore its original filename and try again.",
+				'Margin couldn’t open this study because its filename has changed. Restore its original filename and try again.',
 			)
 		return { study, hash: hash(content) }
 	}
@@ -225,7 +225,7 @@ export class Library {
 			const known = this.known.get(study.id)
 			if (!known)
 				throw new UserFacingError(
-					"Margin couldn't save this study because it isn't open. Open the study and try again.",
+					'Margin couldn’t save this study because it isn’t open. Open the study and try again.',
 				)
 			if (
 				sequence <= (this.committed.get(study.id) ?? -1) ||
@@ -235,7 +235,7 @@ export class Library {
 			const disk = await this.read(study.id).catch((error) => {
 				if (absent(error))
 					throw new UserFacingError(
-						"Margin can no longer find this study's file. Save a copy or close the study.",
+						'Margin can no longer find this study’s file. Save a copy or close the study.',
 					)
 				throw error
 			})
@@ -289,7 +289,7 @@ export class Library {
 				kind: 'error',
 				studyId: '',
 				message:
-					"Margin couldn't update the study list. Check that you can open the library folder and try again.",
+					'Margin couldn’t update the study list. Check that you can open the library folder and try again.',
 			})
 		}
 		this.onEvent({ kind: 'list' })
@@ -337,7 +337,7 @@ export class Library {
 						studyId: id,
 						message: userMessage(
 							error,
-							"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+							'Margin couldn’t reload this study. Save a copy or close the study and try opening it again.',
 						),
 					})
 			}
@@ -435,7 +435,7 @@ export class Library {
 		while (this.queues.size) await Promise.all([...this.queues.values()])
 		if (this.staged.size)
 			throw new UserFacingError(
-				"Margin couldn't save your changes. Try again or save a copy before closing or switching studies.",
+				'Margin couldn’t save your changes. Try again or save a copy before closing or switching studies.',
 			)
 	}
 	async close() {

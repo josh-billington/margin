@@ -10,7 +10,7 @@ import {
 	ipcContract,
 	libraryEventSchema,
 } from '@shared/ipc/contract'
-import { appCommandSchema, COMMAND_CHANNEL } from '@shared/ipc/commands'
+import { appCommandSchema, COMMAND_CHANNEL, SIDEBAR_CHANNEL } from '@shared/ipc/commands'
 import type { AppCommandId } from '@shared/ipc/commands'
 import type { GlassMode, MarginApi, LibraryEvent, ResolvedAppearance } from '@shared/ipc/contract'
 
@@ -64,6 +64,9 @@ const api = {
 				ipcRenderer.removeListener(GLASS_CHANNEL, handler)
 			}
 		},
+	},
+	menu: {
+		setSidebarShown: (shown: boolean) => ipcRenderer.send(SIDEBAR_CHANNEL, shown),
 	},
 	library: {
 		getLibrary: bind(ipcContract.library.getLibrary),

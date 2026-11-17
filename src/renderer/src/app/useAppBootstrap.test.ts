@@ -29,7 +29,7 @@ it('reports a rejected last-opened preference write without an unhandled rejecti
 		await act(() => root.render(createElement(Bootstrap)))
 		await act(async () => useStudySession.setState({ currentId: 'study-b' }))
 		expect(set).toHaveBeenCalledWith({ lastOpenedStudyId: 'study-b' })
-		expect(toast.error).toHaveBeenCalledWith("Margin couldn't save your settings. Try again.")
+		expect(toast.error).toHaveBeenCalledWith('Margin couldn’t save your settings. Try again.')
 	} finally {
 		await act(() => root.unmount())
 		vi.unstubAllGlobals()

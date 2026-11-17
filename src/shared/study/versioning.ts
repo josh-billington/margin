@@ -4,7 +4,7 @@ import { UserFacingError } from '../errors'
 export class UnsupportedStudyVersion extends UserFacingError {
 	constructor(public readonly requiredVersion: number) {
 		super(
-			'Margin cannot open this study because it needs a newer version of the app. Update Margin and try again.',
+			'Margin can’t open this study because it needs a newer version of the app. Update Margin and try again.',
 		)
 	}
 }
@@ -26,12 +26,12 @@ export function migrateVersioned(
 		const migrate = migrations.get(next)
 		if (!migrate)
 			throw new UserFacingError(
-				"Margin couldn't update this study's file format. Update Margin and try again.",
+				'Margin couldn’t update this study’s file format. Update Margin and try again.',
 			)
 		result = migrate(result)
 		if (version(result) !== next + 1)
 			throw new UserFacingError(
-				"Margin couldn't update this study's file format. Update Margin and try again.",
+				'Margin couldn’t update this study’s file format. Update Margin and try again.',
 			)
 		next++
 	}

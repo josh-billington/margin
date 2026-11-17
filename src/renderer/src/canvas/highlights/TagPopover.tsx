@@ -12,6 +12,7 @@ import type { Paint } from './ranges'
 import { paintRange } from './applyHighlight'
 import { setHighlightColor } from './highlightColor'
 import { ColorChoices } from '../../app/ColorChoices'
+import { NewTagForm } from '../../app/NewTagForm'
 import { iconSm } from '../../lib/icons'
 
 export function pageTags(editor: Editor) {
@@ -52,8 +53,6 @@ export function TagPopover({
 	// Tagging fresh words leads with the tag form; an existing highlight keeps it tucked away.
 	const [showNew, setShowNew] = useState(!existing)
 	const newId = useMemo(() => ulid(), [])
-	const [name, setName] = useState('')
-	const [color, setColor] = useState<PaletteColor>('sky')
 	// Anchor to the selected words, so the popover sits below (or above) them and never covers them.
 	const rectOf = useRef(selectionRect)
 	rectOf.current = selectionRect
@@ -146,26 +145,13 @@ export function TagPopover({
 						</button>
 					)}
 					{showNew && (
-						<form
-							onSubmit={(e) => {
-								e.preventDefault()
-								if (name.trim()) apply({ tagId: newId }, { id: newId, name: name.trim(), color })
-							}}
-						>
-							<label>
-								<span className="popover-section-label">New tag</span>
-								<input
-									autoFocus
-									value={name}
-									onChange={(e) => setName(e.target.value)}
-									placeholder="Name"
-								/>
-							</label>
-							<ColorChoices value={color} onChange={setColor} />
-							<button className="popover-action" disabled={!name.trim()}>
-								Create and apply tag
-							</button>
-						</form>
+						<>
+							{tags.length > 0 && <hr />}
+							<NewTagForm
+								submitLabel="Create and apply tag"
+								onCreate={(name, color) => apply({ tagId: newId }, { id: newId, name, color })}
+							/>
+						</>
 					)}
 					{existing && (
 						<button className="menu-button-danger" onClick={() => apply(null)}>

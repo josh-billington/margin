@@ -32,7 +32,7 @@ export function AppShell() {
 			{studyState.lock && <LibraryLockNotice lock={studyState.lock} />}
 			<div className="workspace">
 				{sidebarOpen && (
-					<ErrorBoundary message="Margin couldn't display the sidebar.">
+					<ErrorBoundary message="Margin couldn’t display the sidebar.">
 						<Sidebar onCreateStudy={() => void createStudy()} editor={editor} />
 					</ErrorBoundary>
 				)}

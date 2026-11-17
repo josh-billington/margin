@@ -237,6 +237,7 @@ export type MarginApi = ContractApi<typeof ipcContract> & {
 		onChange: (listener: (mode: ResolvedAppearance) => void) => () => void
 	}
 	glass: { mode: GlassMode; onChange: (listener: (mode: GlassMode) => void) => () => void }
+	menu: { setSidebarShown: (shown: boolean) => void }
 	events: {
 		onLibrary: (listener: (event: LibraryEvent) => void) => () => void
 		onFlush: (listener: () => Promise<boolean>) => () => void

@@ -26,7 +26,7 @@ const load = () =>
 		})
 		.catch(() => {
 			loading = null
-			toast.error("Margin couldn't load your settings. Try again.")
+			toast.error('Margin couldn’t load your settings. Try again.')
 		}))
 
 /** Saves a preference change and shares the result with every reader. */
@@ -37,7 +37,7 @@ export async function updatePrefs(patch: Partial<Preferences>) {
 		else toast.error(result.error.message)
 		return result.ok
 	} catch {
-		toast.error("Margin couldn't save your settings. Try again.")
+		toast.error('Margin couldn’t save your settings. Try again.')
 		return false
 	}
 }

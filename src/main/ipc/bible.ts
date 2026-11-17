@@ -38,7 +38,7 @@ export async function handleBibleRequest(channel: string, payload: unknown): Pro
 				message:
 					error instanceof RangeError
 						? error.message
-						: "Margin couldn't load the Bible text. Reinstall Margin and try again.",
+						: 'Margin couldn’t load the Bible text. Reinstall Margin and try again.',
 			},
 		}
 	}

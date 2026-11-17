@@ -14,10 +14,10 @@ test('first launch sets the translation and never shows setup again', async () =
 		await expect(setup).toBeFocused()
 		await expect(setup.locator('.setup-folder')).toHaveAttribute('title', dirs.library)
 		await expect(setup.getByLabel('Default translation').locator('option')).toHaveText([
+			'King James Version',
 			'Berean Standard Bible',
 			'World English Bible',
 			'American Standard Version (1901)',
-			'King James Version',
 		])
 		await page.keyboard.press('Tab')
 		await expect(setup.getByRole('button', { name: 'Choose a folder…' })).toBeFocused()
@@ -93,7 +93,7 @@ test('an unavailable library still opens a window and can be retried from setup'
 		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
 		await expect(setup).toBeVisible()
 		await expect(
-			running.page.getByText("Margin couldn't open your library.", { exact: false }),
+			running.page.getByText('Margin couldn’t open your library.', { exact: false }),
 		).toBeVisible()
 		await rm(dirs.library)
 		await setup.getByRole('button', { name: 'Start studying' }).click()

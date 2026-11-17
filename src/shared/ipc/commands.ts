@@ -20,3 +20,5 @@ export const appCommandSchema = z.enum([
 ])
 export type AppCommandId = z.infer<typeof appCommandSchema>
 export const COMMAND_CHANNEL = 'margin:command'
+/** Renderer → main: whether the sidebar is shown, so the View menu can say Show or Hide Sidebar. */
+export const SIDEBAR_CHANNEL = 'margin:menu:sidebar'

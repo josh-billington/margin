@@ -54,7 +54,7 @@ export function editionPairMap(
 	)
 	if (!pair)
 		throw new RangeError(
-			"Margin couldn't match verses between these translations. Choose another translation.",
+			'Margin couldn’t match verses between these translations. Choose another translation.',
 		)
 	const entries: VersificationMap['entries'] = pair.entries.map((entry) => ({
 		kjv: [],

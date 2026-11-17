@@ -75,7 +75,7 @@ test('right-click in every tool, transient lookup, dark/light popover, note + bo
 		}
 		expect(
 			await app.evaluate(() => (globalThis as { lookupMenuLabel?: string }).lookupMenuLabel),
-		).toBe('Look Up "created"')
+		).toBe('Look Up “created”')
 		await page.waitForTimeout(1000)
 		expect(await readFile(file, 'utf8')).toBe(before)
 		await created(page).click({ button: 'right' })
@@ -102,7 +102,7 @@ test('right-click in every tool, transient lookup, dark/light popover, note + bo
 		const note = doc.find((record) => record.type === 'margin-note')
 		expect(note.props.font).toBe('plain')
 		expect(note.props.text).toContain('H1254')
-		expect(note.props.text).toContain("Strong's Hebrew Dictionary · H1254")
+		expect(note.props.text).toContain('Strong’s Hebrew Dictionary · H1254')
 		expect(note.props.text).not.toContain('Open Scriptures')
 		const arrow = doc.find((record) => record.typeName === 'shape' && record.type === 'arrow')
 		expect(arrow).toBeTruthy()
@@ -175,7 +175,7 @@ test('selection shortcut and palette, phrase chooser, supplied words, manual IDs
 		await expect(lookup(page)).toContainText(
 			'The translators added this word. It has no Hebrew or Greek source word.',
 		)
-		await lookup(page).getByLabel("Strong's number").fill('1254')
+		await lookup(page).getByLabel('Strong’s number').fill('1254')
 		await lookup(page).getByRole('button', { name: 'Look up number' }).click()
 		await expect(lookup(page).getByRole('alert')).toContainText('Choose Hebrew or Greek')
 		await lookup(page)
@@ -230,7 +230,7 @@ test('multi-word source choices, replacement, copy citation and click-outside di
 		await lookup(page).getByRole('button', { name: 'Copy definition', exact: true }).click()
 		await expect
 			.poll(() => app.evaluate(({ clipboard }) => clipboard.readText()))
-			.toContain("Strong's Hebrew Dictionary · H1254")
+			.toContain('Strong’s Hebrew Dictionary · H1254')
 		await page.evaluate(() => window.getSelection()?.removeAllRanges())
 		await page.locator('[data-word]').nth(3).click({ button: 'right' })
 		await expect(lookup(page).getByText('H430', { exact: true })).toBeVisible()

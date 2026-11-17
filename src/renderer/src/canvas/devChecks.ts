@@ -18,6 +18,7 @@ import { derived } from './bindings/derived'
 import { normalizedWordCenter, targetFromElement } from './bindings/words'
 import { insertPassage } from './tools/commands'
 import { replaceRange } from './highlights/ranges'
+import { EMPTY_ABOVE_CAPS } from './bindings/terminals'
 
 const settle = () =>
 	new Promise<void>((resolve) =>
@@ -112,7 +113,8 @@ export async function runM0Checks(editor: Editor) {
 			check(info, 'SDK resolves arrow geometry')
 			const terminal = editor.getShapePageTransform(arrow).applyToPoint(info.end.point)
 			const rect = word.getBoundingClientRect()
-			const a = editor.screenToPage({ x: rect.left, y: rect.top }),
+			// Measured from the ink (caps and ascenders), as terminals are placed.
+			const a = editor.screenToPage({ x: rect.left, y: rect.top + rect.height * EMPTY_ABOVE_CAPS }),
 				b = editor.screenToPage({ x: rect.right, y: rect.bottom })
 			const gap = Math.max(a.y - terminal.y, terminal.y - b.y)
 			check(

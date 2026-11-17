@@ -41,7 +41,7 @@ const swallow = (event: KeyboardEvent) => {
 }
 
 /**
- * SPEC §5 and §6.1: F / ⇧F / Esc / ↑ ↓ and ⌘0 ⌘1 ⌘2. Text fields, note editors, text selection,
+ * SPEC §5 and §6.1: F / ⇧F / Esc / ↑ ↓ and ⌘0 (actual size) ⌘1 (fit) ⌘2 (fit selection). Text fields, note editors, text selection,
  * IME composition and popovers keep their keys; Esc ends those before changing reading focus.
  */
 export function installFocusShortcuts(editor: Editor) {
@@ -52,8 +52,8 @@ export function installFocusShortcuts(editor: Editor) {
 		if (mod && !event.shiftKey && !event.altKey && ['0', '1', '2'].includes(event.key)) {
 			if (context.inInteractiveSurface || context.editingShape || context.popoverOpen) return
 			swallow(event)
-			if (event.key === '0') fitAll(editor)
-			else if (event.key === '1') zoomTo100(editor)
+			if (event.key === '0') zoomTo100(editor)
+			else if (event.key === '1') fitAll(editor)
 			else fitSelection(editor)
 			return
 		}

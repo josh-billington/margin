@@ -44,7 +44,7 @@ export async function handleLexiconRequest(
 				await new Promise<void>((resolve) => {
 					Menu.buildFromTemplate([
 						{
-							label: multiple ? 'Look Up Selection' : `Look Up "${word}"`,
+							label: multiple ? 'Look Up Selection' : `Look Up “${word}”`,
 							click: () => window.webContents.send(COMMAND_CHANNEL, 'word.lookup'),
 						},
 						{ type: 'separator' },
@@ -71,7 +71,7 @@ export async function handleLexiconRequest(
 			ok: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: "Margin couldn't read the dictionary. Reinstall Margin and try again.",
+				message: 'Margin couldn’t read the dictionary. Reinstall Margin and try again.',
 			},
 		}
 	}

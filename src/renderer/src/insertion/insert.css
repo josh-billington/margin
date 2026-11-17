@@ -28,43 +28,12 @@
 	border: var(--stroke-hairline) solid var(--border);
 	border-radius: var(--radius-sm);
 }
-.insert-translations {
-	display: flex;
-	min-width: 0;
-	height: var(--row-h);
-	padding: var(--space-1);
-	gap: var(--space-1);
-	background: var(--chrome-bg);
-	border: var(--stroke-hairline) solid var(--border);
-	border-radius: var(--radius-sm);
-}
-.insert-translations button {
-	flex: 1 1 0;
-	min-width: 0;
-	padding: 0 var(--space-4);
-	border: 0;
-	border-radius: var(--radius-xs);
-	background: transparent;
-	color: var(--text-muted);
-	font-size: var(--text-xs);
-	font-weight: 500;
-	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
-	transition:
-		background-color var(--duration-fast) ease,
-		color var(--duration-fast) ease;
-}
+/* The translation picker is the shared .segmented control. */
 @media (hover: hover) and (pointer: fine) {
-	.insert-translations button:hover,
 	.insert-candidates button:hover {
 		color: var(--ink);
 		background: var(--hover);
 	}
-}
-.insert-translations button[aria-checked='true'] {
-	color: var(--ink);
-	background: var(--segment-selected-bg);
-	box-shadow: var(--shadow-segment);
 }
 .insert-row input:focus-visible {
 	outline-offset: calc(-1 * var(--stroke-hairline));

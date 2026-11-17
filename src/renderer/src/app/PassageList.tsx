@@ -1,11 +1,13 @@
-import { Focus } from 'lucide-react'
+import { Focus, Plus } from 'lucide-react'
 import { useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
 import { centerOn } from '../canvas/focus/camera'
 import { focusPassage, moveCamera } from '../canvas/focus/actions'
 import { orderPassages } from '../canvas/focus/passageOrder'
 import { blockTitle } from '../insertion/labels'
-import { iconSm } from '../lib/icons'
+import { iconMd, iconSm } from '../lib/icons'
+import { ToolButton } from './ToolButton'
+import { runCommand, titleFor } from './commands'
 
 /** SPEC §6.2: passages in scripture order (not canvas order) for keyboard and screen-reader use. */
 export function PassageList({ editor }: { editor: Editor | null }) {
@@ -36,6 +38,7 @@ export function PassageList({ editor }: { editor: Editor | null }) {
 		[editor],
 	)
 	if (!editor) return null
+	const readOnly = editor.getIsReadonly()
 	const pan = (id: (typeof items)[number]['id']) => {
 		const shape = editor.getShape(id)
 		if (shape?.type !== 'passage') return
@@ -54,6 +57,13 @@ export function PassageList({ editor }: { editor: Editor | null }) {
 		<section aria-labelledby="verses-heading">
 			<div className="section-heading">
 				<h2 id="verses-heading">Verses</h2>
+				<ToolButton
+					label={titleFor('passage.add')}
+					onClick={() => runCommand('passage.add')}
+					disabled={readOnly}
+				>
+					<Plus {...iconMd} aria-hidden="true" />
+				</ToolButton>
 			</div>
 			{items.length === 0 ? (
 				<p className="sidebar-hint">Verses you add appear here in Bible order.</p>
@@ -65,14 +75,15 @@ export function PassageList({ editor }: { editor: Editor | null }) {
 								{item.label}
 								{item.pulledOut && <span className="sr-only"> (pulled-out verse)</span>}
 							</button>
-							<button
-								className="row-icon-button"
-								aria-label={`Focus ${item.label}`}
-								title="Focus"
+							<ToolButton
+								row
+								label={`Focus ${item.label}`}
+								tip="Focus"
+								shortcut="F"
 								onClick={() => focusPassage(editor, item.id)}
 							>
 								<Focus {...iconSm} aria-hidden="true" />
-							</button>
+							</ToolButton>
 						</li>
 					))}
 				</ol>

@@ -60,6 +60,8 @@
 	--shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.4);
 	--shadow-segment: 0 1px 2px rgba(0, 0, 0, 0.16);
 	--edge-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	/* Slider knob: light on dark, like the native dark knob. */
+	--knob: #e8e8ea;
 
 	/* Type: Apple system font everywhere; Gochi Hand only for handwritten notes. */
 	--font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
@@ -89,6 +91,10 @@
 	--radius-md: 10px;
 	--radius-lg: 14px;
 	--radius-xl: 18px;
+	/* Anchored floating surfaces (popovers, menus, toasts) share one radius; controls use --radius-sm. */
+	--radius-float: var(--radius-md);
+	/* One dimming for every unavailable control, menu item and palette row. */
+	--disabled-opacity: 0.45;
 	/* Sheets (first-run setup): System Settings proportions, roomier than the compact dialogs. */
 	--sheet-w: 520px;
 	--insert-dialog-w: 420px;
@@ -162,4 +168,5 @@
 		0 1px 3px rgba(40, 30, 20, 0.08), 0 8px 20px rgba(40, 30, 20, 0.08),
 		0 24px 48px rgba(40, 30, 20, 0.1);
 	--shadow-segment: 0 1px 2px rgba(40, 30, 20, 0.1);
+	--knob: #fff;
 }

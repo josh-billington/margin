@@ -8,6 +8,7 @@ import {
 } from '../study/session'
 import { loadPreferences } from '../lib/preferences'
 import { runCommand } from './commands'
+import { useUiStore } from './uiStore'
 
 /** Library init, preferences, IPC subscriptions (library events, flush-before-close, menu commands). */
 export function useAppBootstrap() {
@@ -25,9 +26,15 @@ export function useAppBootstrap() {
 					.then((result) => {
 						if (!result.ok) toast.error(result.error.message)
 					})
-					.catch(() => toast.error("Margin couldn't save your settings. Try again."))
+					.catch(() => toast.error('Margin couldn’t save your settings. Try again.'))
+		})
+		// The View menu says Show or Hide Sidebar to match.
+		const offSidebar = useUiStore.subscribe((state, previous) => {
+			if (state.sidebarOpen !== previous.sidebarOpen)
+				window.margin.menu.setSidebarShown(state.sidebarOpen)
 		})
 		return () => {
+			offSidebar()
 			offLibrary()
 			offFlush()
 			offCommand()

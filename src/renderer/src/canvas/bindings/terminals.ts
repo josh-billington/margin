@@ -18,6 +18,20 @@ export const HEAD_LENGTH = 14
 const HEAD_HALF_ANGLE = Math.PI / 6
 /** Extra clearance between the head's nearest wing and the word box. */
 const WING_MARGIN = 2
+/**
+ * A word's line box (its DOM rect) starts at the font's ascent, which in the system font sits about
+ * a fifth of the box above the tops of the capitals and ascenders. Measuring the gap from the box
+ * left that band empty under the tip, and pushed the 14px head up into the letters of the line
+ * above. Descenders are real ink, so the bottom edge stays where it is.
+ */
+export const EMPTY_ABOVE_CAPS = 0.2
+
+/** The part of a word's box that holds ink, for placing a terminal against it. */
+export function inkBox(box: Box): Box {
+	const inset = box.h * EMPTY_ABOVE_CAPS
+	return { ...box, y: box.y + inset, h: box.h - inset }
+}
+
 /** tldraw's default bend; the sign is chosen at creation, the magnitude kept. */
 export const DEFAULT_BEND = 28
 

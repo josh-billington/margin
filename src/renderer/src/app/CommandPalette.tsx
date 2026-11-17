@@ -12,7 +12,7 @@ import {
 	Trash2,
 	type LucideIcon,
 } from 'lucide-react'
-import { commands, runCommand } from './commands'
+import { commands, labelFor, runCommand } from './commands'
 import type { CommandId } from './commands'
 import { useUiStore } from './uiStore'
 import { iconMd } from '../lib/icons'
@@ -74,33 +74,38 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 							<kbd aria-hidden="true">Esc</kbd>
 						</div>
 						<Command.List>
-							<Command.Empty>No matching commands.</Command.Empty>
+							{/* A typed query always offers "Add verses ‹query›", so it is never empty then. */}
+							{!typed && <Command.Empty>No matching commands.</Command.Empty>}
+							{/* Outside the groups: cmdk hides a group with no matching items (forced ones too), and
+							    forcing the group would force every command in it. */}
+							{typed && (
+								<Command.Item
+									forceMount
+									value={`add verses ${typed}`}
+									onSelect={() => run(() => useUiStore.getState().openInsert(typed))}
+								>
+									<BookOpen {...iconMd} aria-hidden="true" />
+									Add verses<span>{typed}</span>
+								</Command.Item>
+							)}
 							{groups.map((group) => (
 								<Command.Group key={group} heading={group}>
-									{group === 'Study' && typed && (
-										<Command.Item
-											forceMount
-											value={`add verses ${typed}`}
-											onSelect={() => run(() => useUiStore.getState().openInsert(typed))}
-										>
-											<BookOpen {...iconMd} aria-hidden="true" />
-											Add verses<span>{typed}</span>
-										</Command.Item>
-									)}
 									{paletteCommands
 										.filter((command) => command.group === group)
 										.map((command) => {
 											const Icon = icons[command.id]
+											const title = labelFor(command)
 											return (
 												<Command.Item
 													key={command.id}
-													value={command.title}
+													value={title}
+													disabled={!(command.available?.() ?? true)}
 													onSelect={() =>
 														run(() => runCommand(command.id), command.id === 'word.lookup')
 													}
 												>
 													{Icon && <Icon {...iconMd} aria-hidden="true" />}
-													{command.title}
+													{title}
 													{command.shortcut && <kbd>{command.shortcut}</kbd>}
 												</Command.Item>
 											)

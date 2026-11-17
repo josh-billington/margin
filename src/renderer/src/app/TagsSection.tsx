@@ -6,7 +6,7 @@ import * as Popover from '@radix-ui/react-popover'
 import { useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
 import { toast } from 'sonner'
-import type { PaletteColor, Tag } from '@shared/study/types'
+import type { Tag } from '@shared/study/types'
 import { countHighlightRanges } from '@shared/study/tags'
 import { pageTags } from '../canvas/highlights/TagPopover'
 import {
@@ -25,6 +25,8 @@ import {
 } from '../canvas/tags/tagFocus'
 import { iconMd, iconSm } from '../lib/icons'
 import { ColorChoices } from './ColorChoices'
+import { NewTagForm } from './NewTagForm'
+import { ToolButton } from './ToolButton'
 
 function EditTag({
 	editor,
@@ -41,9 +43,9 @@ function EditTag({
 	return (
 		<Popover.Root onOpenChange={(open) => open && setName(tag.name)}>
 			<Popover.Trigger asChild>
-				<button className="row-icon-button" aria-label={`Edit tag ${tag.name}`}>
+				<ToolButton row label={`Edit tag ${tag.name}`} tip="Edit tag">
 					<Pencil {...iconSm} aria-hidden="true" />
-				</button>
+				</ToolButton>
 			</Popover.Trigger>
 			<Popover.Portal>
 				<Popover.Content className="margin-popover" aria-label={`Edit tag ${tag.name}`}>
@@ -98,7 +100,7 @@ function DeleteTagDialog({
 			<AlertDialog.Portal>
 				<AlertDialog.Overlay className="dialog-overlay" />
 				<AlertDialog.Content className="dialog-panel">
-					<AlertDialog.Title>Delete "{tag.name}"?</AlertDialog.Title>
+					<AlertDialog.Title>Delete “{tag.name}”?</AlertDialog.Title>
 					<AlertDialog.Description>
 						{count === 1 ? '1 highlight uses' : `${count} highlights use`} this tag. You can undo
 						this.
@@ -165,8 +167,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 	const selected = useTagFocus((state) => state.tagId)
 	const index = useTagFocus((state) => state.index)
 	const [pendingDelete, setPendingDelete] = useState<Tag | null>(null)
-	const [name, setName] = useState('')
-	const [color, setColor] = useState<PaletteColor>('sky')
+	const [creating, setCreating] = useState(false)
 	const matchCount = useValue(
 		'tag matches',
 		() => (editor && selected ? tagMatches(editor, selected).length : 0),
@@ -175,11 +176,33 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 	useEffect(() => {
 		if (editor && selected && !tags.some((t) => t.id === selected)) clearTagFocus()
 	}, [editor, selected, tags])
-	const readOnly = !editor || editor.getIsReadonly()
+	// Like the verse list: with no study open there is nothing to list, so no orphan heading.
+	if (!editor) return null
+	const readOnly = editor.getIsReadonly()
 	return (
 		<section aria-labelledby="tags-heading">
 			<div className="section-heading">
 				<h2 id="tags-heading">Tags</h2>
+				{!readOnly && (
+					<Popover.Root open={creating} onOpenChange={setCreating}>
+						<Popover.Trigger asChild>
+							<ToolButton label="New tag">
+								<Plus {...iconMd} aria-hidden="true" />
+							</ToolButton>
+						</Popover.Trigger>
+						<Popover.Portal>
+							<Popover.Content className="margin-popover" align="start" aria-label="New tag">
+								<NewTagForm
+									submitLabel="Create tag"
+									onCreate={(name, color) => {
+										createTag(editor, name, color)
+										setCreating(false)
+									}}
+								/>
+							</Popover.Content>
+						</Popover.Portal>
+					</Popover.Root>
+				)}
 			</div>
 			<ul className="tag-list">
 				{tags.map((tag) => (
@@ -190,7 +213,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 							aria-label={`${tag.name}. Show ${counts[tag.id] ?? 0} ${counts[tag.id] === 1 ? 'highlight' : 'highlights'}`}
 							onClick={() => {
 								selectTag(tag.id)
-								if (editor && tag.id !== selected) stepTagMatch(editor, 1)
+								if (tag.id !== selected) stepTagMatch(editor, 1)
 							}}
 						>
 							<span
@@ -202,7 +225,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 							{/* A column of zeros is noise; the count appears once the tag is used. */}
 							{!!counts[tag.id] && <span className="tag-count">{counts[tag.id]}</span>}
 						</button>
-						{editor && !readOnly && (
+						{!readOnly && (
 							<EditTag
 								editor={editor}
 								tag={tag}
@@ -216,7 +239,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 					</li>
 				))}
 			</ul>
-			{editor && selected && (
+			{selected && (
 				<div className="tag-nav" role="group" aria-label="Tag matches">
 					<button
 						className="row-icon-button"
@@ -239,41 +262,8 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 					</button>
 				</div>
 			)}
-			{editor && !readOnly && (
+			{!readOnly && (
 				<>
-					<Popover.Root>
-						<Popover.Trigger asChild>
-							<button className="row-button row-action">
-								<Plus {...iconMd} aria-hidden="true" /> New tag
-							</button>
-						</Popover.Trigger>
-						<Popover.Portal>
-							<Popover.Content className="margin-popover" aria-label="New tag">
-								<form
-									onSubmit={(e) => {
-										e.preventDefault()
-										if (!name.trim()) return
-										createTag(editor, name, color)
-										setName('')
-									}}
-								>
-									<label>
-										Name
-										<input
-											className="field"
-											autoFocus
-											value={name}
-											onChange={(e) => setName(e.target.value)}
-										/>
-									</label>
-									<ColorChoices value={color} onChange={setColor} />
-									<button className="button button-primary" disabled={!name.trim()}>
-										Create tag
-									</button>
-								</form>
-							</Popover.Content>
-						</Popover.Portal>
-					</Popover.Root>
 					{tags.length === 0 && (
 						<button
 							className="row-button row-action"
@@ -291,7 +281,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 					)}
 				</>
 			)}
-			{editor && pendingDelete && (
+			{pendingDelete && (
 				<DeleteTagDialog
 					editor={editor}
 					tag={pendingDelete}

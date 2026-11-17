@@ -85,7 +85,7 @@ export function validateLoadedAnnotations(editor: Editor) {
 	const highlights = found.filter((f) => f.kind === 'highlight').length
 	toast.warning(
 		`Margin found ${highlights} highlight${highlights === 1 ? '' : 's'} and ${found.length - highlights} arrow target${found.length - highlights === 1 ? '' : 's'} that no longer match the verses. ` +
-			`Margin kept them in this study's recovery data without moving them to other words.`,
+			`Margin kept them in this study’s recovery data without moving them to other words.`,
 		{ duration: 12000 },
 	)
 	return found.length

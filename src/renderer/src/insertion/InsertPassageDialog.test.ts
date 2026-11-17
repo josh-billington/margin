@@ -91,7 +91,7 @@ it('reports a rejected insertion request and allows another attempt', async () =
 	const { submit } = render()
 	submit()
 	await settle()
-	expect(toast.error).toHaveBeenCalledWith("Margin couldn't load the verses. Try again.")
+	expect(toast.error).toHaveBeenCalledWith('Margin couldn’t load the verses. Try again.')
 	submit()
 	await settle()
 	expect(insertPassage).toHaveBeenCalledTimes(1)
