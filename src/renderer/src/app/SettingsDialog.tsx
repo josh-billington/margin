@@ -1,6 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useSyncExternalStore } from 'react'
-import { setPreferences, usePreferences } from '../lib/preferences'
+import {
+	noteFontChoice,
+	noteFontPreferences,
+	setPreferences,
+	usePreferences,
+} from '../lib/preferences'
+import type { NoteFontChoice } from '../lib/preferences'
 import { usePrefs } from '../lib/usePrefs'
 import { translationNames, translationOrder, wholeBibleTranslations } from '../insertion/labels'
 import { translationIdSchema } from '@shared/bible/types'
@@ -19,7 +25,7 @@ export function SettingsDialog({
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }) {
-	const { defaultNoteFont, displayNotesInPlainFont } = usePreferences()
+	const noteFont = usePreferences(noteFontChoice)
 	const { prefs, update } = usePrefs()
 	const isMac = navigator.userAgent.includes('Mac')
 	const panel = useRef<HTMLDivElement>(null)
@@ -94,25 +100,19 @@ export function SettingsDialog({
 							<option value="dark">Dark</option>
 						</select>
 					</label>
-					<label className="check-row">
-						<input
-							type="checkbox"
-							checked={defaultNoteFont === 'plain'}
+					<label className="select-row">
+						<span>Note font</span>
+						<select
+							className="field"
+							value={noteFont}
 							onChange={(e) =>
-								void setPreferences({
-									defaultNoteFont: e.target.checked ? 'plain' : 'handwritten',
-								})
+								void setPreferences(noteFontPreferences(e.target.value as NoteFontChoice))
 							}
-						/>
-						<span>Use the system font for new notes</span>
-					</label>
-					<label className="check-row">
-						<input
-							type="checkbox"
-							checked={displayNotesInPlainFont}
-							onChange={(e) => void setPreferences({ displayNotesInPlainFont: e.target.checked })}
-						/>
-						<span>Show all notes in the system font</span>
+						>
+							<option value="handwritten">Handwritten</option>
+							<option value="system-new">System for new notes</option>
+							<option value="system-all">System for all notes</option>
+						</select>
 					</label>
 					{isMac && (
 						<label className="check-row">

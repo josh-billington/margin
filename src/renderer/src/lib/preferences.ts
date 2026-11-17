@@ -28,3 +28,28 @@ export async function setPreferences(change: Partial<Notes>) {
 		toast.error('Margin couldn’t save your settings. Try again.')
 	}
 }
+
+/** Settings’ one “Note font” choice, stored as the two existing note preferences. */
+export type NoteFontChoice = 'handwritten' | 'system-new' | 'system-all'
+export function noteFontChoice(
+	prefs: Pick<Notes, 'defaultNoteFont' | 'displayNotesInPlainFont'>,
+): NoteFontChoice {
+	if (prefs.displayNotesInPlainFont) return 'system-all'
+	return prefs.defaultNoteFont === 'plain' ? 'system-new' : 'handwritten'
+}
+/**
+ * “System for all notes” only changes how notes are shown, so each note keeps its own font and a
+ * later switch back shows it as written.
+ */
+export function noteFontPreferences(
+	choice: NoteFontChoice,
+): Partial<Pick<Notes, 'defaultNoteFont' | 'displayNotesInPlainFont'>> {
+	switch (choice) {
+		case 'handwritten':
+			return { defaultNoteFont: 'handwritten', displayNotesInPlainFont: false }
+		case 'system-new':
+			return { defaultNoteFont: 'plain', displayNotesInPlainFont: false }
+		case 'system-all':
+			return { displayNotesInPlainFont: true }
+	}
+}
