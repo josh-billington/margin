@@ -46,3 +46,10 @@ export function tokensToText(tokens: readonly Token[]): string {
 		)
 		.join('')
 }
+
+/**
+ * A token's leading text as shown after the verse number. Some sources start a verse with a bare
+ * space where a pilcrow was dropped (KJV John 3:17); beside the number it reads as a double gap.
+ */
+export const shownLeading = (token: Token, first: boolean) =>
+	first ? token.leading.replace(/^\s+/u, '') : token.leading

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fixtures from '../../../data/fixtures/tokenizer.v1.json'
 import supplied from '../../../data/fixtures/supplied-words.v1.json'
 import sourceMarkup from '../../../data/fixtures/source-markup.v1.json'
-import { tokenize, tokensToText } from './tokenizer'
+import { shownLeading, tokenize, tokensToText } from './tokenizer'
 import { importUsfm } from '../../../scripts/import-bible/usfm'
 import { importJps } from '../../../scripts/import-bible/jps'
 
@@ -112,4 +112,18 @@ it('keeps note-only verse labels as metadata without inventing verse text', () =
 	expect(
 		imported.metadata.some((entry) => entry.kind === 'empty-verse' && entry.verse === 25),
 	).toBe(true)
+})
+
+describe('shown leading', () => {
+	it('trims the bare space a verse starts with, so the verse number keeps one gap', () => {
+		const [first, second] = tokenize(' For God sent not his Son')
+		expect(first && shownLeading(first, true)).toBe('')
+		expect(second && shownLeading(second, false)).toBe('')
+	})
+	it('keeps a pilcrow and opening punctuation', () => {
+		const [pilcrow] = tokenize('¶ For God so loved')
+		expect(pilcrow && shownLeading(pilcrow, true)).toBe('¶ ')
+		const [quote] = tokenize(' “Truly')
+		expect(quote && shownLeading(quote, true)).toBe('“')
+	})
 })

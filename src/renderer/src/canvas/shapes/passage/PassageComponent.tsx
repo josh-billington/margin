@@ -19,6 +19,7 @@ import { reconcileWords, targetFromElement } from '../../bindings/words'
 import { lineBands, unionRect, wordElements } from '../../highlights/bands'
 import type { Band } from '../../highlights/bands'
 import type { PassageShape } from '../types'
+import { shownLeading } from '@shared/bible/tokenizer'
 
 /** Scripture size at 100% scale; the per-block fontScale multiplies it. */
 const SCRIPTURE_BASE_PX = 24
@@ -341,7 +342,7 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 									{verse.ref.verse}
 								</sup>
 							)}
-							{verse.tokens.map((token) => {
+							{verse.tokens.map((token, index) => {
 								const target = { verse: verse.ref, token: token.i }
 								const highlight = highlighted.get(wordKey(target)),
 									tag = tags.find((tag) => tag.id === highlight?.tagId)
@@ -391,7 +392,7 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 												}
 											}}
 										>
-											{token.leading}
+											{shownLeading(token, index === 0)}
 											{token.runs.map((run, i) => (
 												<span
 													key={i}
