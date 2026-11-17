@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3'
 import { BibleService } from '../../src/main/bible/provider'
+import { verifyVersificationMap } from '../../src/shared/bible/versification'
 import { loadEditionMaps, editionPairMap } from '../../src/shared/bible/editionMaps'
 import { mkdir, readFile, rename, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -203,11 +204,8 @@ export async function buildBible(root: string) {
 		)
 		const maps = loadEditionMaps(mapInput, service.listTranslations())
 		for (const pair of maps.maps)
-			editionPairMap(
-				maps,
-				pair.source,
-				pair.target,
-				(id) => service.providers[id].allRefs(),
+			verifyVersificationMap(
+				editionPairMap(maps, pair.source, pair.target, (id) => service.providers[id].allRefs()),
 				(id, book, chapter) => service.providers[id].verseNumbers(book, chapter),
 			)
 	} finally {

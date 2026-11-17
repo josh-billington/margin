@@ -29,3 +29,17 @@ it.skipIf(missing.length > 0)(
 	},
 	60_000,
 )
+
+it('matches the original whole-corpus algorithm for every edition pair and chapter, including partial split/merge groups', () => {
+	const electron: unknown = createRequire(resolve('package.json'))('electron')
+	const result = execFileSync(
+		z.string().parse(electron),
+		['--import', 'tsx', resolve('scripts/import-bible/verify-mapping.ts')],
+		{
+			env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+			encoding: 'utf8',
+			timeout: 180_000,
+		},
+	)
+	expect(result).toContain('whole-corpus mapping comparisons passed')
+}, 180_000)

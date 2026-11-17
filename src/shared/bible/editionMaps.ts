@@ -1,9 +1,8 @@
 import { z } from 'zod'
 import { translationIdSchema, verseRefSchema } from './types'
 import type { TextEdition, TranslationId, VerseRef } from './types'
-import { refKeySchema, verseKey, verifyVersificationMap } from './versification'
+import { refKeySchema, verseKey } from './versification'
 import type { VersificationMap } from './versification'
-import type { VerseBoundaries } from './reference'
 
 export const editionMapsSchema = z.object({
 	version: z.literal(1),
@@ -46,7 +45,6 @@ export function editionPairMap(
 	from: TranslationId,
 	to: TranslationId,
 	refs: (translation: TranslationId) => readonly VerseRef[],
-	boundaries: VerseBoundaries,
 ): VersificationMap {
 	const pair = maps.maps.find(
 		(pair) =>
@@ -91,6 +89,5 @@ export function editionPairMap(
 					reason: 'The selected translation has no matching text for this verse.',
 				})
 	const map = { version: 1 as const, corpusRevisions: maps.corpusRevisions, entries, unmapped }
-	verifyVersificationMap(map, boundaries)
 	return map
 }
