@@ -14,6 +14,9 @@ import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
 
+// ⌘+ / ⌘− are pressed many times in a row and never animate; toolbar clicks do (Toolbar.tsx).
+const KEYBOARD_ZOOM = { animation: { duration: 0 } }
+
 export type CommandId = AppCommandId | 'selection.tag' | 'selection.duplicate' | 'selection.delete'
 
 export interface AppCommand {
@@ -179,14 +182,14 @@ export const commands: AppCommand[] = [
 		title: 'Zoom in',
 		group: 'View',
 		shortcut: '⌘+',
-		run: withEditor((e) => e.zoomIn()),
+		run: withEditor((e) => e.zoomIn(undefined, KEYBOARD_ZOOM)),
 	},
 	{
 		id: 'view.zoomOut',
 		title: 'Zoom out',
 		group: 'View',
 		shortcut: '⌘−',
-		run: withEditor((e) => e.zoomOut()),
+		run: withEditor((e) => e.zoomOut(undefined, KEYBOARD_ZOOM)),
 	},
 	{
 		id: 'appearance.system',
