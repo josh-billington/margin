@@ -65,7 +65,7 @@ export function unwrap<T>(
 	return result.data
 }
 export function report(error: unknown) {
-	toast.error(userMessage(error, "Margin couldn't finish this action. Try again."))
+	toast.error(userMessage(error, 'Margin couldn’t finish this action. Try again.'))
 }
 export function install(study: PersistedStudy) {
 	useStudySession.setState((state) => ({

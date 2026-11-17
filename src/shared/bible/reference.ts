@@ -57,7 +57,7 @@ export function parseReference(
 	if (!candidates.length)
 		return fail(
 			'UNKNOWN_BOOK',
-			"Margin doesn't recognise this book name. Check the name and try again.",
+			'Margin doesn’t recognize this book name. Check the name and try again.',
 			books
 				.filter((book) => book.name.toLowerCase().startsWith((match[1] ?? '').toLowerCase()))
 				.map((book) => book.name),
@@ -72,7 +72,7 @@ export function parseReference(
 	if (!book)
 		return fail(
 			'UNKNOWN_BOOK',
-			"Margin doesn't recognise this book name. Check the name and try again.",
+			'Margin doesn’t recognize this book name. Check the name and try again.',
 		)
 	// An unqualified Old Testament reference uses the separate OT default when one is set.
 	if (!qualifier && book.testament === 'old' && oldTestamentTranslation)

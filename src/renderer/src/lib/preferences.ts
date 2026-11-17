@@ -24,6 +24,6 @@ export async function setPreferences(change: Partial<Notes>) {
 		if (result.ok) usePreferences.setState(result.data)
 		else toast.error(result.error.message)
 	} catch {
-		toast.error("Margin couldn't save your settings. Try again.")
+		toast.error('Margin couldn’t save your settings. Try again.')
 	}
 }

@@ -5,10 +5,13 @@ import type { LockNotice } from '@shared/ipc/contract'
 import { takeOverLibrary } from '../study/session'
 import { iconMd } from '../lib/icons'
 
-function formatSince(since: string | null) {
-	if (!since) return 'an unknown time'
+const sinceFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+
+/** "Nov 16, 2026, 3:04 p.m." in the reader's locale: no seconds, no raw timestamp. */
+export function formatSince(since: string | null) {
+	if (!since) return null
 	const date = new Date(since)
-	return Number.isNaN(date.getTime()) ? 'an unknown time' : date.toLocaleString()
+	return Number.isNaN(date.getTime()) ? null : sinceFormat.format(date)
 }
 
 /** Read-only notice for a library locked by another computer. Takeover replaces that lock. */
@@ -17,8 +20,8 @@ export function LibraryLockNotice({ lock }: { lock: LockNotice }) {
 		<div className="library-lock-notice" role="status">
 			<Lock {...iconMd} aria-hidden="true" />
 			<p>
-				Margin cannot save changes here. {lock.host} has this library open. It opened the library at{' '}
-				{formatSince(lock.since)}.
+				Margin can’t save changes here. {lock.host} has this library open
+				{formatSince(lock.since) ? ` since ${formatSince(lock.since)}` : ''}.
 			</p>
 			<AlertDialog.Root>
 				<AlertDialog.Trigger asChild>

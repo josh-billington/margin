@@ -97,7 +97,7 @@ export function studySnapshot(study: PersistedStudy, editor: Editor) {
 	const migrated = editor.store.schema.migrateStoreSnapshot(snapshot)
 	if (migrated.type === 'error')
 		throw new UserFacingError(
-			"Margin couldn't open this study's canvas. Update Margin and try again.",
+			'Margin couldn’t open this study’s canvas. Update Margin and try again.',
 		)
 	for (const record of Object.values(migrated.value))
 		editor.store.schema.validateRecord(editor.store, record, 'initialize', null)

@@ -119,7 +119,7 @@ export function mapPassage(
 			unmapped.push({
 				ref,
 				reason:
-					"Margin couldn't find matching verses in the selected translation. Keep the current translation or choose another.",
+					'Margin couldn’t find matching verses in the selected translation. Keep the current translation or choose another.',
 			})
 	return {
 		kind: unmapped.length

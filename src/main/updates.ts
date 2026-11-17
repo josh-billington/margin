@@ -23,7 +23,7 @@ export async function checkForUpdates() {
 			await dialog.showMessageBox({
 				type: 'info',
 				message: 'Margin is up to date',
-				detail: `You're using Margin ${app.getVersion()}.`,
+				detail: `You’re using Margin ${app.getVersion()}.`,
 			})
 		} else {
 			const result = await dialog.showMessageBox({
@@ -41,7 +41,7 @@ export async function checkForUpdates() {
 		await dialog
 			.showMessageBox({
 				type: 'info',
-				message: "Margin couldn't check for updates",
+				message: 'Margin couldn’t check for updates',
 				detail: 'Check your internet connection and try again. You can keep studying offline.',
 			})
 			.catch(() => undefined)

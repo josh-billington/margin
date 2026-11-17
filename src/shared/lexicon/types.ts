@@ -44,10 +44,11 @@ export const lookupResultSchema = z.object({
 })
 export type LookupResult = z.infer<typeof lookupResultSchema>
 /**
- * The dictionary's own name ("Strong's Hebrew Dictionary"). Bundled entries carry the data
- * provider after a " · " ("… · Open Scriptures"); that credit lives in the README, not in the
- * reader's notes or clipboard.
+ * The dictionary's own name ("Strong’s Hebrew Dictionary"), with a typographic apostrophe like the
+ * rest of the UI. Bundled entries carry the data provider after a " · " ("… · Open Scriptures");
+ * that credit lives in the README, not in the reader's notes or clipboard.
  */
-export const dictionaryName = (entry: LexiconEntry) => entry.source.split(' · ')[0] ?? entry.source
+export const dictionaryName = (entry: LexiconEntry) =>
+	(entry.source.split(' · ')[0] ?? entry.source).replaceAll("'", '’')
 export const entryCitation = (entry: LexiconEntry) =>
 	`${entry.lemma} (${entry.transliteration}, ${entry.id})\n${entry.definition}\n${dictionaryName(entry)} · ${entry.id}`
