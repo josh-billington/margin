@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Pencil } from 'lucide-react'
 import { openStudy, renameStudy, useStudySession } from '../study/session'
 import { iconSm } from '../lib/icons'
+import { ToolButton } from './ToolButton'
 
 export function RenameStudy({
 	id,
@@ -81,14 +82,15 @@ export function RenameStudy({
 				/>
 			)}
 			<span className="row-actions" hidden={editing}>
-				<button
-					className="row-icon-button"
+				<ToolButton
+					row
 					disabled={disabled}
-					aria-label={`Rename ${title}`}
+					label={`Rename ${title}`}
+					tip="Rename"
 					onClick={() => void begin()}
 				>
 					<Pencil {...iconSm} aria-hidden="true" />
-				</button>
+				</ToolButton>
 				{children}
 			</span>
 		</>

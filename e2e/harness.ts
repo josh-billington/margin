@@ -117,7 +117,9 @@ export const saved = (page: Page) =>
 export async function addAmos(page: Page) {
 	await page.getByRole('button', { name: 'Add verses' }).first().click()
 	await page.getByLabel('Reference').fill('Amos 1:3-5')
-	await expect(page.getByRole('button', { name: 'Add verses' }).last()).toBeEnabled({ timeout: 15_000 })
+	await expect(page.getByRole('button', { name: 'Add verses' }).last()).toBeEnabled({
+		timeout: 15_000,
+	})
 	await page.keyboard.press('Enter')
 	await expect(page.getByRole('dialog', { name: 'Add verses' })).toBeHidden()
 	await page.waitForSelector('[data-word]')
@@ -133,8 +135,8 @@ export async function selectWords(page: Page, extend: number) {
 
 export async function createTagFromPopover(page: Page, name: string) {
 	const dialog = page.getByRole('dialog', { name: 'Tag selected words' })
-	await dialog.getByPlaceholder('Name').fill(name)
-	await dialog.getByRole('button', { name: 'Create and apply' }).click()
+	await dialog.getByLabel('Name').fill(name)
+	await dialog.getByRole('button', { name: 'Create and apply tag' }).click()
 	await expect(dialog).toBeHidden()
 }
 

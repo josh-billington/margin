@@ -7,6 +7,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { useStudySession, deleteStudy, chooseLibrary } from '../study/session'
 import { RenameStudy } from './RenameStudy'
 import { ToolButton } from './ToolButton'
+import { shortcutFor, titleFor } from './commands'
 import { iconMd, iconSm } from '../lib/icons'
 
 export function Sidebar({
@@ -23,7 +24,12 @@ export function Sidebar({
 			<section aria-labelledby="studies-heading">
 				<div className="section-heading">
 					<h2 id="studies-heading">Studies</h2>
-					<ToolButton label="New study" onClick={onCreateStudy} disabled={readOnly}>
+					<ToolButton
+						label={titleFor('study.new')}
+						shortcut={shortcutFor('study.new')}
+						onClick={onCreateStudy}
+						disabled={readOnly}
+					>
 						<Plus {...iconMd} aria-hidden="true" />
 					</ToolButton>
 				</div>
@@ -39,18 +45,19 @@ export function Sidebar({
 							>
 								<AlertDialog.Root>
 									<AlertDialog.Trigger asChild>
-										<button
-											className="row-icon-button"
+										<ToolButton
+											row
 											disabled={readOnly}
-											aria-label={`Delete ${study.title}`}
+											label={`Delete ${study.title}`}
+											tip="Delete"
 										>
 											<X {...iconSm} aria-hidden="true" />
-										</button>
+										</ToolButton>
 									</AlertDialog.Trigger>
 									<AlertDialog.Portal>
 										<AlertDialog.Overlay className="dialog-overlay" />
 										<AlertDialog.Content className="dialog-panel">
-											<AlertDialog.Title>Delete "{study.title}"?</AlertDialog.Title>
+											<AlertDialog.Title>Delete “{study.title}”?</AlertDialog.Title>
 											<AlertDialog.Description>
 												Margin will delete the study file and keep a recovery copy.
 											</AlertDialog.Description>
