@@ -10,6 +10,21 @@ export const translationNames: Record<TranslationId, { short: string; long: stri
 	jps1917: { short: 'JPS 1917', long: 'JPS 1917 (The Holy Scriptures)' },
 }
 
+/**
+ * The one order for translation lists everywhere: KJV (the default), the modern English
+ * translations, then JPS 1917, which covers only the Old Testament. Compact controls use the short
+ * names; first-run setup, where a reader may not know the abbreviations, uses the long ones.
+ */
+export const translationOrder = [
+	'kjv',
+	'bsb',
+	'web',
+	'asv',
+	'jps1917',
+] as const satisfies readonly TranslationId[]
+/** Translations that cover the whole Bible, for a default that has to work for any reference. */
+export const wholeBibleTranslations = translationOrder.filter((id) => id !== 'jps1917')
+
 const bookName = (id: string) => books.find((book) => book.id === id)?.name ?? id
 const verseLabel = (ref: VerseRef) => `${ref.chapter}:${ref.verse}`
 

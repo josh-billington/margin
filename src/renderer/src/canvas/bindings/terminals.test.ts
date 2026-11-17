@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { HEAD_LENGTH, approach, arcMiddle, outwardBend, wordTerminal } from './terminals'
+import {
+	EMPTY_ABOVE_CAPS,
+	HEAD_LENGTH,
+	approach,
+	arcMiddle,
+	inkBox,
+	outwardBend,
+	wordTerminal,
+} from './terminals'
 
 const word = { x: 100, y: 100, w: 60, h: 20 } // centre (130, 110)
 
@@ -16,6 +24,22 @@ describe('word terminals', () => {
 	})
 	it('never lands on a side edge, even for a level approach', () => {
 		expect(wordTerminal(word, { x: 300, y: 0 }, 5)).toEqual({ x: 160, y: 95 })
+	})
+})
+
+describe('ink box', () => {
+	it('drops the empty band above the capitals and keeps the descenders', () => {
+		const ink = inkBox({ x: 0, y: 100, w: 40, h: 28 })
+		expect(ink.y).toBeCloseTo(100 + 28 * EMPTY_ABOVE_CAPS)
+		expect(ink.y + ink.h).toBe(128)
+	})
+	it('keeps a 14px head out of the letters of the line above (24px text, line-height 1.55)', () => {
+		// The system font at 24px: a 28px line box, 37.2px line pitch, baseline ~5.8px above the box bottom.
+		const word = { x: 0, y: 100, w: 40, h: 28 }
+		const baselineAbove = word.y - (37.2 - 28) - 5.8
+		const tip = wordTerminal(inkBox(word), { x: 0, y: -1 }, 5, HEAD_LENGTH)
+		expect(tip.y - HEAD_LENGTH).toBeGreaterThan(baselineAbove)
+		expect(tip.y).toBeLessThan(word.y + 28 * EMPTY_ABOVE_CAPS)
 	})
 })
 

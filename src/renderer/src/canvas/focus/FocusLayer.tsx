@@ -52,6 +52,15 @@ export function FocusLayer() {
 				return `${prefix} .tl-shape,${prefix} .scripture-verse{transition:opacity 150ms ease-out}\n${still}`
 			const bright = computeBrightSet(dimModel(editor), target)
 			const out = [`${prefix} .tl-shape{transition:opacity 200ms ease-out}`]
+			// Reading chrome: while only the focused block is selected (focus selects it), its selection
+			// outline and header menu step away from the text. They return on Esc, or as soon as the
+			// reader selects something else.
+			const selected = editor.getSelectedShapeIds()
+			if (selected.length === 1 && selected[0] === target.passageId)
+				out.push(
+					`${prefix} .tl-canvas-overlays{visibility:hidden}`,
+					`${prefix} [data-shape-id="${target.passageId}"] .passage-header-actions{visibility:hidden}`,
+				)
 			for (const shape of editor.getCurrentPageShapes())
 				if (!bright.has(shape.id))
 					out.push(`${prefix} [data-shape-id="${shape.id}"]{opacity:${DIM} !important}`)

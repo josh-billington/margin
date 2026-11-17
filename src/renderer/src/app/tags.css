@@ -72,6 +72,19 @@
 		0 0 0 2px var(--surface),
 		0 0 0 3px var(--ink);
 }
+.slider-field {
+	display: grid;
+	gap: var(--space-2);
+}
+.slider-label {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--space-4);
+}
+.slider-label output {
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
 .slider-root {
 	position: relative;
 	display: flex;
@@ -83,7 +96,7 @@
 .slider-track {
 	position: relative;
 	flex-grow: 1;
-	height: 3px;
+	height: 4px;
 	background: var(--border);
 	border-radius: var(--space-1);
 }
@@ -93,41 +106,19 @@
 	background: var(--accent);
 	border-radius: var(--space-1);
 }
+/* The native knob: a light disc with a hairline and a small contact shadow. */
 .slider-thumb {
 	display: block;
-	width: 14px;
-	height: 14px;
+	width: 16px;
+	height: 16px;
 	border-radius: 50%;
-	background: var(--ink);
-	box-shadow: var(--shadow-popover);
+	background: var(--knob);
+	border: var(--stroke-hairline) solid var(--border);
+	box-shadow: var(--shadow-segment);
 }
 .slider-thumb:focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
-}
-.toggle-row {
-	display: flex;
-	gap: var(--space-2);
-}
-.toggle-row button {
-	height: var(--control-h-sm);
-	padding: 0 var(--space-4);
-	border: 0;
-	border-radius: var(--radius-sm);
-	background: transparent;
-	color: var(--text-muted);
-	transition:
-		background-color var(--duration-fast) ease,
-		color var(--duration-fast) ease;
-}
-@media (hover: hover) and (pointer: fine) {
-	.toggle-row button:hover {
-		color: var(--ink);
-	}
-}
-.toggle-row [data-state='on'] {
-	background: var(--selected);
-	color: var(--ink);
 }
 /* Edit appears on hover or focus, like study row actions, so the tag list stays quiet. */
 .tag-row > .row-icon-button {

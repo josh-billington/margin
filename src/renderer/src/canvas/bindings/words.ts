@@ -12,6 +12,7 @@ import {
 	arcMiddle,
 	outwardBend,
 	wordTerminal,
+	inkBox,
 } from './terminals'
 import type { Box, Point } from './terminals'
 
@@ -132,7 +133,7 @@ export function wordAnchor(
 	}
 	return normalize(
 		passage,
-		wordTerminal(box, local, WORD_GAP * arrow.props.scale, HEAD_LENGTH * arrow.props.scale),
+		wordTerminal(inkBox(box), local, WORD_GAP * arrow.props.scale, HEAD_LENGTH * arrow.props.scale),
 	)
 }
 const arc = (arrow: TLArrowShape, bend: number) =>

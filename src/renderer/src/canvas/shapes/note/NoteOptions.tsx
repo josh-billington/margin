@@ -1,7 +1,6 @@
 import { Ellipsis } from 'lucide-react'
 import { useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
-import * as Slider from '@radix-ui/react-slider'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import { useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
@@ -13,6 +12,7 @@ import { pagePassages } from '../../tags/tagOps'
 import type { NoteShape } from '../types'
 import type { noteSizes } from './NoteShapeUtil'
 import { iconLg } from '../../../lib/icons'
+import { SliderField } from '../../../app/SliderField'
 
 const degrees = (radians: number) => Math.round(((radians * 180) / Math.PI) * 2) / 2
 const sizeLabels = {
@@ -53,7 +53,7 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 						<span>Size</span>
 						<ToggleGroup.Root
 							type="single"
-							className="toggle-row"
+							className="segmented"
 							value={shape.props.size}
 							onValueChange={(size) =>
 								size && update({ size: notePropsSchema.shape.size.parse(size) })
@@ -74,7 +74,7 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 						<span>Font</span>
 						<ToggleGroup.Root
 							type="single"
-							className="toggle-row"
+							className="segmented"
 							value={shape.props.font}
 							onValueChange={(font) =>
 								font && update({ font: notePropsSchema.shape.font.parse(font) })
@@ -98,30 +98,24 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 							))}
 						</div>
 					</div>
-					<label>
-						Rotation {rotation}°
-						<Slider.Root
-							className="slider-root"
-							min={-6}
-							max={6}
-							step={0.5}
-							value={[rotation]}
-							onValueChange={([value]) => setRotation(value ?? 0)}
-							onValueCommit={([value]) => {
-								const target = ((value ?? 0) * Math.PI) / 180
-								editor.markHistoryStoppingPoint('rotate note')
-								editor.rotateShapesBy([shape.id], target - shape.rotation)
-							}}
-						>
-							<Slider.Track className="slider-track">
-								<Slider.Range className="slider-range" />
-							</Slider.Track>
-							<Slider.Thumb className="slider-thumb" aria-label="Rotation in degrees" />
-						</Slider.Root>
-					</label>
+					<SliderField
+						label="Rotation"
+						value={rotation}
+						format={(value) => `${value}°`}
+						min={-6}
+						max={6}
+						step={0.5}
+						onChange={setRotation}
+						onCommit={(value) => {
+							const target = (value * Math.PI) / 180
+							editor.markHistoryStoppingPoint('rotate note')
+							editor.rotateShapesBy([shape.id], target - shape.rotation)
+						}}
+					/>
 					<label>
 						Keep with verses
 						<select
+							className="field"
 							value={association?.passageId ?? ''}
 							onChange={(e) =>
 								update({ association: e.target.value ? { passageId: e.target.value } : undefined })
@@ -139,6 +133,7 @@ export function NoteOptions({ editor, shape }: { editor: Editor; shape: NoteShap
 						<label>
 							Verse
 							<select
+								className="field"
 								value={association?.verse ? verseKey(association.verse) : ''}
 								onChange={(e) => {
 									const verse = linked.props.text.verses.find(

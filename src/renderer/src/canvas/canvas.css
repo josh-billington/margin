@@ -111,7 +111,7 @@
 	background: var(--surface);
 	color: var(--ink);
 	border: 1px solid var(--hairline);
-	border-radius: var(--radius-lg);
+	border-radius: var(--radius-float);
 	padding: var(--space-6);
 	font: 400 var(--text-sm) / 1.4 var(--font-ui);
 	box-shadow: var(--shadow-popover), var(--edge-highlight);
@@ -128,8 +128,8 @@
 	display: grid;
 	gap: var(--space-4);
 }
-.margin-popover input,
-.margin-popover select {
+/* Bare text inputs in popovers read as fields; selects already share the global field look. */
+.margin-popover input:not([type='checkbox'], [type='radio']) {
 	color: var(--ink);
 	background: var(--chrome-bg);
 	border: 1px solid var(--border);
@@ -137,15 +137,8 @@
 	height: var(--control-h);
 	padding: 0 var(--space-4);
 }
-.margin-popover :is(input, select):focus-visible {
+.margin-popover input:focus-visible {
 	outline-offset: -1px;
-}
-.margin-popover input[type='range'] {
-	height: auto;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	accent-color: var(--accent);
 }
 /* Zero specificity: a base for bare buttons that never overrides a component class (swatches, .button-primary). */
 :where(.margin-popover button) {
@@ -155,7 +148,7 @@
 	background: transparent;
 	color: inherit;
 	text-align: left;
-	border-radius: var(--radius-xs);
+	border-radius: var(--radius-sm);
 	transition:
 		background-color var(--duration-fast) ease,
 		transform var(--duration-fast) var(--ease-out);
@@ -168,13 +161,18 @@
 		background: var(--hover);
 	}
 }
+/* A labelled control group (Size, Font, Colour): label above, control below, like a field. */
+.margin-popover > div[role='group']:not(.translation-control) {
+	display: grid;
+	gap: var(--space-4);
+}
 .margin-popover label:has(input[type='checkbox']) {
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
 }
 :where(.margin-popover button):disabled {
-	opacity: 0.4;
+	opacity: var(--disabled-opacity);
 }
 .margin-note {
 	white-space: pre-wrap;
@@ -282,7 +280,7 @@
 	background: var(--surface);
 	color: var(--ink);
 	border: 1px solid var(--hairline);
-	border-radius: var(--radius-md);
+	border-radius: var(--radius-float);
 	padding: var(--space-3);
 	font: 400 var(--text-sm) / 1.4 var(--font-ui);
 	box-shadow: var(--shadow-popover), var(--edge-highlight);
@@ -323,7 +321,7 @@
 	color: color-mix(in srgb, var(--on-accent) 80%, transparent);
 }
 .margin-menu-item[data-disabled] {
-	opacity: 0.4;
+	opacity: var(--disabled-opacity);
 }
 .margin-menu-item > svg {
 	color: var(--text-muted);
@@ -351,20 +349,21 @@
 	margin: var(--space-2) var(--space-3);
 	background: var(--border);
 }
+/* The same borderless 22px trigger as the verse block header; only its place differs. */
 .note-options-trigger {
 	position: absolute;
-	right: calc(-1 * (var(--control-h) + var(--space-2)));
+	right: calc(-1 * (var(--control-h-sm) + var(--space-2)));
 	top: 0;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	padding: 0;
-	border: 1px solid var(--border);
-	width: var(--control-h);
-	height: var(--control-h);
+	border: 0;
+	width: var(--control-h-sm);
+	height: var(--control-h-sm);
 	border-radius: var(--radius-sm);
-	background: var(--surface);
-	color: var(--text-scripture);
+	background: transparent;
+	color: var(--text-muted);
 	transition:
 		background-color var(--duration-fast) ease,
 		color var(--duration-fast) ease,
@@ -375,12 +374,16 @@
 }
 @media (hover: hover) and (pointer: fine) {
 	.note-options-trigger:hover {
+		background: var(--hover);
 		color: var(--ink);
 	}
 }
 .note-options-trigger[data-state='open'] {
+	background: var(--pressed);
 	color: var(--ink);
-	background: color-mix(in srgb, var(--surface), var(--ink) 8%);
+}
+.note-options-trigger:focus-visible {
+	outline-offset: 0;
 }
 .margin-popover .popover-section-label {
 	color: var(--text-muted);
@@ -418,19 +421,33 @@
 	border: 0;
 	background: var(--border);
 }
+/* Translation: the current one as a value, then the same full-width pop-up as Layout, then the action. */
 .margin-popover .translation-control {
+	display: grid;
+	gap: var(--space-4);
+}
+.translation-current {
 	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-2) var(--space-4);
+	gap: var(--space-4);
 }
-.margin-popover .translation-control > button {
-	width: auto;
+.translation-value {
+	color: var(--text-muted);
+}
+/* A text link aligned with the label column, not an inset padded button. */
+.margin-popover .translation-control > .translation-change {
+	justify-self: start;
+	height: auto;
+	padding: var(--space-1) 0;
 	color: var(--accent);
+	font-weight: 500;
 }
-.margin-popover .translation-control > :is(small, .translation-options) {
-	flex-basis: 100%;
+@media (hover: hover) and (pointer: fine) {
+	.margin-popover .translation-control > .translation-change:not(:disabled):hover {
+		background: none;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
 }
 /* The one action in the panel reads as a button, aligned with the controls above it. */
 .margin-popover .popover-action {
@@ -511,10 +528,11 @@
 	justify-content: space-between;
 	gap: var(--space-5);
 }
-/* Pointed Hebrew and polytonic Greek need a face with full mark support. */
+/* The system font everywhere: SF Hebrew and SF Greek ship with macOS and carry pointing and
+   polytonic marks. */
 .lookup-popover [lang='he'],
 .lookup-popover [lang='grc'] {
-	font-family: 'Times New Roman', 'SBL Hebrew', 'Arial Hebrew', serif;
+	font-family: var(--font-ui);
 }
 .lookup-headword > [lang] {
 	font-size: 28px;
@@ -665,6 +683,9 @@
 .lookup-manual select {
 	width: 100%;
 }
+.lookup-manual .popover-action {
+	margin-top: 0;
+}
 .lookup-popover button:focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
@@ -678,8 +699,7 @@
 /* Dictionary switcher: only shown when more than one dictionary covers the entry. */
 .lookup-dictionaries {
 	flex-shrink: 0;
-	/* Inset by the item padding so the first label lines up with the headword. */
-	padding: 0 var(--space-6) var(--space-4) calc(var(--space-6) - var(--space-4));
+	margin: 0 var(--space-6) var(--space-4);
 }
 /* A body that is still loading: one centred spinner, no text. */
 .lookup-loading {

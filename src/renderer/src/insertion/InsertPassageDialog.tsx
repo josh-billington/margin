@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
 import type { Editor } from 'tldraw'
-import { translationIdSchema, type TranslationId } from '@shared/bible/types'
+import type { TranslationId } from '@shared/bible/types'
 import { insertPassage } from '../canvas/tools/commands'
 import { Spinner } from '../canvas/lookup/Spinner'
-import { blockNoun, formatRanges, translationNames } from './labels'
+import { blockNoun, formatRanges, translationNames, translationOrder } from './labels'
 import { usePreview } from './usePreview'
 import type { PreviewState } from './usePreview'
 
@@ -170,8 +170,12 @@ export function InsertPassageDialog({
 								aria-label="Reference"
 								spellCheck={false}
 							/>
-							<div role="radiogroup" aria-label="Translation" className="insert-translations">
-								{translationIdSchema.options.map((id) => (
+							<div
+								role="radiogroup"
+								aria-label="Translation"
+								className="segmented insert-translations"
+							>
+								{translationOrder.map((id) => (
 									<button
 										key={id}
 										type="button"

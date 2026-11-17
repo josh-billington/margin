@@ -1,4 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
+import { useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
@@ -6,6 +7,7 @@ import { wordBindingMetadataSchema } from '@shared/study/types'
 import { translationLockReason } from '../../../insertion/lock'
 import { blockTitle } from '../../../insertion/labels'
 import { TranslationControl } from './TranslationControl'
+import { SliderField } from '../../../app/SliderField'
 import type { PassageShape } from '../types'
 
 export function PassageOptions({
@@ -26,6 +28,8 @@ export function PassageOptions({
 	/** The header menu trigger; the panel anchors to it so there is one control, not two. */
 	children: ReactNode
 }) {
+	// One undo step per drag: mark history when a drag starts, then update live as the text reflows.
+	const sizing = useRef(false)
 	const title = blockTitle(shape.props.text.ranges, shape.props.text.edition.translationId)
 	const lockReason = useValue(
 		'translation lock',
@@ -61,6 +65,7 @@ export function PassageOptions({
 					<label>
 						Layout
 						<select
+							className="field"
 							value={shape.props.layout}
 							onChange={(e) =>
 								update({ layout: e.target.value === 'flow' ? 'flow' : 'verse-per-line' })
@@ -84,19 +89,24 @@ export function PassageOptions({
 							checked={shape.props.showSuppliedWordItalics}
 							onChange={(e) => update({ showSuppliedWordItalics: e.target.checked })}
 						/>
-						Italicise words added in translation
+						Italicize words added in translation
 					</label>
-					<label>
-						Text size
-						<input
-							type="range"
-							min="0.6"
-							max="2"
-							step="0.1"
-							value={shape.props.fontScale}
-							onChange={(e) => update({ fontScale: Number(e.target.value) })}
-						/>
-					</label>
+					<SliderField
+						label="Text size"
+						value={shape.props.fontScale}
+						format={(scale) => `${Math.round(scale * 100)}%`}
+						min={0.6}
+						max={2}
+						step={0.1}
+						onChange={(fontScale) => {
+							if (!sizing.current) editor.markHistoryStoppingPoint('text size')
+							sizing.current = true
+							editor.updateShape({ id: shape.id, type: 'passage', props: { fontScale } })
+						}}
+						onCommit={() => {
+							sizing.current = false
+						}}
+					/>
 					<button className="popover-action" onClick={tagSelection}>
 						Tag selected words
 					</button>

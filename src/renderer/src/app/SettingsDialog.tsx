@@ -1,9 +1,16 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { useRef, useSyncExternalStore } from 'react'
 import { setPreferences, usePreferences } from '../lib/preferences'
 import { usePrefs } from '../lib/usePrefs'
-import { translationNames } from '../insertion/labels'
+import { translationNames, translationOrder, wholeBibleTranslations } from '../insertion/labels'
 import { translationIdSchema } from '@shared/bible/types'
 import { appearanceSchema } from '@shared/ipc/contract'
+
+const reducedTransparency = matchMedia('(prefers-reduced-transparency: reduce)')
+const subscribeTransparency = (listener: () => void) => {
+	reducedTransparency.addEventListener('change', listener)
+	return () => reducedTransparency.removeEventListener('change', listener)
+}
 
 export function SettingsDialog({
 	open,
@@ -15,11 +22,27 @@ export function SettingsDialog({
 	const { defaultNoteFont, displayNotesInPlainFont } = usePreferences()
 	const { prefs, update } = usePrefs()
 	const isMac = navigator.userAgent.includes('Mac')
+	const panel = useRef<HTMLDivElement>(null)
+	// With Reduce Transparency on, macOS shows solid chrome whatever this setting says.
+	const transparencyReduced = useSyncExternalStore(
+		subscribeTransparency,
+		() => reducedTransparency.matches,
+	)
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-panel" aria-describedby="settings-description">
+				<Dialog.Content
+					ref={panel}
+					tabIndex={-1}
+					className="dialog-panel settings-panel"
+					aria-describedby="settings-description"
+					// Focus the sheet, not the first pop-up, so nothing wears a ring the user didn't ask for.
+					onOpenAutoFocus={(event) => {
+						event.preventDefault()
+						panel.current?.focus()
+					}}
+				>
 					<Dialog.Title>Settings</Dialog.Title>
 					<Dialog.Description id="settings-description" className="sr-only">
 						Choose a translation, note font and appearance.
@@ -27,31 +50,31 @@ export function SettingsDialog({
 					<label className="select-row">
 						<span>Default translation</span>
 						<select
+							className="field"
 							value={prefs?.defaultTranslation ?? 'kjv'}
 							disabled={!prefs}
 							onChange={(e) =>
 								void update({ defaultTranslation: translationIdSchema.parse(e.target.value) })
 							}
 						>
-							{translationIdSchema.options
-								.filter((id) => id !== 'jps1917')
-								.map((id) => (
-									<option key={id} value={id}>
-										{translationNames[id].short}
-									</option>
-								))}
+							{wholeBibleTranslations.map((id) => (
+								<option key={id} value={id}>
+									{translationNames[id].short}
+								</option>
+							))}
 						</select>
 					</label>
 					<label className="select-row">
 						<span>Old Testament translation</span>
 						<select
+							className="field"
 							value={prefs?.oldTestamentTranslation ?? 'kjv'}
 							disabled={!prefs}
 							onChange={(e) =>
 								void update({ oldTestamentTranslation: translationIdSchema.parse(e.target.value) })
 							}
 						>
-							{translationIdSchema.options.map((id) => (
+							{translationOrder.map((id) => (
 								<option key={id} value={id}>
 									{translationNames[id].short}
 								</option>
@@ -61,6 +84,7 @@ export function SettingsDialog({
 					<label className="select-row">
 						<span>Appearance</span>
 						<select
+							className="field"
 							value={prefs?.appearance ?? 'system'}
 							disabled={!prefs}
 							onChange={(e) => void update({ appearance: appearanceSchema.parse(e.target.value) })}
@@ -94,11 +118,16 @@ export function SettingsDialog({
 						<label className="check-row">
 							<input
 								type="checkbox"
-								checked={prefs?.liquidGlass !== false}
-								disabled={!prefs}
+								checked={prefs?.liquidGlass !== false && !transparencyReduced}
+								disabled={!prefs || transparencyReduced}
 								onChange={(e) => void update({ liquidGlass: e.target.checked })}
 							/>
-							<span>Use Liquid Glass for the title bar and sidebar</span>
+							<span>
+								Translucent title bar and sidebar
+								{transparencyReduced && (
+									<small>Off while Reduce Transparency is on in System Settings.</small>
+								)}
+							</span>
 						</label>
 					)}
 					<div className="dialog-actions">

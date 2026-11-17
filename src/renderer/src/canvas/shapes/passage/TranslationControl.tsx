@@ -3,7 +3,12 @@ import { toast } from 'sonner'
 import type { Editor } from 'tldraw'
 import { translationIdSchema, type TranslationId } from '@shared/bible/types'
 import type { MappedPassage } from '@shared/ipc/contract'
-import { formatRange, formatRanges, translationNames } from '../../../insertion/labels'
+import {
+	formatRange,
+	formatRanges,
+	translationNames,
+	translationOrder,
+} from '../../../insertion/labels'
 import type { PassageShape } from '../types'
 
 /** Unannotated blocks change translation only through the versification map, never by guessing. */
@@ -50,8 +55,12 @@ export function TranslationControl({
 
 	return (
 		<div className="translation-control" role="group" aria-label="Translation">
-			<span>Current translation {translationNames[current].short}</span>
+			<div className="translation-current">
+				<span>Translation</span>
+				<span className="translation-value">{translationNames[current].short}</span>
+			</div>
 			<select
+				className="field"
 				aria-label="Change translation to"
 				value={target}
 				disabled={!!lockReason || busy}
@@ -60,7 +69,7 @@ export function TranslationControl({
 					setPending(null)
 				}}
 			>
-				{translationIdSchema.options
+				{translationOrder
 					.filter((id) => id !== current)
 					.map((id) => (
 						<option key={id} value={id}>
@@ -70,6 +79,7 @@ export function TranslationControl({
 			</select>
 			<button
 				type="button"
+				className="translation-change"
 				disabled={!!lockReason || busy}
 				aria-describedby={lockReason ? 'translation-lock' : undefined}
 				onClick={() => void change()}

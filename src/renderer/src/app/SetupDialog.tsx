@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import { translationIdSchema } from '@shared/bible/types'
-import { translationNames } from '../insertion/labels'
+import { translationNames, wholeBibleTranslations } from '../insertion/labels'
 import { usePrefs } from '../lib/usePrefs'
 import { chooseLibrary, completeSetup, useStudySession } from '../study/session'
 import { report } from '../study/state'
@@ -52,7 +52,7 @@ export function SetupDialog() {
 					<Dialog.Title>Set up Margin</Dialog.Title>
 					<div className="setup-group">
 						<div className="setup-row">
-							<span id="setup-folder-label">Study folder</span>
+							<span id="setup-folder-label">Library folder</span>
 							<div className="setup-folder-control">
 								<div className="setup-folder" title={path} aria-labelledby="setup-folder-label">
 									<FolderGlyph />
@@ -88,7 +88,7 @@ export function SetupDialog() {
 									)
 								}}
 							>
-								{(['bsb', 'web', 'asv', 'kjv'] as const).map((id) => (
+								{wholeBibleTranslations.map((id) => (
 									<option key={id} value={id}>
 										{translationNames[id].long}
 									</option>
