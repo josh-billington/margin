@@ -1,8 +1,7 @@
 import Database from 'better-sqlite3'
 import { z } from 'zod'
 import { books } from '../../shared/bible/books'
-import { mapPassage } from '../../shared/bible/versification'
-import type { VersificationMap } from '../../shared/bible/versification'
+import { expandRanges, mapPassage, verseKey } from '../../shared/bible/versification'
 import versificationJson from '../../../data/versification/edition-maps.v1.json'
 import { loadEditionMaps, editionPairMap } from '../../shared/bible/editionMaps'
 import type { EditionMaps } from '../../shared/bible/editionMaps'
@@ -163,17 +162,21 @@ export class BibleService {
 		}
 	}
 	private maps?: EditionMaps
-	private pairMaps = new Map<string, VersificationMap>()
 	mapPassage(from: TranslationId, ranges: readonly PassageRange[], to: TranslationId) {
 		const boundaries = (translation: TranslationId, book: BookId, chapter: number) =>
 			this.providers[translation].verseNumbers(book, chapter)
 		this.maps ??= loadEditionMaps(versificationJson, this.listTranslations())
-		const key = [from, to].sort().join(':')
-		let map = this.pairMaps.get(key)
-		if (!map) {
-			map = editionPairMap(this.maps, from, to, (id) => this.providers[id].allRefs(), boundaries)
-			this.pairMaps.set(key, map)
-		}
+		// Identity mappings only need the selected references; corpus coverage is verified in tests.
+		const selected = [
+			...new Map(
+				expandRanges(ranges, from, boundaries).map((ref) => [verseKey(ref), ref]),
+			).values(),
+		].sort((a, b) =>
+			a.book < b.book ? -1 : a.book > b.book ? 1 : a.chapter - b.chapter || a.verse - b.verse,
+		)
+		const map = editionPairMap(this.maps, from, to, (id) =>
+			selected.filter((ref) => boundaries(id, ref.book, ref.chapter).includes(ref.verse)),
+		)
 		return mapPassage(map, from, ranges, boundaries, to)
 	}
 	close() {

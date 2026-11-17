@@ -4,7 +4,12 @@ import { resolve } from 'node:path'
 import Database from 'better-sqlite3'
 import { z } from 'zod'
 import { BibleService } from '../../src/main/bible/provider'
-import { loadVersificationMap, mapPassage, verseKey } from '../../src/shared/bible/versification'
+import {
+	loadVersificationMap,
+	mapPassage,
+	verseKey,
+	verifyVersificationMap,
+} from '../../src/shared/bible/versification'
 import { loadEditionMaps, editionPairMap } from '../../src/shared/bible/editionMaps'
 import { chapterLastVerses } from '../../src/shared/bible/chapterVerses'
 import { tokensToText } from '../../src/shared/bible/tokenizer'
@@ -259,13 +264,10 @@ async function verify() {
 			bible.listTranslations(),
 		)
 		for (const pair of editionMaps.maps) {
-			const pairMap = editionPairMap(
-				editionMaps,
-				pair.source,
-				pair.target,
-				(id) => bible.providers[id].allRefs(),
-				boundaries,
+			const pairMap = editionPairMap(editionMaps, pair.source, pair.target, (id) =>
+				bible.providers[id].allRefs(),
 			)
+			verifyVersificationMap(pairMap, boundaries)
 			for (const id of [pair.source, pair.target]) {
 				const classified = [
 					...pairMap.entries.flatMap((entry) => entry[id]),
