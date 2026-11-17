@@ -3,6 +3,7 @@ import type { ElectronApplication, Page } from '@playwright/test'
 import { mkdir, readFile } from 'node:fs/promises'
 import {
 	closeApp,
+	createTagFromPopover,
 	firstStudyFile,
 	launch,
 	makeDirs,
@@ -197,6 +198,26 @@ test('selection shortcut and palette, phrase chooser, supplied words, manual IDs
 		await expect(lookup(page).getByText('G2212', { exact: true })).toBeVisible()
 		await lookup(page).getByRole('button', { name: 'Source words' }).click()
 		await expect(lookup(page).getByRole('button', { name: /seek ye.*G2212/ })).toBeVisible()
+		await page.keyboard.press('Escape')
+
+		// A tag is not a selection: right-clicking one word inside a tag looks up that word.
+		await addVerse(page, 'Amos 1:3')
+		const amos = (text: string) =>
+			page
+				.locator('[data-word][data-book="AMO"]')
+				.filter({ hasText: new RegExp(`^${text}`) })
+				.first()
+		await amos('transgressions').evaluate((from, to) => {
+			const selection = window.getSelection()
+			selection?.setBaseAndExtent(from, 0, to as Node, (to as Node).childNodes.length)
+			from.closest<HTMLElement>('.passage-text')?.focus()
+		}, await amos('Damascus').elementHandle())
+		await page.keyboard.press('Meta+Shift+H')
+		await createTagFromPopover(page, 'Judgement')
+		await page.evaluate(() => window.getSelection()?.removeAllRanges())
+		await amos('transgressions').click({ button: 'right' })
+		await expect(lookup(page).getByText('H6588', { exact: true })).toBeVisible()
+		await expect(lookup(page).getByRole('button', { name: /H1834/ })).toHaveCount(0)
 	} finally {
 		await closeApp(app)
 		await removeDirs(dirs)
