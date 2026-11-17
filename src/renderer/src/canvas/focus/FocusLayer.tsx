@@ -44,14 +44,13 @@ export function FocusLayer() {
 		'focus rules',
 		() => {
 			const prefix = `[data-focus-scope="${scope}"]`
-			const still =
-				'@media (prefers-reduced-motion: reduce){' +
-				`${prefix} .tl-shape,${prefix} .scripture-verse{transition:none}}`
+			// The dim is an opacity fade, which Reduce Motion keeps (only the camera goes immediate), so
+			// it is !important over the global rule that shortens every transition under that setting.
 			// Kept after focus ends so the undim fades too, a little faster than the dim.
 			if (!target || gone)
-				return `${prefix} .tl-shape,${prefix} .scripture-verse{transition:opacity 150ms ease-out}\n${still}`
+				return `${prefix} .tl-shape,${prefix} .scripture-verse{transition:opacity 150ms ease-out !important}`
 			const bright = computeBrightSet(dimModel(editor), target)
-			const out = [`${prefix} .tl-shape{transition:opacity 200ms ease-out}`]
+			const out = [`${prefix} .tl-shape{transition:opacity 200ms ease-out !important}`]
 			// Reading chrome: while only the focused block is selected (focus selects it), its selection
 			// outline and header menu step away from the text. They return on Esc, or as soon as the
 			// reader selects something else.
@@ -68,7 +67,6 @@ export function FocusLayer() {
 				out.push(
 					`${prefix} [data-shape-id="${target.passageId}"] .scripture-verse:not([data-verse-key="${verseKey(target.verse)}"]){opacity:${OTHER_VERSE}}`,
 				)
-			out.push(still)
 			return out.join('\n')
 		},
 		[editor, target, gone, scope],
