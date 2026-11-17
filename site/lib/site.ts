@@ -18,7 +18,7 @@ export const site = {
 	/** Where testers report problems. */
 	issuesUrl: 'https://github.com/josh-billington/margin/issues',
 	/** Shown under the download button. */
-	requirements: 'Free beta for Apple silicon Macs, macOS 12 or later.',
+	requirements: 'Free beta for Apple silicon Macs, macOS 13 or later.',
 	/** Contact address for privacy questions. */
 	contactEmail: null as string | null,
 }

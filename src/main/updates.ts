@@ -4,7 +4,7 @@ import { compareVersions, latestRelease } from './versions'
 let checking = false
 
 export async function checkForUpdates() {
-	if (checking) return
+	if (process.mas || checking) return
 	checking = true
 	try {
 		const response = await net.fetch(

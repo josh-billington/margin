@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile, readdir, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { AppDataStore } from './store'
@@ -56,3 +56,18 @@ it('skips setup when the library is supplied by the harness', async () => {
 	}
 	expect((await new AppDataStore(root).open()).setup).toBe('done')
 })
+
+it.each(['{broken', '{"preferences":{"appearance":"invalid"}}'])(
+	'keeps malformed preferences aside and opens with defaults: %s',
+	async (content) => {
+		await writeFile(join(root, 'prefs.json'), content)
+		const data = await new AppDataStore(root).open()
+		expect(data.setup).toBe('pending')
+		expect(data.preferences.defaultTranslation).toBe('kjv')
+		const backup = (await readdir(root)).find((name) => name.startsWith('prefs.json.bad-'))
+		expect(backup).toBeDefined()
+		expect(await readFile(join(root, backup!), 'utf8')).toBe(content)
+		await data.completeSetup()
+		expect((await new AppDataStore(root).open()).setup).toBe('done')
+	},
+)

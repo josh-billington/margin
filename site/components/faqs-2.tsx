@@ -13,7 +13,7 @@ const faqItems = [
 		id: 'release',
 		question: 'Can I download Margin now?',
 		answer:
-			'Yes. Margin is in a free public beta for Macs with Apple silicon (M1 or later) running macOS 12 or later. Expect some rough edges, and tell us when you find one.',
+			'Yes. Margin is in a free public beta for Macs with Apple silicon (M1 or later) running macOS 13 or later. Expect some rough edges, and tell us when you find one.',
 	},
 	{
 		id: 'verify',

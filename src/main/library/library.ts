@@ -6,6 +6,7 @@ import { watch, type FSWatcher } from 'chokidar'
 import { migrateStudy, type PersistedStudy } from '../../shared/study/migrations'
 import { atomicWrite } from './atomic'
 import { acquireLibraryLock, type LibraryLock, type LibraryLockOwner } from './lock'
+import { logFailure } from '../logger'
 import { UserFacingError, userMessage } from '../../shared/errors'
 
 import type { LibraryEvent } from '../../shared/ipc/contract'
@@ -52,27 +53,51 @@ export class Library {
 			throw error
 		}
 		if (watching) {
-			this.watcher = watch(join(this.path, 'studies'), {
-				ignoreInitial: true,
-				awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 30 },
-			})
-			this.watcher.on('all', (_event, path) => {
-				const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
-				if (id)
-					void this.externalChange(id).catch((error) =>
-						this.onEvent({
-							kind: 'error',
-							studyId: id,
-							message: userMessage(
-								error,
-								"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
-							),
-						}),
-					)
-			})
+			this.watcherClosed = false
+			this.startWatcher()
 		}
 		return this
 	}
+	private watcherClosed = false
+	private startWatcher(retry = true) {
+		this.watcher = watch(join(this.path, 'studies'), {
+			ignoreInitial: true,
+			awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 30 },
+		})
+		this.watcher.on('all', (_event, path) => {
+			const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
+			if (id)
+				void this.externalChange(id).catch((error) =>
+					this.onEvent({
+						kind: 'error',
+						studyId: id,
+						message: userMessage(
+							error,
+							"Margin couldn't reload this study. Save a copy or close the study and try opening it again.",
+						),
+					}),
+				)
+		})
+		this.watcher.on('error', (error) => {
+			logFailure('library-watcher-failed', error)
+			this.onEvent({
+				kind: 'error',
+				studyId: '',
+				message: retry
+					? "Margin couldn't watch the library for changes. Trying again. Your unsaved studies are still open."
+					: "Margin couldn't watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.",
+			})
+			if (!retry) return
+			retry = false
+			void this.watcher
+				?.close()
+				.then(() => {
+					if (!this.watcherClosed) this.startWatcher(false)
+				})
+				.catch((error) => logFailure('library-watcher-restart-failed', error))
+		})
+	}
+
 	private writable() {
 		if (this.readOnly)
 			throw new UserFacingError(
@@ -234,7 +259,17 @@ export class Library {
 				updatedAt: new Date().toISOString(),
 			}
 			await this.recoverThrottled(known.study)
-			await this.persist(saved)
+			await this.persist(saved, async () => {
+				const current = await this.read(study.id)
+				if (current.hash === disk.hash) return
+				await this.create(`${current.study.title} (conflict copy)`, current.study.document)
+				this.onEvent({
+					kind: 'error',
+					studyId: '',
+					message:
+						'This study changed outside Margin while saving. Margin kept that version in a conflict copy.',
+				})
+			})
 			this.committed.set(study.id, sequence)
 			if (this.staged.get(study.id)?.sequence === sequence) this.staged.delete(study.id)
 			await this.refreshIndex()
@@ -260,9 +295,9 @@ export class Library {
 		this.onEvent({ kind: 'list' })
 	}
 
-	private async persist(study: PersistedStudy) {
+	private async persist(study: PersistedStudy, beforeReplace?: () => Promise<void>) {
 		const content = JSON.stringify(study)
-		await this.write(this.file(study.id), content)
+		await this.write(this.file(study.id), content, beforeReplace)
 		this.known.set(study.id, { study, hash: hash(content) })
 		const baselines = this.baselines.get(study.id) ?? new Set<string>()
 		baselines.add(hash(content))
@@ -366,6 +401,9 @@ export class Library {
 	stagedIds() {
 		return this.staged.keys()
 	}
+	closeStudy(id: string) {
+		return this.enqueue(id, async () => this.abandon(id))
+	}
 	abandon(id: string) {
 		this.staged.delete(id)
 		this.known.delete(id)
@@ -376,7 +414,8 @@ export class Library {
 	 * so the next open offers it. Used when the user quits while the study folder can't be written.
 	 */
 	async preserveUnsaved() {
-		let preserved = 0
+		const preserved: string[] = []
+		const failed: { id: string; title: string }[] = []
 		for (const { study } of this.staged.values()) {
 			const base = this.known.get(study.id)?.study.revision ?? study.revision
 			try {
@@ -385,12 +424,12 @@ export class Library {
 					revision: base + 1,
 					updatedAt: new Date().toISOString(),
 				})
-				preserved++
+				preserved.push(study.id)
 			} catch {
-				/* Keep going: one unwritable recovery must not lose the others. */
+				failed.push({ id: study.id, title: study.title })
 			}
 		}
-		return preserved
+		return { preserved, failed }
 	}
 	async flush() {
 		while (this.queues.size) await Promise.all([...this.queues.values()])
@@ -400,6 +439,7 @@ export class Library {
 			)
 	}
 	async close() {
+		this.watcherClosed = true
 		try {
 			await this.watcher?.close()
 			await this.flush()

@@ -29,9 +29,9 @@ beforeEach(async () => {
 	library = await new Library(
 		join(root, 'library'),
 		join(root, 'private'),
-		async (path, content) => {
+		async (path, content, beforeReplace) => {
 			if (fail && path.endsWith('.study.json')) throw new Error('Disk full')
-			await atomicWrite(path, content)
+			await atomicWrite(path, content, beforeReplace)
 		},
 	).initialize(false)
 	library.onEvent = (event) => events.push(event)
@@ -82,7 +82,7 @@ describe('library persistence', () => {
 		const study = await library.create('Before', document)
 		fail = true
 		await expect(library.save({ ...study, title: 'Unsaved' }, 1)).rejects.toThrow('Disk full')
-		expect(await library.preserveUnsaved()).toBe(1)
+		expect(await library.preserveUnsaved()).toEqual({ preserved: [study.id], failed: [] })
 		await library.close().catch(() => {})
 		const reopened = await new Library(join(root, 'library'), join(root, 'private')).initialize(
 			false,
@@ -98,6 +98,35 @@ describe('library persistence', () => {
 		} finally {
 			await reopened.close()
 		}
+	})
+	it('reports failed recovery studies and keeps their edits staged for retry', async () => {
+		await library.close()
+		let failedId = ''
+		library = await new Library(
+			join(root, 'library'),
+			join(root, 'private'),
+			async (path, content, beforeReplace) => {
+				if (failedId && path.includes(`/recovery/${failedId}/`))
+					throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
+				await atomicWrite(path, content, beforeReplace)
+			},
+		).initialize(false)
+		const kept = await library.create('Kept', document)
+		const failed = await library.create('Needs retry', document)
+		failedId = failed.id
+		library.stage({ ...kept, title: 'Kept edits' }, 1)
+		library.stage({ ...failed, title: 'Unsaved edits' }, 1)
+		const result = await library.preserveUnsaved()
+		expect(result).toEqual({
+			preserved: [kept.id],
+			failed: [{ id: failed.id, title: 'Unsaved edits' }],
+		})
+		for (const id of result.preserved) library.abandon(id)
+		expect([...library.stagedIds()]).toEqual([failed.id])
+		expect(await library.latestRecovery(kept.id)).toMatchObject({ title: 'Kept edits' })
+		failedId = ''
+		expect(await library.preserveUnsaved()).toEqual({ preserved: [failed.id], failed: [] })
+		expect(await library.latestRecovery(failed.id)).toMatchObject({ title: 'Unsaved edits' })
 	})
 	it('does not advance timestamps/revision for identical document and title', async () => {
 		const study = await library.create('Amos', document)
@@ -137,13 +166,13 @@ describe('library persistence', () => {
 		library = await new Library(
 			join(root, 'library'),
 			join(root, 'private'),
-			async (path, content) => {
+			async (path, content, beforeReplace) => {
 				if (pause && path.endsWith('.study.json')) {
 					pause = false
 					started()
 					await gate
 				}
-				await atomicWrite(path, content)
+				await atomicWrite(path, content, beforeReplace)
 			},
 		).initialize(false)
 		const study = await library.create('Initial', document)
@@ -176,9 +205,9 @@ describe('library persistence', () => {
 		library = await new Library(
 			join(root, 'library'),
 			join(root, 'private'),
-			async (path, content) => {
+			async (path, content, beforeReplace) => {
 				if (indexFails && path.endsWith('library.json')) throw new Error('Index unavailable')
-				await atomicWrite(path, content)
+				await atomicWrite(path, content, beforeReplace)
 			},
 		).initialize(false)
 		const study = await library.create('Initial', document)
@@ -266,6 +295,64 @@ describe('library persistence', () => {
 		expect(saved.conflict).toBe(true)
 		expect(await disk(study.id)).toEqual(external)
 	})
+	it.each([false, true])(
+		'keeps both versions when disk changes during a save (conflict copy fails: %s)',
+		async (copyFails) => {
+			await library.close()
+			let replace: (() => Promise<void>) | undefined
+			library = await new Library(
+				join(root, 'library'),
+				join(root, 'private'),
+				async (path, content, beforeReplace) => {
+					if (copyFails && JSON.parse(content).title === 'External edit (conflict copy)')
+						throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
+					if (path.endsWith('.study.json') && replace) {
+						const action = replace
+						replace = undefined
+						await action()
+					}
+					await atomicWrite(path, content, beforeReplace)
+				},
+			).initialize(false)
+			const study = await library.create('Before', document)
+			const externalDocument = {
+				...document,
+				store: { 'page:page': { ...document.store['page:page'], name: 'External page' } },
+			}
+			replace = () =>
+				atomicWrite(
+					library.file(study.id),
+					JSON.stringify({
+						...study,
+						title: 'External edit',
+						document: externalDocument,
+						revision: 8,
+					}),
+				)
+			const saving = library.save({ ...study, title: 'Local edit' }, 1)
+			if (copyFails) {
+				await expect(saving).rejects.toMatchObject({ code: 'ENOSPC' })
+				expect(await disk(study.id)).toMatchObject({
+					title: 'External edit',
+					document: externalDocument,
+				})
+				expect([...library.stagedIds()]).toEqual([study.id])
+				expect(await library.preserveUnsaved()).toEqual({ preserved: [study.id], failed: [] })
+				expect(await library.latestRecovery(study.id)).toMatchObject({ title: 'Local edit' })
+				return
+			}
+			const result = await saving
+			expect(await disk(study.id)).toMatchObject({ title: 'Local edit' })
+			const copies = (await library.list()).filter(({ id }) => id !== study.id)
+			expect(copies).toHaveLength(1)
+			expect(await disk(copies[0]!.id)).toMatchObject({
+				title: 'External edit (conflict copy)',
+				document: externalDocument,
+			})
+			expect(result.study.title).toBe('Local edit')
+			await expect(library.flush()).resolves.toBeUndefined()
+		},
+	)
 	it('detects a stale renderer baseline even after the watcher has accepted the external revision', async () => {
 		const study = await library.create('Before', document)
 		await atomicWrite(library.file(study.id), JSON.stringify({ ...study, title: 'External' }))

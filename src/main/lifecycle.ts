@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, type BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { registerIpcHandlers } from './ipc/register'
 import { registerPersistence } from './ipc/persistence'
@@ -20,6 +20,12 @@ function openWindow() {
 		},
 		{ liquidGlass },
 	)
+}
+
+function showWindow() {
+	if (!mainWindow) openWindow()
+	if (mainWindow?.isMinimized()) mainWindow.restore()
+	mainWindow?.focus()
 }
 
 /** Single-instance lock, startup order, and macOS activate / quit behavior. */
@@ -50,13 +56,12 @@ export function runApp() {
 		window.on('unresponsive', () => logEvent('renderer-unresponsive'))
 	})
 	app.on('second-instance', () => {
-		if (mainWindow?.isMinimized()) mainWindow.restore()
-		mainWindow?.focus()
+		void startup.then(showWindow)
 	})
 	app.on('window-all-closed', () => {
 		if (process.platform !== 'darwin') app.quit()
 	})
-	void app.whenReady().then(async () => {
+	const startup = app.whenReady().then(async () => {
 		app.setAboutPanelOptions({
 			applicationName: 'Margin',
 			applicationVersion: app.getVersion(),
@@ -74,8 +79,6 @@ export function runApp() {
 		applyAppearance(data.preferences.appearance)
 		installAppMenu(getWindow, data.preferences.appearance)
 		openWindow()
-		app.on('activate', () => {
-			if (BrowserWindow.getAllWindows().length === 0) openWindow()
-		})
+		app.on('activate', showWindow)
 	})
 }

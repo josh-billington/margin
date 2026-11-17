@@ -85,6 +85,7 @@ const librarySchema = z.object({
 	path: z.string().min(1),
 	folder: libraryFolderSchema,
 	setup: z.enum(['pending', 'done']),
+	error: z.string().nullable().optional(),
 	readOnly: z.boolean(),
 	/** Set only when another computer holds the library lock. */
 	lock: lockNoticeSchema.nullable(),

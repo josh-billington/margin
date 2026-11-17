@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { access } from 'node:fs/promises'
+import { access, writeFile, rm, mkdir, readdir, readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { closeApp, launch, makeDirs, removeDirs, saved, studyFiles } from './harness'
 
 test('first launch sets the translation and never shows setup again', async () => {
@@ -82,3 +83,45 @@ for (const key of ['Enter', 'Escape']) {
 		}
 	})
 }
+
+test('an unavailable library still opens a window and can be retried from setup', async () => {
+	const dirs = await makeDirs()
+	let running: Awaited<ReturnType<typeof launch>> | undefined
+	try {
+		await writeFile(dirs.library, 'unavailable')
+		running = await launch(dirs)
+		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
+		await expect(setup).toBeVisible()
+		await expect(
+			running.page.getByText("Margin couldn't open your library.", { exact: false }),
+		).toBeVisible()
+		await rm(dirs.library)
+		await setup.getByRole('button', { name: 'Start studying' }).click()
+		await expect(setup).toBeHidden()
+		await expect.poll(async () => (await studyFiles(dirs)).length).toBe(1)
+	} finally {
+		if (running) await closeApp(running.app)
+		await removeDirs(dirs)
+	}
+})
+
+test('malformed preferences are kept aside while setup remains usable', async () => {
+	const dirs = await makeDirs()
+	let running: Awaited<ReturnType<typeof launch>> | undefined
+	try {
+		await mkdir(dirs.userData, { recursive: true })
+		await writeFile(join(dirs.userData, 'prefs.json'), '{broken')
+		running = await launch(dirs, {}, { firstRun: true })
+		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
+		await expect(setup).toBeVisible()
+		const backup = (await readdir(dirs.userData)).find((name) => name.startsWith('prefs.json.bad-'))
+		expect(backup).toBeDefined()
+		expect(await readFile(join(dirs.userData, backup!), 'utf8')).toBe('{broken')
+		await setup.getByRole('button', { name: 'Start studying' }).click()
+		await expect(setup).toBeHidden()
+		await expect.poll(async () => (await studyFiles(dirs)).length).toBe(1)
+	} finally {
+		if (running) await closeApp(running.app)
+		await removeDirs(dirs)
+	}
+})

@@ -12,7 +12,7 @@ Margin works offline and saves each study as a plain JSON file on your Mac.
 - Saves as you go, with recovery copies, and keeps your edits in a conflict copy
   if a study changes outside Margin
 
-Public beta for Apple silicon Macs, running macOS 12 Monterey or later.
+Public beta for Apple silicon Macs, running macOS 13 Ventura or later.
 
 Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
 ([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).

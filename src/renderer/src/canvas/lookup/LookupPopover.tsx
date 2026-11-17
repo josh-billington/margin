@@ -1,3 +1,4 @@
+import { ErrorBoundary } from '../../app/ErrorBoundary'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
@@ -28,6 +29,13 @@ function wordElement(editor: Editor, passageId: string, target: WordTarget) {
 }
 
 export function LookupOverlay() {
+	return (
+		<ErrorBoundary message="Margin couldn't display the word lookup." className="lookup-error">
+			<LookupContent />
+		</ErrorBoundary>
+	)
+}
+function LookupContent() {
 	const editor = useEditor()
 	const request = useLookup((state) => (state.editor === editor ? state.request : null))
 	const shape = useValue(

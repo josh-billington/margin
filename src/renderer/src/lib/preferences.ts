@@ -13,8 +13,9 @@ export async function loadPreferences() {
 	try {
 		const result = await window.margin.prefs.get()
 		if (result.ok) usePreferences.setState(result.data)
+		else toast.error(result.error.message)
 	} catch {
-		// Keep defaults; preferences are non-critical.
+		toast.error("Margin couldn't load your settings. Try again.")
 	}
 }
 export async function setPreferences(change: Partial<Notes>) {

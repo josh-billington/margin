@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { useEffect } from 'react'
 import {
 	initializeStudies,
@@ -20,7 +21,12 @@ export function useAppBootstrap() {
 		// Remember the study on screen so the next launch reopens it.
 		const offLastStudy = useStudySession.subscribe((state, previous) => {
 			if (state.currentId && state.currentId !== previous.currentId)
-				void window.margin.prefs.set({ lastOpenedStudyId: state.currentId })
+				void window.margin.prefs
+					.set({ lastOpenedStudyId: state.currentId })
+					.then((result) => {
+						if (!result.ok) toast.error(result.error.message)
+					})
+					.catch(() => toast.error("Margin couldn't save your settings. Try again."))
 		})
 		// The View menu says Show or Hide Sidebar to match.
 		const offSidebar = useUiStore.subscribe((state, previous) => {
