@@ -1,4 +1,14 @@
 .passage-block {
+	/* tldraw rewrites --tl-zoom on its container every camera frame, and derives --tl-scale and the
+	   text-outline variables from it. They inherit, so each zoom step restyled every word span (13k
+	   elements on a heavy study, ~22ms a frame). Passage text uses none of them: pin them here so a
+	   zoom change stops at this block's root instead of walking the word DOM. */
+	--tl-zoom: 1;
+	--tl-scale: 1;
+	--tl-text-outline-a: 0px;
+	--tl-text-outline-b: 0px;
+	--tl-text-outline: none;
+	--tl-text-outline-reference: none;
 	color: var(--text-scripture);
 	/* Inner gutter so the title and scripture never touch the selection outline. */
 	padding: var(--space-5) 18px var(--space-6);
