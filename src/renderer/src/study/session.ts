@@ -163,26 +163,15 @@ async function createStudyNow() {
 	try {
 		const document = snapshot(editor)
 		// New studies share the registered SDK schema, never another study's shapes.
+		// The snapshot shares records with the open study's store: build new page records, never edit them.
 		document.store = Object.fromEntries(
-			Object.entries(document.store).filter(
-				([, record]) =>
-					record &&
-					typeof record === 'object' &&
-					!Array.isArray(record) &&
-					(record.typeName === 'document' ||
-						record.typeName === 'page' ||
-						record.typeName === 'user'),
-			),
+			Object.entries(document.store).flatMap(([key, record]) => {
+				if (!record || typeof record !== 'object' || Array.isArray(record)) return []
+				if (record.typeName === 'page')
+					return [[key, { ...record, meta: { schemaVersion: 1, tags: [] } }]]
+				return record.typeName === 'document' || record.typeName === 'user' ? [[key, record]] : []
+			}),
 		)
-		for (const record of Object.values(document.store)) {
-			if (
-				record &&
-				typeof record === 'object' &&
-				!Array.isArray(record) &&
-				record.typeName === 'page'
-			)
-				record.meta = { schemaVersion: 1, tags: [] }
-		}
 		install(unwrap(await window.margin.library.createStudy({ title: 'Untitled study', document })))
 		await refreshStudies()
 	} catch (error) {

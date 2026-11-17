@@ -5,11 +5,9 @@ import type { PersistedStudy } from '@shared/study/migrations'
 import { Autosave } from './autosave'
 import { limitStudyHistory } from './history'
 import { useStudySession, setBootstrap, editors, autosaves, unwrap, report, update } from './state'
-// The session keeps this document after the editor moves on, and the store's live records can
-// change in place (a tagged study reopened without its tags), so take an owned copy. Transport
-// validation runs in the main IPC handler.
+// The SDK owns these records; transport validation runs in the main IPC handler.
 export const snapshot = (editor: Editor) =>
-	structuredClone(getSnapshot(editor.store).document) as unknown as PersistedStudy['document']
+	getSnapshot(editor.store).document as unknown as PersistedStudy['document']
 export function attachEditor(
 	id: string | null,
 	editor: Editor,
