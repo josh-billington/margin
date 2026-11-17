@@ -56,6 +56,24 @@ describe('save indicator', () => {
 		])
 	})
 
+	it('turns an error into progress when Try again marks the study unsaved', () => {
+		expect(
+			replay(
+				[
+					[0, 'error'],
+					[1000, 'unsaved'],
+					[1001, 'saving'],
+					[1100, 'saved'],
+				],
+				3000,
+			),
+		).toEqual([
+			[0, 'error'],
+			[1000, 'saving'],
+			[1100, 'saved'],
+		])
+	})
+
 	it('shows errors at once and confirms the retry that fixes them', () => {
 		expect(
 			replay(

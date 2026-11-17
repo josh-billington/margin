@@ -52,8 +52,9 @@ export function nextShown(
 		case 'unsaved':
 			if (now === 'unsaved') return { show: 'unsaved' }
 			return {
-				// Autosave queued behind a slow save is still saving, as far as the reader is concerned.
-				show: now === 'saving' ? 'saving' : 'quiet',
+				// Autosave queued behind a slow save, or a retry after an error, is saving as far as the
+				// reader is concerned: the error steps aside for progress, not for silence.
+				show: now === 'saving' || now === 'error' ? 'saving' : 'quiet',
 				later: { show: 'unsaved', afterMs: SAVE_TIMING.unsavedAfterMs },
 			}
 	}
