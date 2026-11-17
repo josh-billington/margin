@@ -82,7 +82,7 @@ export async function flushStudies() {
 		for (const [id, session] of Object.entries(useStudySession.getState().sessions)) {
 			if (session.state === 'error')
 				throw new UserFacingError(
-					"Margin couldn't save your changes. Try again or save a copy before closing or switching studies.",
+					'Margin couldn’t save your changes. Try again or save a copy before closing or switching studies.',
 				)
 			await autosaves.get(id)?.flush()
 			if (useStudySession.getState().sessions[id]?.state === 'unsaved') await save(id)
@@ -489,7 +489,7 @@ export function handleLibraryEvent(event: LibraryEvent) {
 				autosaves.get(event.studyId)?.cancel()
 				update(event.studyId, { state: 'error', blocked: true })
 				toast.warning(
-					"Margin can no longer find this study's file. Save a copy or close the study.",
+					'Margin can no longer find this study’s file. Save a copy or close the study.',
 					{
 						action: {
 							label: 'Save a copy',

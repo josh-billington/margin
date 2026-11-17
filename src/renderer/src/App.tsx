@@ -11,7 +11,7 @@ export function App() {
 	return (
 		<AppProviders>
 			<AppShell />
-			<ErrorBoundary message="Margin couldn't display the dialog." className="dialog-error">
+			<ErrorBoundary message="Margin couldn’t display the dialog." className="dialog-error">
 				<DialogsHost />
 			</ErrorBoundary>
 		</AppProviders>

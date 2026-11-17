@@ -15,7 +15,7 @@ export async function loadPreferences() {
 		if (result.ok) usePreferences.setState(result.data)
 		else toast.error(result.error.message)
 	} catch {
-		toast.error("Margin couldn't load your settings. Try again.")
+		toast.error('Margin couldn’t load your settings. Try again.')
 	}
 }
 export async function setPreferences(change: Partial<Notes>) {

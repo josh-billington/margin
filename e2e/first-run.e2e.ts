@@ -93,7 +93,7 @@ test('an unavailable library still opens a window and can be retried from setup'
 		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
 		await expect(setup).toBeVisible()
 		await expect(
-			running.page.getByText("Margin couldn't open your library.", { exact: false }),
+			running.page.getByText('Margin couldn’t open your library.', { exact: false }),
 		).toBeVisible()
 		await rm(dirs.library)
 		await setup.getByRole('button', { name: 'Start studying' }).click()

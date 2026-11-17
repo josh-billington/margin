@@ -8,7 +8,7 @@ describe('user-facing error messages', () => {
 		expect(userMessage(new UserFacingError(message), 'Try again.')).toBe(message)
 	})
 	it('does not show file paths, validation details or raw rejected values', () => {
-		const fallback = "Margin couldn't open this study. Restore a backup or open another study."
+		const fallback = 'Margin couldn’t open this study. Restore a backup or open another study.'
 		for (const error of [
 			new Error('ENOENT /private/study.json'),
 			new SyntaxError('Invalid JSON'),

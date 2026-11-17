@@ -188,7 +188,7 @@ describe('library persistence', () => {
 	it('rejects flush when staged edits have not been saved', async () => {
 		const study = await library.create('Initial', document)
 		library.stage({ ...study, title: 'Not yet saved' }, 1)
-		await expect(library.flush()).rejects.toThrow("Margin couldn't save your changes")
+		await expect(library.flush()).rejects.toThrow('Margin couldn’t save your changes')
 		await library.save({ ...study, title: 'Not yet saved' }, 1)
 		await expect(library.flush()).resolves.toBeUndefined()
 	})
@@ -269,7 +269,7 @@ describe('library persistence', () => {
 		await library.externalChange(study.id)
 		expect(events).toContainEqual({ kind: 'deleted', studyId: study.id })
 		await expect(library.save({ ...study, title: 'Local' }, 1)).rejects.toThrow(
-			"Margin can no longer find this study's file",
+			'Margin can no longer find this study’s file',
 		)
 		await expect(readFile(library.file(study.id))).rejects.toThrow()
 	})

@@ -24,7 +24,7 @@ it('retries preferences on a later mount after a rejected load', async () => {
 	}
 	try {
 		await act(async () => root.render(createElement(Preferences, { key: 'first' })))
-		expect(toast.error).toHaveBeenCalledWith("Margin couldn't load your settings. Try again.")
+		expect(toast.error).toHaveBeenCalledWith('Margin couldn’t load your settings. Try again.')
 		await act(async () => root.render(createElement(Preferences, { key: 'retry' })))
 		expect(get).toHaveBeenCalledTimes(2)
 		expect(container.textContent).toBe('plain')
@@ -38,7 +38,7 @@ it('reports a rejected preference write without rejecting the action', async () 
 		margin: { prefs: { set: vi.fn().mockRejectedValue(new Error('Disconnected')) } },
 	})
 	await expect(updatePrefs({ defaultNoteFont: 'plain' })).resolves.toBe(false)
-	expect(toast.error).toHaveBeenCalledWith("Margin couldn't save your settings. Try again.")
+	expect(toast.error).toHaveBeenCalledWith('Margin couldn’t save your settings. Try again.')
 })
 it('reports a rejected canvas preference load and permits another load', async () => {
 	const { loadPreferences, usePreferences } = await import('./preferences')
@@ -48,7 +48,7 @@ it('reports a rejected canvas preference load and permits another load', async (
 		.mockResolvedValueOnce({ ok: true, data: { defaultNoteFont: 'plain' } })
 	vi.stubGlobal('window', { margin: { prefs: { get } } })
 	await loadPreferences()
-	expect(toast.error).toHaveBeenCalledWith("Margin couldn't load your settings. Try again.")
+	expect(toast.error).toHaveBeenCalledWith('Margin couldn’t load your settings. Try again.')
 	await loadPreferences()
 	expect(usePreferences.getState().defaultNoteFont).toBe('plain')
 })

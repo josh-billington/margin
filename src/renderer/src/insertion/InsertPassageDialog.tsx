@@ -163,7 +163,7 @@ export function InsertPassageDialog({
 			insertPassage(editor, result.data)
 			changeOpen(false)
 		} catch {
-			if (request === generation.current) toast.error("Margin couldn't load the verses. Try again.")
+			if (request === generation.current) toast.error('Margin couldn’t load the verses. Try again.')
 		} finally {
 			if (request === generation.current) {
 				inFlight.current = false

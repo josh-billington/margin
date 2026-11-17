@@ -26,18 +26,18 @@ export function describeFolder(path: string, home = homedir()): LibraryFolder {
 }
 
 const NO_PERMISSION =
-	"Margin doesn't have permission to save in the library folder. Check the folder's permissions in Finder, or choose another library folder."
+	'Margin doesn’t have permission to save in the library folder. Check the folder’s permissions in Finder, or choose another library folder.'
 const FILE_ERRORS: Record<string, string> = {
 	EACCES: NO_PERMISSION,
 	EPERM: NO_PERMISSION,
 	EROFS:
-		"Margin can't save to the disk that holds the library folder. Choose another library folder.",
-	ENOSPC: "Margin couldn't save because the disk is full. Free up some space and try again.",
+		'Margin can’t save to the disk that holds the library folder. Choose another library folder.',
+	ENOSPC: 'Margin couldn’t save because the disk is full. Free up some space and try again.',
 	ENOENT:
-		"Margin can't find the library folder. If you moved it or it's on a disconnected drive, put it back and try again.",
+		'Margin can’t find the library folder. If you moved it or it’s on a disconnected drive, put it back and try again.',
 }
 const SAVE_FALLBACK =
-	"Margin couldn't save your changes. Try again or save a copy before closing or switching studies."
+	'Margin couldn’t save your changes. Try again or save a copy before closing or switching studies.'
 /** File-system failures in words a reader can act on; other errors only show if written for the user. */
 export function errorMessage(error: unknown, fallback = SAVE_FALLBACK): string {
 	const code = error instanceof Error && 'code' in error ? String(error.code) : undefined
@@ -58,7 +58,7 @@ export async function registerPersistence(
 		logFailure('prefs-open-failed', error)
 		startupError = errorMessage(
 			error,
-			"Margin couldn't load your settings. Try again or choose another library folder.",
+			'Margin couldn’t load your settings. Try again or choose another library folder.',
 		)
 		prefsFailed = true
 	}
@@ -78,7 +78,7 @@ export async function registerPersistence(
 			logFailure('library-initialize-failed', error)
 			startupError = errorMessage(
 				error,
-				"Margin couldn't open your library. Try again or choose another library folder.",
+				'Margin couldn’t open your library. Try again or choose another library folder.',
 			)
 		}
 	}
@@ -101,7 +101,7 @@ export async function registerPersistence(
 	function handle<I extends z.ZodType, O extends z.ZodType>(
 		operation: { channel: string; request: I; response: O },
 		action: (request: z.output<I>) => Promise<unknown>,
-		failureMessage = "Margin couldn't update the library. Check that you can open the library folder and try again.",
+		failureMessage = 'Margin couldn’t update the library. Check that you can open the library folder and try again.',
 	) {
 		ipcMain.removeHandler(operation.channel)
 		ipcMain.handle(operation.channel, async (event, payload: unknown) => {
@@ -124,7 +124,7 @@ export async function registerPersistence(
 					ok: false,
 					error: {
 						code: 'INVALID_REQUEST',
-						message: "Margin couldn't read this request. Try again.",
+						message: 'Margin couldn’t read this request. Try again.',
 					},
 				})
 			try {
@@ -194,13 +194,13 @@ export async function registerPersistence(
 	handle(
 		ipcContract.library.openStudy,
 		({ studyId }) => library.open(studyId),
-		"Margin couldn't open this study. Restore a backup or open another study.",
+		'Margin couldn’t open this study. Restore a backup or open another study.',
 	)
 	handle(ipcContract.library.createStudy, ({ title, document }) => library.create(title, document))
 	handle(
 		ipcContract.library.saveStudy,
 		({ study, sequence, base }) => library.save(migrateStudy(study), sequence, base),
-		"Margin couldn't save your changes. Check that you can save files in the library folder, then try again or save a copy.",
+		'Margin couldn’t save your changes. Check that you can save files in the library folder, then try again or save a copy.',
 	)
 	handle(ipcContract.library.closeStudy, async ({ studyId }) => {
 		await library.closeStudy(studyId)
@@ -221,7 +221,7 @@ export async function registerPersistence(
 	handle(
 		ipcContract.prefs.get,
 		async () => data.preferences,
-		"Margin couldn't load your settings. Restart Margin and try again.",
+		'Margin couldn’t load your settings. Restart Margin and try again.',
 	)
 	handle(
 		ipcContract.prefs.set,
@@ -232,12 +232,12 @@ export async function registerPersistence(
 			if ('appearance' in patch) onAppearanceChange(data.preferences)
 			return data.preferences
 		},
-		"Margin couldn't save your settings. Try again.",
+		'Margin couldn’t save your settings. Try again.',
 	)
 	handle(
 		ipcContract.camera.get,
 		async ({ studyId }) => data.camera(studyId),
-		"Margin couldn't restore the canvas view. Close the study and open it again.",
+		'Margin couldn’t restore the canvas view. Close the study and open it again.',
 	)
 	handle(
 		ipcContract.camera.set,
@@ -247,7 +247,7 @@ export async function registerPersistence(
 			})
 			return null
 		},
-		"Margin couldn't save the canvas view. Try again.",
+		'Margin couldn’t save the canvas view. Try again.',
 	)
 
 	let closing = false
@@ -312,7 +312,7 @@ export async function registerPersistence(
 				const cause = errorMessage(error)
 				const options = {
 					type: 'warning' as const,
-					message: "Margin couldn't save your latest changes",
+					message: 'Margin couldn’t save your latest changes',
 					detail: [
 						cause === SAVE_FALLBACK ? null : cause,
 						`Keep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, Margin keeps your changes in a recovery copy and offers it the next time you open the study.`,
@@ -332,7 +332,7 @@ export async function registerPersistence(
 				if (failed.length) {
 					const warning = {
 						type: 'warning' as const,
-						message: "Margin couldn't keep a recovery copy of these studies",
+						message: 'Margin couldn’t keep a recovery copy of these studies',
 						detail: `${failed.map(({ title }) => title).join('\n')}\n\nKeep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, you will lose the unsaved changes in these studies.`,
 						buttons: ['Keep open', quit ? 'Quit and lose changes' : 'Close and lose changes'],
 						defaultId: 0,

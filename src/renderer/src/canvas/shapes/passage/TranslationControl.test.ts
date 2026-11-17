@@ -111,7 +111,7 @@ it.each(['mapPassage', 'getPassage'])(
 		const click = nodes(tree).find((node) => node.type === 'button')!.props.onClick
 		click()
 		await settle()
-		expect(toast.error).toHaveBeenCalledWith("Margin couldn't change the translation. Try again.")
+		expect(toast.error).toHaveBeenCalledWith('Margin couldn’t change the translation. Try again.')
 		click()
 		await settle()
 		expect(editor.updateShape).toHaveBeenCalledTimes(1)

@@ -26,7 +26,7 @@ export function useAppBootstrap() {
 					.then((result) => {
 						if (!result.ok) toast.error(result.error.message)
 					})
-					.catch(() => toast.error("Margin couldn't save your settings. Try again."))
+					.catch(() => toast.error('Margin couldn’t save your settings. Try again.'))
 		})
 		// The View menu says Show or Hide Sidebar to match.
 		const offSidebar = useUiStore.subscribe((state, previous) => {

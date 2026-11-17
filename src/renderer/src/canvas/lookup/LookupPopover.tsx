@@ -30,7 +30,7 @@ function wordElement(editor: Editor, passageId: string, target: WordTarget) {
 
 export function LookupOverlay() {
 	return (
-		<ErrorBoundary message="Margin couldn't display the word lookup." className="lookup-error">
+		<ErrorBoundary message="Margin couldn’t display the word lookup." className="lookup-error">
 			<LookupContent />
 		</ErrorBoundary>
 	)
