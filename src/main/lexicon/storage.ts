@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto'
 import { deflateRawSync, inflateRawSync } from 'node:zlib'
 import { z } from 'zod'
-import type { Token, VerseRef } from '../bible/types'
-import { strongIdSchema } from './types'
-import type { SourceSpan } from './types'
+import type { Token, VerseRef } from '../../shared/bible/types'
+import { strongIdSchema } from '../../shared/lexicon/types'
+import type { SourceSpan } from '../../shared/lexicon/types'
 
 export const LEXICON_STORAGE_VERSION = 2
 

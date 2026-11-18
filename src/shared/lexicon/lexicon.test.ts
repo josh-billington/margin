@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { strongIdSchema } from './types'
 import { annotatedTokens, assertTokenEquality } from '../../../scripts/import-lexicon/spans'
 import { parseDictionary } from '../../../scripts/import-lexicon/dictionaries'
-import { encodeSpans, decodeSpans, tokenFingerprint } from './storage'
+import { encodeSpans, decodeSpans, tokenFingerprint } from '../../main/lexicon/storage'
 import { tokenize } from '../bible/tokenizer'
 
 const ref = { book: 'GEN', chapter: 1, verse: 1 } as const

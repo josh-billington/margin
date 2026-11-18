@@ -1,37 +1,18 @@
+import type { BrowserWindow } from 'electron'
 import { ipcContract } from '../../shared/ipc/contract'
 import { getBibleService } from '../bible/paths'
+import { handleOperation } from './boundary'
 
-/** The generic registration layer validates the sender and both schema boundaries. */
-export async function handleBibleRequest(channel: string, payload: unknown): Promise<unknown> {
-	if (!Object.values(ipcContract.bible).some((operation) => operation.channel === channel))
-		return undefined
+const { bible } = ipcContract
+
+async function respond(
+	operation: { response: { parse: (value: unknown) => unknown } },
+	work: () => unknown,
+) {
 	try {
-		const bible = getBibleService()
-		switch (channel) {
-			case ipcContract.bible.resolveReference.channel: {
-				const request = ipcContract.bible.resolveReference.request.parse(payload)
-				return {
-					ok: true,
-					data: bible.resolveReference(
-						request.reference,
-						request.translationId,
-						request.oldTestamentTranslationId,
-					),
-				}
-			}
-			case ipcContract.bible.getPassage.channel: {
-				const request = ipcContract.bible.getPassage.request.parse(payload)
-				return { ok: true, data: await bible.getPassage(request.translationId, request.ranges) }
-			}
-			case ipcContract.bible.mapPassage.channel: {
-				const request = ipcContract.bible.mapPassage.request.parse(payload)
-				return { ok: true, data: bible.mapPassage(request.from, request.ranges, request.to) }
-			}
-			case ipcContract.bible.listTranslations.channel:
-				return { ok: true, data: bible.listTranslations() }
-		}
+		return operation.response.parse({ ok: true, data: await work() })
 	} catch (error) {
-		return {
+		return operation.response.parse({
 			ok: false,
 			error: {
 				code: error instanceof RangeError ? 'INVALID_REQUEST' : 'INTERNAL_ERROR',
@@ -40,6 +21,31 @@ export async function handleBibleRequest(channel: string, payload: unknown): Pro
 						? error.message
 						: 'Margin couldn’t load the Bible text. Reinstall Margin and try again.',
 			},
-		}
+		})
 	}
+}
+
+export function registerBibleHandlers(getWindow: () => BrowserWindow | null) {
+	handleOperation(getWindow, bible.resolveReference, async (request) =>
+		respond(bible.resolveReference, () =>
+			getBibleService().resolveReference(
+				request.reference,
+				request.translationId,
+				request.oldTestamentTranslationId,
+			),
+		),
+	)
+	handleOperation(getWindow, bible.getPassage, async (request) =>
+		respond(bible.getPassage, () =>
+			getBibleService().getPassage(request.translationId, request.ranges),
+		),
+	)
+	handleOperation(getWindow, bible.mapPassage, async (request) =>
+		respond(bible.mapPassage, () =>
+			getBibleService().mapPassage(request.from, request.ranges, request.to),
+		),
+	)
+	handleOperation(getWindow, bible.listTranslations, async () =>
+		respond(bible.listTranslations, () => getBibleService().listTranslations()),
+	)
 }

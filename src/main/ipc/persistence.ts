@@ -9,6 +9,7 @@ import { validateDocument } from '../../shared/study/validation'
 import { ipcContract } from '../../shared/ipc/contract'
 import type { LibraryFolder, Preferences } from '../../shared/ipc/contract'
 import { logEvent, logFailure } from '../logger'
+import { failure, handleOperation } from './boundary'
 import { userMessage } from '../../shared/errors'
 
 export function describeFolder(path: string, home = homedir()): LibraryFolder {
@@ -105,41 +106,12 @@ export async function registerPersistence(
 		) => Promise<Extract<z.output<O>, { ok: true }> extends { data: infer D } ? D : never>,
 		failureMessage = 'Margin couldn’t update the library. Check that you can open the library folder and try again.',
 	) {
-		ipcMain.removeHandler(operation.channel)
-		ipcMain.handle(operation.channel, async (event, payload: unknown) => {
-			const window = getWindow()
-			if (
-				!window ||
-				event.sender !== window.webContents ||
-				event.senderFrame !== window.webContents.mainFrame
-			)
-				return operation.response.parse({
-					ok: false,
-					error: {
-						code: 'FORBIDDEN',
-						message: 'Margin blocked a request from another window. Try again in the main window.',
-					},
-				})
-			const parsed = operation.request.safeParse(payload)
-			if (!parsed.success)
-				return operation.response.parse({
-					ok: false,
-					error: {
-						code: 'INVALID_REQUEST',
-						message: 'Margin couldn’t read this request. Try again.',
-					},
-				})
+		handleOperation(getWindow, operation, async (request) => {
 			try {
-				return { ok: true, data: await action(parsed.data) }
+				return { ok: true, data: await action(request) }
 			} catch (error) {
 				logFailure('persistence-operation-failed', error)
-				return operation.response.parse({
-					ok: false,
-					error: {
-						code: 'SAVE_FAILED',
-						message: errorMessage(error, failureMessage),
-					},
-				})
+				return failure(operation, 'SAVE_FAILED', errorMessage(error, failureMessage))
 			}
 		})
 	}

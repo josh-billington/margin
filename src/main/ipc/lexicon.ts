@@ -5,6 +5,9 @@ import { ipcContract } from '../../shared/ipc/contract'
 import { COMMAND_CHANNEL } from '../../shared/ipc/commands'
 import { entryCitation } from '../../shared/lexicon/types'
 import { LexiconService } from '../lexicon/service'
+import { handleOperation } from './boundary'
+
+const { lexicon } = ipcContract
 
 let service: LexiconService | undefined
 function getLexicon() {
@@ -24,23 +27,34 @@ function getLexicon() {
 	}
 	return service
 }
-export async function handleLexiconRequest(
-	channel: string,
-	payload: unknown,
-	window: BrowserWindow,
-): Promise<unknown> {
-	if (!Object.values(ipcContract.lexicon).some((operation) => operation.channel === channel))
-		return undefined
+async function respond(work: () => unknown) {
 	try {
-		switch (channel) {
-			case ipcContract.lexicon.copyEntry.channel: {
-				const entry = getLexicon().getEntry(ipcContract.lexicon.copyEntry.request.parse(payload).id)
+		return { ok: true, data: await work() }
+	} catch {
+		return {
+			ok: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Margin couldn’t read the dictionary. Reinstall Margin and try again.',
+			},
+		}
+	}
+}
+
+export function registerLexiconHandlers(getWindow: () => BrowserWindow | null) {
+	handleOperation(getWindow, lexicon.copyEntry, async ({ id }) =>
+		lexicon.copyEntry.response.parse(
+			await respond(() => {
+				const entry = getLexicon().getEntry(id)
 				if (!entry) throw new Error('Entry absent')
 				clipboard.writeText(entryCitation(entry))
-				return { ok: true, data: null }
-			}
-			case ipcContract.lexicon.contextMenu.channel: {
-				const { word, multiple } = ipcContract.lexicon.contextMenu.request.parse(payload)
+				return null
+			}),
+		),
+	)
+	handleOperation(getWindow, lexicon.contextMenu, async ({ word, multiple }, window) =>
+		lexicon.contextMenu.response.parse(
+			await respond(async () => {
 				await new Promise<void>((resolve) => {
 					Menu.buildFromTemplate([
 						{
@@ -51,28 +65,16 @@ export async function handleLexiconRequest(
 						{ role: 'copy' },
 					]).popup({ window, callback: resolve })
 				})
-				return { ok: true, data: null }
-			}
-			case ipcContract.lexicon.getEntry.channel:
-				return {
-					ok: true,
-					data: getLexicon().getEntry(ipcContract.lexicon.getEntry.request.parse(payload).id),
-				}
-			case ipcContract.lexicon.lookupSelection.channel:
-				return {
-					ok: true,
-					data: getLexicon().lookupSelection(
-						ipcContract.lexicon.lookupSelection.request.parse(payload),
-					),
-				}
-		}
-	} catch {
-		return {
-			ok: false,
-			error: {
-				code: 'INTERNAL_ERROR',
-				message: 'Margin couldn’t read the dictionary. Reinstall Margin and try again.',
-			},
-		}
-	}
+				return null
+			}),
+		),
+	)
+	handleOperation(getWindow, lexicon.getEntry, async ({ id }) =>
+		lexicon.getEntry.response.parse(await respond(() => getLexicon().getEntry(id))),
+	)
+	handleOperation(getWindow, lexicon.lookupSelection, async (request) =>
+		lexicon.lookupSelection.response.parse(
+			await respond(() => getLexicon().lookupSelection(request)),
+		),
+	)
 }

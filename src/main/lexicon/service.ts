@@ -7,7 +7,7 @@ import {
 	decodeSpans,
 	tokenFingerprint,
 	LEXICON_STORAGE_VERSION,
-} from '../../shared/lexicon/storage'
+} from './storage'
 import type { LookupRequest, LookupResult } from '../../shared/lexicon/types'
 
 const rowSchema = z.object({ data: z.string() })
