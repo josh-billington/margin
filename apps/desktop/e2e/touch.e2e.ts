@@ -20,7 +20,7 @@ function finger(cdp: CDPSession) {
 	}
 }
 
-test('iPad host: long-press Look Up, double tap note, toolbar undo', async () => {
+test('iPad host: long-press Look Up, double tap note, note options, toolbar undo', async () => {
 	const dirs = await makeDirs()
 	const { app, page } = await launch(dirs, { MARGIN_PLATFORM: 'ipad' })
 	page.on('pageerror', (error) => console.error('Renderer error:', error))
@@ -46,6 +46,12 @@ test('iPad host: long-press Look Up, double tap note, toolbar undo', async () =>
 		await expect(notes).toHaveCount(1)
 		await expect(page.getByRole('textbox', { name: 'Note text', exact: true })).toBeFocused()
 		await page.keyboard.type('Touch note')
+		await page.keyboard.press('Escape')
+		// A tap on the options button's own box, not its glyph, still opens the panel.
+		const options = page.getByRole('button', { name: 'Note options' })
+		const optionsBox = (await options.boundingBox())!
+		await touch.tap({ x: optionsBox.x + 2, y: optionsBox.y + 2 })
+		await expect(page.getByRole('dialog', { name: 'Note options' })).toBeVisible()
 		await page.keyboard.press('Escape')
 		await touch.tap(page.getByRole('button', { name: 'Undo', exact: true }))
 		await expect(notes).toHaveCount(0)

@@ -54,10 +54,14 @@ export function installTouchRoutes(editor: Editor) {
 			focusPassage(editor, passageId)
 		else noteAt(editor, element, info.point)
 	}
+	// tldraw cancels the touchend of any HTML element on the canvas, so the tap would never click.
 	// Menus and popovers opened from the canvas are portalled out of its DOM but not its React tree,
-	// so tldraw would cancel their touchend and the tap would never click. They are not canvas touches.
+	// and controls on it (a note's options, the reading focus buttons) are buttons: neither is a
+	// canvas touch.
 	const onTouch = (event: TouchEvent) => {
-		if (event.target instanceof Node && !container.contains(event.target))
+		const target = event.target
+		if (!(target instanceof Node)) return
+		if (!container.contains(target) || (target instanceof Element && target.closest('button')))
 			editor.markEventAsHandled(event)
 	}
 	container.addEventListener('pointerdown', onPointerDown, true)
