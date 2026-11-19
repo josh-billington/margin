@@ -5,7 +5,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@shared': resolve(import.meta.dirname, 'packages/contract/src'),
-			'@renderer': resolve(import.meta.dirname, 'src/renderer/src'),
+			'@renderer': resolve(import.meta.dirname, 'packages/core/src'),
 		},
 	},
 	test: {
@@ -13,7 +13,7 @@ export default defineConfig({
 		include: [
 			'src/**/*.test.ts',
 			'scripts/**/*.test.ts',
-			'../../src/**/*.test.ts',
+			'../../packages/core/src/**/*.test.ts',
 			'../../packages/contract/src/**/*.test.ts',
 		],
 	},

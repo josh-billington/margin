@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 const alias = {
 	'@shared': resolve('../../packages/contract/src'),
-	'@renderer': resolve('../../src/renderer/src'),
+	'@renderer': resolve('../../packages/core/src'),
 }
 
 export default defineConfig({
@@ -17,11 +17,11 @@ export default defineConfig({
 		build: { externalizeDeps: false },
 	},
 	renderer: {
-		root: resolve('../../src/renderer'),
+		root: resolve('../../packages/core'),
 		envDir: resolve('../..'),
 		build: {
 			outDir: resolve('out/renderer'),
-			rollupOptions: { input: resolve('../../src/renderer/index.html') },
+			rollupOptions: { input: resolve('../../packages/core/index.html') },
 		},
 		optimizeDeps: { exclude: ['@tldraw/assets'] },
 		resolve: { alias },

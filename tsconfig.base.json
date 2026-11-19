@@ -18,7 +18,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@shared/*": ["packages/contract/src/*"],
-			"@renderer/*": ["src/renderer/src/*"]
+			"@renderer/*": ["packages/core/src/*"]
 		}
 	}
 }

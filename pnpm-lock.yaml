@@ -14,36 +14,9 @@ importers:
       '@floating-ui/dom':
         specifier: 1.8.0
         version: 1.8.0
-      '@fontsource/gochi-hand':
-        specifier: 5.3.0
-        version: 5.3.0
-      '@radix-ui/react-alert-dialog':
-        specifier: 1.2.1
-        version: 1.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-dialog':
-        specifier: 1.3.1
-        version: 1.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-dropdown-menu':
-        specifier: 2.2.1
-        version: 2.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-popover':
-        specifier: 1.3.1
-        version: 1.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-slider':
-        specifier: 1.6.1
-        version: 1.6.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-toggle-group':
-        specifier: 1.2.1
-        version: 1.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@radix-ui/react-tooltip':
-        specifier: 1.4.1
-        version: 1.4.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tailwindcss/vite':
         specifier: 4.3.4
         version: 4.3.4(vite@7.3.7(@types/node@25.9.9)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15))
-      '@tldraw/assets':
-        specifier: 5.6.0
-        version: 5.6.0
       '@types/node':
         specifier: 25.9.9
         version: 25.9.9
@@ -56,18 +29,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: 5.2.0
         version: 5.2.0(vite@7.3.7(@types/node@25.9.9)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15))
-      cmdk:
-        specifier: 1.1.1
-        version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       eslint:
         specifier: 9.39.5
         version: 9.39.5(jiti@2.7.0)
       happy-dom:
         specifier: 21.0.4
         version: 21.0.4
-      lucide-react:
-        specifier: 1.66.0
-        version: 1.66.0(@types/react@19.3.0)(react@19.3.1)
       prettier:
         specifier: 3.9.10
         version: 3.9.10
@@ -77,12 +44,6 @@ importers:
       react-dom:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
-      sonner:
-        specifier: 2.0.8
-        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      tailwindcss:
-        specifier: 4.3.4
-        version: 4.3.4
       tldraw:
         specifier: 5.6.0
         version: 5.6.0(@floating-ui/dom@1.8.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -92,21 +53,12 @@ importers:
       typescript-eslint:
         specifier: 8.72.1
         version: 8.72.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
-      ulid:
-        specifier: 3.0.2
-        version: 3.0.2
       vite:
         specifier: 7.3.7
         version: 7.3.7(@types/node@25.9.9)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)
       vitest:
         specifier: 4.1.12
         version: 4.1.12(@types/node@25.9.9)(happy-dom@21.0.4)(vite@7.3.7(@types/node@25.9.9)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15))
-      zod:
-        specifier: 4.6.7
-        version: 4.6.7
-      zustand:
-        specifier: 5.0.16
-        version: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
 
   apps/desktop:
     dependencies:
@@ -129,6 +81,9 @@ importers:
       '@margin/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@margin/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@playwright/test':
         specifier: 1.60.0
         version: 1.60.0
@@ -165,6 +120,72 @@ importers:
       zod:
         specifier: 4.6.7
         version: 4.6.7
+
+  packages/core:
+    dependencies:
+      '@floating-ui/dom':
+        specifier: 1.8.0
+        version: 1.8.0
+      '@fontsource/gochi-hand':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@margin/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@radix-ui/react-alert-dialog':
+        specifier: 1.2.1
+        version: 1.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-dialog':
+        specifier: 1.3.1
+        version: 1.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-dropdown-menu':
+        specifier: 2.2.1
+        version: 2.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-popover':
+        specifier: 1.3.1
+        version: 1.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-slider':
+        specifier: 1.6.1
+        version: 1.6.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-toggle-group':
+        specifier: 1.2.1
+        version: 1.2.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@radix-ui/react-tooltip':
+        specifier: 1.4.1
+        version: 1.4.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@tldraw/assets':
+        specifier: 5.6.0
+        version: 5.6.0
+      cmdk:
+        specifier: 1.1.1
+        version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      lucide-react:
+        specifier: 1.66.0
+        version: 1.66.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+      sonner:
+        specifier: 2.0.8
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      tailwindcss:
+        specifier: 4.3.4
+        version: 4.3.4
+      tldraw:
+        specifier: 5.6.0
+        version: 5.6.0(@floating-ui/dom@1.8.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      ulid:
+        specifier: 3.0.2
+        version: 3.0.2
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+      zustand:
+        specifier: 5.0.16
+        version: 5.0.16(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
 
 packages:
 

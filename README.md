@@ -36,22 +36,22 @@ results against end-to-end tests. Forks are welcome; replies to issues may be sl
 
 ## Building from source
 
-Requirements: macOS, Node 25, Yarn 1.
+Requirements: macOS, Node 25, pnpm 11.
 
 ```sh
-yarn install          # also rebuilds native modules for Electron
-yarn import:bible     # downloads pinned KJV, BSB, WEB, ASV, and JPS 1917 sources, builds resources/bible/margin-bible.sqlite
-yarn import:lexicon   # downloads pinned Open Scriptures Strong's data, builds resources/lexicon/margin-lexicon.sqlite
-yarn dev              # run the app
+pnpm install          # also rebuilds native modules for Electron
+pnpm import:bible     # downloads pinned KJV, BSB, WEB, ASV, and JPS 1917 sources, builds apps/desktop/resources/bible/margin-bible.sqlite
+pnpm import:lexicon   # downloads pinned Open Scriptures Strong's data, builds apps/desktop/resources/lexicon/margin-lexicon.sqlite
+pnpm dev              # run the app
 ```
 
 Both importers check every downloaded file against the SHA-256 recorded in
-`data/sources.json`; a mismatch fails rather than accepting changed text. The
+`apps/desktop/data/sources.json`; a mismatch fails rather than accepting changed text. The
 generated databases are gitignored.
 
-Other commands: `yarn typecheck`, `yarn lint`, `yarn test` (unit), `yarn test:e2e`
-(Playwright against the built app), `yarn dist` (unsigned macOS `.app`, DMG, and ZIP
-in `release/`).
+Other commands: `pnpm typecheck`, `pnpm lint`, `pnpm test` (unit), `pnpm test:e2e`
+(Playwright against the built app), `pnpm dist` (unsigned macOS `.app`, DMG, and ZIP
+in `apps/desktop/release/`).
 
 ### tldraw licence key
 
@@ -79,15 +79,15 @@ permitted; contact me if you want a commercial licence.
 That licence covers only Margin's own work. Bundled content keeps its own terms,
 which take precedence for that content:
 
-- **KJV**: from [eBible.org](https://ebible.org); see `resources/bible/kjv-rights.html`
+- **KJV**: from [eBible.org](https://ebible.org); see `apps/desktop/resources/bible/kjv-rights.html`
 - **BSB, WEB, and ASV 1901**: public-domain texts from [eBible.org](https://ebible.org);
-  notices are in `resources/bible/{bsb,web,asv}-rights.html`. “World English Bible”
+  notices are in `apps/desktop/resources/bible/{bsb,web,asv}-rights.html`. “World English Bible”
   is a trademark of eBible.org; modified text must use a different name.
-- **JPS 1917**: from [Sefaria](https://www.sefaria.org); see `resources/bible/jps1917-rights.txt`
+- **JPS 1917**: from [Sefaria](https://www.sefaria.org); see `apps/desktop/resources/bible/jps1917-rights.txt`
 - **Strong's dictionaries**: [Open Scriptures](https://github.com/openscriptures/strongs),
   CC BY-SA 3.0. The generated lexicon data is an adaptation under the same licence;
-  attribution and checksums are in `resources/lexicon/lexicon.manifest.json`
-- **Versification data**: see `resources/bible/versification-license.txt`
+  attribution and checksums are in `apps/desktop/resources/lexicon/lexicon.manifest.json`
+- **Versification data**: see `apps/desktop/resources/bible/versification-license.txt`
 - **Fonts**: Gochi Hand, IBM Plex, and Shantell Sans under the SIL Open Font
-  Licence (`resources/fonts/`)
+  Licence (`apps/desktop/resources/fonts/`)
 - **tldraw SDK**: under the [tldraw licence](https://github.com/tldraw/tldraw/blob/main/LICENSE.md)

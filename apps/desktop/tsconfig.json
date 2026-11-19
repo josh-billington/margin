@@ -6,7 +6,7 @@
 		"e2e",
 		"playwright.config.ts",
 		"electron.vite.config.ts",
-		"../../src",
+		"../../packages/core/src",
 		"../../vitest.config.mts"
 	]
 }
