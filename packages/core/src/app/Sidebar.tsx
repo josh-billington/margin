@@ -9,6 +9,7 @@ import { RenameStudy } from './RenameStudy'
 import { ToolButton } from './ToolButton'
 import { shortcutFor, titleFor } from './commands'
 import { iconMd, iconSm } from '../lib/icons'
+import { platform } from '../lib/platform'
 
 export function Sidebar({
 	onCreateStudy,
@@ -84,12 +85,14 @@ export function Sidebar({
 			</section>
 			<PassageList editor={editor} />
 			<TagsSection editor={editor} />
-			<div className="sidebar-library">
-				<button className="row-button" onClick={() => void chooseLibrary()}>
-					<Folder {...iconMd} aria-hidden="true" />
-					Library folder…{readOnly && setup === 'done' ? ' (read-only)' : ''}
-				</button>
-			</div>
+			{platform.libraryFolderPicker && (
+				<div className="sidebar-library">
+					<button className="row-button" onClick={() => void chooseLibrary()}>
+						<Folder {...iconMd} aria-hidden="true" />
+						Library folder…{readOnly && setup === 'done' ? ' (read-only)' : ''}
+					</button>
+				</div>
+			)}
 		</aside>
 	)
 }

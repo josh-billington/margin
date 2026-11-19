@@ -237,12 +237,15 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		nativeMenu: z.literal(true),
 		nativeContextMenu: z.literal(true),
 		freehandInk: z.literal(false),
+		libraryFolderPicker: z.literal(true),
 	}),
 	z.object({
 		kind: z.literal('ipad'),
 		nativeMenu: z.literal(false),
 		nativeContextMenu: z.literal(false),
 		freehandInk: z.literal(true),
+		/** The library lives in the app's Documents folder; there is no folder to choose. */
+		libraryFolderPicker: z.literal(false),
 	}),
 ])
 export type Platform = z.infer<typeof platformSchema>

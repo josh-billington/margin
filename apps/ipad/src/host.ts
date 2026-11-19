@@ -115,7 +115,13 @@ export async function installHost() {
 	preference = services.data.preferences.appearance
 	const api = {
 		...createServiceApi({ handlers: services.handlers }),
-		platform: { kind: 'ipad', nativeMenu: false, nativeContextMenu: false, freehandInk: true },
+		platform: {
+			kind: 'ipad',
+			nativeMenu: false,
+			nativeContextMenu: false,
+			freehandInk: true,
+			libraryFolderPicker: false,
+		},
 		appearance: { mode: appearance(), onChange: appearanceEvents.subscribe },
 		glass: { mode: 'none', onChange: () => () => {} },
 		menu: { setSidebarShown: () => {} },

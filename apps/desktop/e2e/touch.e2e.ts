@@ -26,6 +26,8 @@ test('iPad host: long-press Look Up, double tap note, toolbar undo', async () =>
 	page.on('pageerror', (error) => console.error('Renderer error:', error))
 	try {
 		await expect(page.locator('html')).toHaveAttribute('data-platform', 'ipad')
+		// The library lives in the app's own Documents folder; there is no folder to choose.
+		await expect(page.getByRole('button', { name: /Library folder/ })).toHaveCount(0)
 		const cdp = await page.context().newCDPSession(page)
 		await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 })
 		const touch = finger(cdp)
