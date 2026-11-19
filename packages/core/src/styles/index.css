@@ -5,6 +5,7 @@
 @import './shell.css';
 
 @source not '../canvas/ink';
+@source not '../intro';
 
 @theme inline {
 	--font-sans: var(--font-ui);

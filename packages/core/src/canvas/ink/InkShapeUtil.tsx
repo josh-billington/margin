@@ -33,7 +33,7 @@ function fittedInk({ editor, shape }: { editor: Editor; shape: InkShape }) {
 	return fitStroke(endpoints)
 }
 
-function arrowHead({ points, length }: { points: InkStroke; length: number }) {
+export function arrowHead({ points, length }: { points: InkStroke; length: number }) {
 	const tip = points.at(-1) ?? points[0]
 	const direction = strokeApproach({ points, terminal: 'end' })
 	const magnitude = Math.hypot(direction.x, direction.y)
