@@ -4,9 +4,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { strict as assert } from 'node:assert'
 import { resolve } from 'node:path'
+import { strongIdSchema } from '@shared/lexicon/types'
 import type { Token } from '@shared/bible/types'
-import { BibleService } from '../../src/main/bible/provider'
-import { LexiconService } from '../../src/main/lexicon/service'
+import { openBible } from '../../src/main/adapters/bible'
+import { openLexicon } from '../../src/main/adapters/lexicon'
 
 async function verify() {
 	const temporary = mkdtempSync(join(tmpdir(), 'margin-lexicon-version-'))
@@ -15,12 +16,12 @@ async function verify() {
 		const db = new Database(path)
 		db.pragma('user_version = 1')
 		db.close()
-		assert.throws(() => new LexiconService(path), /Unsupported lexicon schema version; regenerate/)
+		await assert.rejects(() => openLexicon(path), /Unsupported lexicon schema version; regenerate/)
 	} finally {
 		rmSync(temporary, { recursive: true, force: true })
 	}
-	const bible = new BibleService(resolve('resources/bible/margin-bible.sqlite'))
-	const lexicon = new LexiconService(resolve('resources/lexicon/margin-lexicon.sqlite'))
+	const bible = await openBible(resolve('resources/bible/margin-bible.sqlite'))
+	const lexicon = await openLexicon(resolve('resources/lexicon/margin-lexicon.sqlite'))
 	try {
 		for (const [book, chapter, verse, english, id] of [
 			['GEN', 1, 1, 'created', 'H1254'],
@@ -34,11 +35,14 @@ async function verify() {
 			assert(token)
 			const target = { verse: ref, token: token.i }
 			assert.equal(
-				lexicon.lookupSelection({ text, start: target, end: target }).spans[0]?.ids[0],
+				(await lexicon.lookupSelection({ text, start: target, end: target })).spans[0]?.ids[0],
 				id,
 			)
-			assert(lexicon.getEntry(id)?.definition)
-			assert.equal(lexicon.getEntry(id[0] + '0' + id.slice(1))?.id, id)
+			assert((await lexicon.getEntry(id))?.definition)
+			assert.equal(
+				(await lexicon.getEntry(strongIdSchema.parse(id[0] + '0' + id.slice(1))))?.id,
+				id,
+			)
 			for (const field of [
 				'editionName',
 				'versificationId',
@@ -47,7 +51,7 @@ async function verify() {
 			] as const) {
 				const old = structuredClone(text)
 				old.edition[field] = 'old'
-				assert.deepEqual(lexicon.lookupSelection({ text: old, start: target, end: target }), {
+				assert.deepEqual(await lexicon.lookupSelection({ text: old, start: target, end: target }), {
 					status: 'snapshot-mismatch',
 					spans: [],
 				})
@@ -78,15 +82,18 @@ async function verify() {
 				const first = changed.verses[0]?.tokens[0]
 				assert(first)
 				mutate(first)
-				assert.deepEqual(lexicon.lookupSelection({ text: changed, start: target, end: target }), {
-					status: 'snapshot-mismatch',
-					spans: [],
-				})
+				assert.deepEqual(
+					await lexicon.lookupSelection({ text: changed, start: target, end: target }),
+					{
+						status: 'snapshot-mismatch',
+						spans: [],
+					},
+				)
 			}
 			for (const translationId of ['jps1917', 'bsb', 'web', 'asv'] as const) {
 				const unsupported = { ...text, edition: { ...text.edition, translationId } }
 				assert.deepEqual(
-					lexicon.lookupSelection({ text: unsupported, start: target, end: target }),
+					await lexicon.lookupSelection({ text: unsupported, start: target, end: target }),
 					{ status: 'unsupported-translation', spans: [] },
 				)
 			}
@@ -106,9 +113,9 @@ async function verify() {
 			assert(at >= 0, phrase)
 			for (const token of [at, at + 1]) {
 				const target = { verse: ref, token }
-				const span = lexicon
-					.lookupSelection({ text, start: target, end: target })
-					.spans.find((span) => span.ids.includes(id))
+				const span = (
+					await lexicon.lookupSelection({ text, start: target, end: target })
+				).spans.find((span) => span.ids.includes(id))
 				assert.equal(span?.text, phrase)
 				assert.equal(span?.last, at + 1)
 			}

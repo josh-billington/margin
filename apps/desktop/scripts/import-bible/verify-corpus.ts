@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import Database from 'better-sqlite3'
 import { z } from 'zod'
-import { BibleService } from '../../src/main/bible/provider'
+import { openBible } from '../../src/main/adapters/bible'
 import {
 	loadVersificationMap,
 	mapPassage,
@@ -22,7 +22,7 @@ import type { BookId, TranslationId } from '@shared/bible/types'
 async function verify() {
 	const raw = await loadRawCorpus(process.cwd())
 	const path = resolve('resources/bible/margin-bible.sqlite')
-	const bible = new BibleService(path)
+	const bible = await openBible(path)
 	const db = new Database(path, { readonly: true, fileMustExist: true })
 	try {
 		assert.equal(db.pragma('integrity_check', { simple: true }), 'ok')
@@ -260,7 +260,7 @@ async function verify() {
 			),
 		)
 		const editionMaps = loadEditionMaps(
-			JSON.parse(readFileSync('data/versification/edition-maps.v1.json', 'utf8')),
+			JSON.parse(readFileSync('../../packages/services/src/bible/edition-maps.v1.json', 'utf8')),
 			bible.listTranslations(),
 		)
 		for (const pair of editionMaps.maps) {

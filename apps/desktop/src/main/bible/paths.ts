@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join } from 'node:path'
-import { BibleService } from './provider'
+import { openBible, type BibleService } from '../adapters/bible'
 
 export function bibleDatabasePath(
 	packaged: boolean,
@@ -12,14 +12,12 @@ export function bibleDatabasePath(
 		: join(appPath, 'resources/bible/margin-bible.sqlite')
 }
 
-let service: BibleService | undefined
-export function getBibleService(): BibleService {
+let service: Promise<BibleService> | undefined
+export function getBibleService(): Promise<BibleService> {
 	if (!service) {
-		service = new BibleService(
-			bibleDatabasePath(app.isPackaged, process.resourcesPath, app.getAppPath()),
-		)
+		service = openBible(bibleDatabasePath(app.isPackaged, process.resourcesPath, app.getAppPath()))
 		app.once('will-quit', () => {
-			service?.close()
+			void service?.then((value) => value.close())
 			service = undefined
 		})
 	}

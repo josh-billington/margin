@@ -16,7 +16,7 @@ import {
 	encodeSpans,
 	tokenFingerprint,
 	LEXICON_STORAGE_VERSION,
-} from '../../src/main/lexicon/storage'
+} from '../../src/main/adapters/lexiconStorage'
 
 const dictionaryPin = sourcePinSchema.omit({ translationId: true, book: true, retrievedAt: true })
 export async function buildLexicon(root: string) {

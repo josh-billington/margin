@@ -91,6 +91,7 @@
 	"devDependencies": {
 		"@margin/contract": "workspace:*",
 		"@margin/core": "workspace:*",
+		"@margin/services": "workspace:*",
 		"@playwright/test": "1.60.0",
 		"@types/better-sqlite3": "9.6.0",
 		"@types/node": "25.9.9",

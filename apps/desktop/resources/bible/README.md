@@ -44,7 +44,7 @@ BSB and ASV each contain 31,086 text-bearing verses in these sources; WEB contai
 31,098. Numbered gaps are preserved. WEB prints the Romans doxology at 14:24–26;
 its 16:25 label is only a pointer note and is not exposed as scripture text.
 
-`data/versification/edition-maps.v1.json` pins all five corpus revisions and all ten
+`../../packages/services/src/bible/edition-maps.v1.json` pins all five corpus revisions and all ten
 translation pairs. Run `python3 scripts/import-bible/generate-edition-maps.py` to
 regenerate it from the local database after reviewing any source update. If import
 stops at the mapping revision check, use `--database data/raw/margin-bible.build.sqlite`.

@@ -64,4 +64,4 @@ header = {k: v for k, v in result.items() if k != 'maps'}
 text = json.dumps(header, indent=2)[:-2] + ',\n  "maps": [\n'
 text += ',\n'.join('    ' + json.dumps({k: v for k, v in pair.items() if k != 'entries'})[:-1] + ', "entries": [\n' + ',\n'.join('      ' + json.dumps(entry, separators=(',', ':')) for entry in pair['entries']) + '\n    ]}' for pair in maps)
 text += '\n  ]\n}\n'
-(ROOT / 'data/versification/edition-maps.v1.json').write_text(text)
+(ROOT.parents[1] / 'packages/services/src/bible/edition-maps.v1.json').write_text(text)

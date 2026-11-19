@@ -4,15 +4,15 @@ import { join } from 'node:path'
 import { ipcContract } from '@shared/ipc/contract'
 import { COMMAND_CHANNEL } from '@shared/ipc/commands'
 import { entryCitation } from '@shared/lexicon/types'
-import { LexiconService } from '../lexicon/service'
+import { openLexicon, type LexiconService } from '../adapters/lexicon'
 import { handleOperation } from './boundary'
 
 const { lexicon } = ipcContract
 
-let service: LexiconService | undefined
+let service: Promise<LexiconService> | undefined
 function getLexicon() {
 	if (!service) {
-		service = new LexiconService(
+		service = openLexicon(
 			join(
 				app.isPackaged
 					? join(process.resourcesPath, 'resources')
@@ -21,7 +21,7 @@ function getLexicon() {
 			),
 		)
 		app.once('will-quit', () => {
-			service?.close()
+			void service?.then((value) => value.close())
 			service = undefined
 		})
 	}
@@ -44,8 +44,8 @@ async function respond(work: () => unknown) {
 export function registerLexiconHandlers(getWindow: () => BrowserWindow | null) {
 	handleOperation(getWindow, lexicon.copyEntry, async ({ id }) =>
 		lexicon.copyEntry.response.parse(
-			await respond(() => {
-				const entry = getLexicon().getEntry(id)
+			await respond(async () => {
+				const entry = await (await getLexicon()).getEntry(id)
 				if (!entry) throw new Error('Entry absent')
 				clipboard.writeText(entryCitation(entry))
 				return null
@@ -70,11 +70,11 @@ export function registerLexiconHandlers(getWindow: () => BrowserWindow | null) {
 		),
 	)
 	handleOperation(getWindow, lexicon.getEntry, async ({ id }) =>
-		lexicon.getEntry.response.parse(await respond(() => getLexicon().getEntry(id))),
+		lexicon.getEntry.response.parse(await respond(async () => (await getLexicon()).getEntry(id))),
 	)
 	handleOperation(getWindow, lexicon.lookupSelection, async (request) =>
 		lexicon.lookupSelection.response.parse(
-			await respond(() => getLexicon().lookupSelection(request)),
+			await respond(async () => (await getLexicon()).lookupSelection(request)),
 		),
 	)
 }

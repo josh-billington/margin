@@ -1,20 +1,19 @@
-import Database from 'better-sqlite3'
+import type { Database } from '../ports'
 import { z } from 'zod'
-import { books } from '@shared/bible/books'
-import { expandRanges, mapPassage, verseKey } from '@shared/bible/versification'
-import versificationJson from '../../../data/versification/edition-maps.v1.json'
-import { loadEditionMaps, editionPairMap } from '@shared/bible/editionMaps'
-import type { EditionMaps } from '@shared/bible/editionMaps'
-import { parseReference } from '@shared/bible/reference'
-import type { InsertionPreview } from '@shared/bible/reference'
+import { books } from '@margin/contract/bible/books'
+import { expandRanges, mapPassage, verseKey } from '@margin/contract/bible/versification'
+import versificationJson from './edition-maps.v1.json'
+import { loadEditionMaps, editionPairMap } from '@margin/contract/bible/editionMaps'
+import type { EditionMaps } from '@margin/contract/bible/editionMaps'
+import { parseReference } from '@margin/contract/bible/reference'
+import type { InsertionPreview } from '@margin/contract/bible/reference'
 import {
 	bookIdSchema,
-	passageRangeSchema,
 	textEditionSchema,
 	verseRefSchema,
 	translationIdSchema,
-} from '@shared/bible/types'
-import { STORAGE_VERSION, decodeVerseTokens } from '@shared/bible/storage'
+} from '@margin/contract/bible/types'
+import { STORAGE_VERSION, decodeVerseTokens } from '@margin/contract/bible/storage'
 import type {
 	BibleProvider,
 	BookId,
@@ -23,7 +22,7 @@ import type {
 	TextEdition,
 	TranslationId,
 	VerseRef,
-} from '@shared/bible/types'
+} from '@margin/contract/bible/types'
 
 const rowSchema = z.object({
 	book: bookIdSchema,
@@ -37,57 +36,58 @@ export class SqliteBibleProvider implements BibleProvider {
 	readonly edition: TextEdition
 	readonly name: string
 	readonly books: BookId[]
-	constructor(
-		private readonly db: Database.Database,
-		translationId: TranslationId,
+	private constructor(
+		private readonly db: Database,
+		args: {
+			edition: TextEdition
+			books: BookId[]
+			refs: VerseRef[]
+		},
 	) {
-		this.edition = textEditionSchema.parse(
-			db.prepare('SELECT * FROM editions WHERE translationId = ?').get(translationId),
-		)
+		this.edition = args.edition
 		this.name = this.edition.editionName
-		this.books = z
+		this.books = args.books
+		this.refs = args.refs
+		for (const ref of args.refs) {
+			const key = `${ref.book}:${ref.chapter}`
+			const verses = this.chapters.get(key) ?? []
+			verses.push(ref.verse)
+			this.chapters.set(key, verses)
+		}
+	}
+	static async open({ db, translationId }: { db: Database; translationId: TranslationId }) {
+		const edition = textEditionSchema.parse(
+			await db.get('SELECT * FROM editions WHERE translationId = ?', [translationId]),
+		)
+		const books = z
 			.array(z.object({ id: bookIdSchema }))
 			.parse(
-				db
-					.prepare('SELECT id FROM books WHERE translationId = ? ORDER BY ordinal')
-					.all(translationId),
+				await db.all('SELECT id FROM books WHERE translationId = ? ORDER BY ordinal', [
+					translationId,
+				]),
 			)
 			.map((book) => book.id)
-	}
-
-	allRefs(): VerseRef[] {
-		return z
+		const refs = z
 			.array(verseRefSchema)
 			.parse(
-				this.db
-					.prepare(
-						'SELECT book,chapter,verse FROM verses WHERE translationId=? ORDER BY book,chapter,verse',
-					)
-					.all(this.edition.translationId),
+				await db.all(
+					'SELECT book,chapter,verse FROM verses WHERE translationId=? ORDER BY book,chapter,verse',
+					[translationId],
+				),
 			)
+		return new SqliteBibleProvider(db, { edition, books, refs })
 	}
-
+	private readonly refs: VerseRef[]
+	allRefs(): VerseRef[] {
+		return this.refs
+	}
 	private chapters = new Map<string, number[]>()
 	verseNumbers(book: BookId, chapter: number): number[] {
-		const key = `${book}:${chapter}`
-		const cached = this.chapters.get(key)
-		if (cached) return cached
-		const verses = z
-			.array(z.object({ verse: z.number().int().nonnegative() }))
-			.parse(
-				this.db
-					.prepare(
-						'SELECT verse FROM verses WHERE translationId = ? AND book = ? AND chapter = ? ORDER BY verse',
-					)
-					.all(this.edition.translationId, book, chapter),
-			)
-			.map((row) => row.verse)
-		this.chapters.set(key, verses)
-		return verses
+		return this.chapters.get(`${book}:${chapter}`) ?? []
 	}
 
 	async getPassage(input: readonly PassageRange[]): Promise<PassageText> {
-		const ranges = z.array(passageRangeSchema).min(1).parse(input)
+		const ranges = [...input]
 		const selected = new Map<string, PassageText['verses'][number]>()
 		for (const range of ranges) {
 			if (
@@ -103,13 +103,11 @@ export class SqliteBibleProvider implements BibleProvider {
 						'This translation does not contain that chapter. Choose another chapter or translation.',
 					)
 			}
-			const rows = this.db
-				.prepare(
-					`SELECT book, chapter, verse, paragraphBreakBefore, content FROM verses
+			const rows = await this.db.all(
+				`SELECT book, chapter, verse, paragraphBreakBefore, content FROM verses
 				WHERE translationId = ? AND book = ? AND (chapter > ? OR (chapter = ? AND verse >= ?))
 				AND (chapter < ? OR (chapter = ? AND verse <= ?)) ORDER BY chapter, verse`,
-				)
-				.all(
+				[
 					this.edition.translationId,
 					range.start.book,
 					range.start.chapter,
@@ -118,7 +116,8 @@ export class SqliteBibleProvider implements BibleProvider {
 					range.end.chapter,
 					range.end.chapter,
 					range.end.verse,
-				)
+				],
+			)
 			for (const input of rows) {
 				const row = rowSchema.parse(input)
 				selected.set(`${row.book}.${row.chapter}.${row.verse}`, {
@@ -139,28 +138,31 @@ export class SqliteBibleProvider implements BibleProvider {
 }
 
 export class BibleService {
-	private readonly db: Database.Database
-	readonly providers: Record<TranslationId, SqliteBibleProvider>
-	constructor(path: string) {
-		this.db = new Database(path, { readonly: true, fileMustExist: true })
+	private constructor(
+		private readonly db: Database,
+		readonly providers: Record<TranslationId, SqliteBibleProvider>,
+	) {}
+	static async open(db: Database) {
 		try {
-			const storage = this.db.pragma('user_version', { simple: true })
+			const storage = await db.userVersion()
 			if (storage !== STORAGE_VERSION)
 				throw new Error(
 					`Bible storage version ${String(storage)} is not supported (expected ${STORAGE_VERSION}). Run yarn import:bible.`,
 				)
-			this.providers = {
-				bsb: new SqliteBibleProvider(this.db, 'bsb'),
-				web: new SqliteBibleProvider(this.db, 'web'),
-				asv: new SqliteBibleProvider(this.db, 'asv'),
-				kjv: new SqliteBibleProvider(this.db, 'kjv'),
-				jps1917: new SqliteBibleProvider(this.db, 'jps1917'),
+			const providers = {
+				bsb: await SqliteBibleProvider.open({ db, translationId: 'bsb' }),
+				web: await SqliteBibleProvider.open({ db, translationId: 'web' }),
+				asv: await SqliteBibleProvider.open({ db, translationId: 'asv' }),
+				kjv: await SqliteBibleProvider.open({ db, translationId: 'kjv' }),
+				jps1917: await SqliteBibleProvider.open({ db, translationId: 'jps1917' }),
 			}
+			return new BibleService(db, providers)
 		} catch (error) {
-			this.db.close()
+			await db.close()
 			throw error
 		}
 	}
+
 	private maps?: EditionMaps
 	mapPassage(from: TranslationId, ranges: readonly PassageRange[], to: TranslationId) {
 		const boundaries = (translation: TranslationId, book: BookId, chapter: number) =>
@@ -180,7 +182,7 @@ export class BibleService {
 		return mapPassage(map, from, ranges, boundaries, to)
 	}
 	close() {
-		this.db.close()
+		return this.db.close()
 	}
 	listTranslations() {
 		return translationIdSchema.options.map((id) => this.providers[id].edition)

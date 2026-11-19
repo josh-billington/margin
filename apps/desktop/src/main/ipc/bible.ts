@@ -27,8 +27,8 @@ async function respond(
 
 export function registerBibleHandlers(getWindow: () => BrowserWindow | null) {
 	handleOperation(getWindow, bible.resolveReference, async (request) =>
-		respond(bible.resolveReference, () =>
-			getBibleService().resolveReference(
+		respond(bible.resolveReference, async () =>
+			(await getBibleService()).resolveReference(
 				request.reference,
 				request.translationId,
 				request.oldTestamentTranslationId,
@@ -36,16 +36,16 @@ export function registerBibleHandlers(getWindow: () => BrowserWindow | null) {
 		),
 	)
 	handleOperation(getWindow, bible.getPassage, async (request) =>
-		respond(bible.getPassage, () =>
-			getBibleService().getPassage(request.translationId, request.ranges),
+		respond(bible.getPassage, async () =>
+			(await getBibleService()).getPassage(request.translationId, request.ranges),
 		),
 	)
 	handleOperation(getWindow, bible.mapPassage, async (request) =>
-		respond(bible.mapPassage, () =>
-			getBibleService().mapPassage(request.from, request.ranges, request.to),
+		respond(bible.mapPassage, async () =>
+			(await getBibleService()).mapPassage(request.from, request.ranges, request.to),
 		),
 	)
 	handleOperation(getWindow, bible.listTranslations, async () =>
-		respond(bible.listTranslations, () => getBibleService().listTranslations()),
+		respond(bible.listTranslations, async () => (await getBibleService()).listTranslations()),
 	)
 }

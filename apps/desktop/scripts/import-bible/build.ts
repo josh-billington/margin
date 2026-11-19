@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { BibleService } from '../../src/main/bible/provider'
+import { openBible } from '../../src/main/adapters/bible'
 import { verifyVersificationMap } from '@shared/bible/versification'
 import { loadEditionMaps, editionPairMap } from '@shared/bible/editionMaps'
 import { mkdir, readFile, rename, writeFile, rm } from 'node:fs/promises'
@@ -197,10 +197,10 @@ export async function buildBible(root: string) {
 	} finally {
 		db.close()
 	}
-	const service = new BibleService(temporary)
+	const service = await openBible(temporary)
 	try {
 		const mapInput: unknown = JSON.parse(
-			await readFile(join(root, 'data/versification/edition-maps.v1.json'), 'utf8'),
+			await readFile(join(root, '../../packages/services/src/bible/edition-maps.v1.json'), 'utf8'),
 		)
 		const maps = loadEditionMaps(mapInput, service.listTranslations())
 		for (const pair of maps.maps)

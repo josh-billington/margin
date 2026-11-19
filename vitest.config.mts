@@ -15,6 +15,7 @@ export default defineConfig({
 			'scripts/**/*.test.ts',
 			'../../packages/core/src/**/*.test.ts',
 			'../../packages/contract/src/**/*.test.ts',
+			'../../packages/services/src/**/*.test.ts',
 		],
 	},
 })
