@@ -129,8 +129,3 @@
 .tag-row > .row-icon-button[data-state='open'] {
 	opacity: 1;
 }
-@media (hover: none) {
-	.tag-row > .row-icon-button {
-		opacity: 1;
-	}
-}
