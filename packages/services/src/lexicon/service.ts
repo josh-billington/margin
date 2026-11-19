@@ -2,7 +2,7 @@ import type { Database, Hasher, Codec } from '../ports'
 import { hasher, codec } from '../codecs'
 import { z } from 'zod'
 import { lexiconEntrySchema } from '@margin/contract/lexicon/types'
-import { textEditionSchema } from '@margin/contract/bible/types'
+import { textEditionSchema, verseRefSchema } from '@margin/contract/bible/types'
 import type { TextEdition } from '@margin/contract/bible/types'
 import { decodeSpans, tokenFingerprint, LEXICON_STORAGE_VERSION } from './storage'
 import type { LookupRequest, LookupResult } from '@margin/contract/lexicon/types'
@@ -12,10 +12,7 @@ const sameRef = (a: LookupRequest['start']['verse'], b: LookupRequest['start']['
 	a.book === b.book && a.chapter === b.chapter && a.verse === b.verse
 export class LexiconService {
 	private constructor(
-		private readonly db: Database,
-		private readonly edition: TextEdition,
-		private readonly hash: Hasher,
-		private readonly decoder: Codec,
+		private readonly ports: { db: Database; edition: TextEdition; hash: Hasher; decoder: Codec },
 	) {}
 	static async open({
 		db,
@@ -34,17 +31,22 @@ export class LexiconService {
 			const row = z
 				.object({ edition: z.string() })
 				.parse(await db.get('SELECT edition FROM metadata'))
-			return new LexiconService(db, textEditionSchema.parse(JSON.parse(row.edition)), hash, decoder)
+			return new LexiconService({
+				db,
+				edition: textEditionSchema.parse(JSON.parse(row.edition)),
+				hash,
+				decoder,
+			})
 		} catch (error) {
 			await db.close()
 			throw error
 		}
 	}
 	close() {
-		return this.db.close()
+		return this.ports.db.close()
 	}
 	async getEntry(id: string) {
-		const row = await this.db.get('SELECT data FROM entries WHERE id=?', [id])
+		const row = await this.ports.db.get('SELECT data FROM entries WHERE id=?', [id])
 		return row ? lexiconEntrySchema.parse(JSON.parse(rowSchema.parse(row).data)) : null
 	}
 
@@ -67,17 +69,19 @@ export class LexiconService {
 		const rows = z
 			.array(
 				z.object({
-					book: z.string(),
-					chapter: z.number(),
-					verse: z.number(),
+					...verseRefSchema.shape,
 					fingerprint: z.string(),
 					spans: z.instanceof(Uint8Array),
 				}),
 			)
 			.parse(
-				await this.db.all(
-					`SELECT book, chapter, verse, fingerprint, spans FROM verses WHERE ${verses.map(() => '(book=? AND chapter=? AND verse=?)').join(' OR ')}`,
-					verses.flatMap((verse) => [verse.ref.book, verse.ref.chapter, verse.ref.verse]),
+				await this.ports.db.all(
+					`SELECT book, chapter, verse, fingerprint, spans FROM verses
+					WHERE (book, chapter, verse) IN (
+						SELECT json_extract(value, '$.book'), json_extract(value, '$.chapter'), json_extract(value, '$.verse')
+						FROM json_each(?)
+					)`,
+					[JSON.stringify(verses.map((verse) => verse.ref))],
 				),
 			)
 		const byRef = new Map(rows.map((row) => [`${row.book}:${row.chapter}:${row.verse}`, row]))
@@ -85,12 +89,12 @@ export class LexiconService {
 			const recorded = byRef.get(`${verse.ref.book}:${verse.ref.chapter}:${verse.ref.verse}`)
 			if (!recorded) return { status: 'snapshot-mismatch', spans: [] }
 			if (
-				JSON.stringify(text.edition) !== JSON.stringify(this.edition) ||
-				tokenFingerprint(verse.tokens, this.hash) !== recorded.fingerprint
+				JSON.stringify(text.edition) !== JSON.stringify(this.ports.edition) ||
+				tokenFingerprint(verse.tokens, this.ports.hash) !== recorded.fingerprint
 			)
 				return { status: 'snapshot-mismatch', spans: [] }
 			spans.push(
-				...decodeSpans(recorded.spans, verse.ref, verse.tokens, this.decoder).filter((span) =>
+				...decodeSpans(recorded.spans, verse.ref, verse.tokens, this.ports.decoder).filter((span) =>
 					selected.some(
 						(word) =>
 							sameRef(word.verse, span.ref) && word.token >= span.first && word.token <= span.last,

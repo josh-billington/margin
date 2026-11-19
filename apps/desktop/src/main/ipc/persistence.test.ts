@@ -34,7 +34,7 @@ vi.mock('electron', () => ({
 		on: vi.fn(),
 	},
 }))
-import { Library } from '../library/library'
+import { Library } from '@margin/services/library/library'
 import { describeFolder, errorMessage, registerPersistence } from './persistence'
 
 let root: string
@@ -223,7 +223,7 @@ it('closes a deleted study without requiring unrelated staged studies to flush',
 	const other = await library.create('Other', document)
 	library.stage({ ...missing, title: 'Missing edits' }, 1)
 	library.stage({ ...other, title: 'Other edits' }, 1)
-	await rm(library.file(missing.id))
+	await rm(join(library.path, 'studies', `${missing.id}.study.json`))
 	const result = await electron.handlers.get(ipcContract.library.closeStudy.channel)!(
 		{ sender: webContents, senderFrame: webContents.mainFrame },
 		{ studyId: missing.id },

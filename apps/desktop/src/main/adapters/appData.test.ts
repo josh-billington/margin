@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { mkdtemp, rm, writeFile, readdir, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AppDataStore } from './store'
+import { AppDataStore } from './appData'
 let root: string
 beforeEach(async () => {
 	root = await mkdtemp(join(tmpdir(), 'margin-prefs-'))

@@ -1,8 +1,7 @@
-import { readFile, rename } from 'node:fs/promises'
-import { join } from 'node:path'
 import { z } from 'zod'
-import { cameraSchema, preferencesSchema } from '@shared/ipc/contract'
-import { atomicWrite } from '../library/atomic'
+import { cameraSchema, preferencesSchema } from '@margin/contract/ipc/contract'
+import type { FileStore, Clock } from '../ports'
+import { FileError } from '../ports'
 
 const settingsSchema = z.object({
 	libraryPath: z.string().optional(),
@@ -18,21 +17,22 @@ const settingsSchema = z.object({
 export class AppDataStore {
 	private data = settingsSchema.parse({})
 	private queue = Promise.resolve()
-	constructor(readonly path: string) {}
+	constructor(private readonly ports: { files: FileStore; clock: Clock; setupComplete: boolean }) {}
 	async open() {
 		try {
-			this.data = settingsSchema.parse(
-				JSON.parse(await readFile(join(this.path, 'prefs.json'), 'utf8')),
-			)
+			this.data = settingsSchema.parse(JSON.parse(await this.ports.files.read('prefs.json')))
 		} catch (error) {
 			if (error instanceof SyntaxError || error instanceof z.ZodError) {
-				await rename(join(this.path, 'prefs.json'), join(this.path, `prefs.json.bad-${Date.now()}`))
-			} else if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
+				await this.ports.files.move({
+					from: 'prefs.json',
+					to: `prefs.json.bad-${this.ports.clock.now()}`,
+				})
+			} else if (!(error instanceof FileError && error.kind === 'missing')) {
 				throw error
 			}
 			this.data.setup = 'pending'
 		}
-		if (process.env.MARGIN_LIBRARY_DIR !== undefined) this.data.setup = 'done'
+		if (this.ports.setupComplete) this.data.setup = 'done'
 		return this
 	}
 	get setup() {
@@ -58,7 +58,7 @@ export class AppDataStore {
 			.then(async () => {
 				const data = structuredClone(this.data)
 				change(data)
-				await atomicWrite(join(this.path, 'prefs.json'), JSON.stringify(data))
+				await this.ports.files.writeAtomic({ path: 'prefs.json', content: JSON.stringify(data) })
 				this.data = data
 			})
 		this.queue = next

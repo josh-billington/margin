@@ -1,19 +1,14 @@
-import { readFile, readdir, mkdir, rm } from 'node:fs/promises'
-import { join, basename } from 'node:path'
-import { createHash } from 'node:crypto'
 import { ulid } from 'ulid'
-import { watch, type FSWatcher } from 'chokidar'
-import { migrateStudy, type PersistedStudy } from '@shared/study/migrations'
-import { atomicWrite } from './atomic'
+import { migrateStudy, type PersistedStudy } from '@margin/contract/study/migrations'
+import type { FileStore, FileWatch, HostIdentity, Clock, Hasher, Diagnostics } from '../ports'
+import { FileError } from '../ports'
+import { join } from '../path'
 import { acquireLibraryLock, type LibraryLock, type LibraryLockOwner } from './lock'
-import { logFailure } from '../logger'
-import { UserFacingError, userMessage } from '@shared/errors'
+import { UserFacingError, userMessage } from '@margin/contract/errors'
 
-import type { LibraryEvent } from '@shared/ipc/contract'
-export type { LibraryEvent } from '@shared/ipc/contract'
-const hash = (content: string) => createHash('sha256').update(content).digest('hex')
-const absent = (error: unknown) =>
-	error instanceof Error && 'code' in error && error.code === 'ENOENT'
+import type { LibraryEvent } from '@margin/contract/ipc/contract'
+export type { LibraryEvent } from '@margin/contract/ipc/contract'
+const absent = (error: unknown) => error instanceof FileError && error.kind === 'missing'
 /** Recovery snapshots are throttled per study; each save inside this window skips its snapshot. */
 const RECOVERY_INTERVAL_MS = 5 * 60 * 1000
 export class Library {
@@ -23,25 +18,52 @@ export class Library {
 	private lock: LibraryLock | null = null
 	private release = async () => {}
 	private recovered = new Map<string, number>()
-	private watcher?: FSWatcher
+	private watcher?: ReturnType<FileWatch['watch']>
 	private baselines = new Map<string, Set<string>>()
-	private known = new Map<string, { study: PersistedStudy; hash: string }>()
+	private known = new Map<string, { study: PersistedStudy; hash: string; content: string }>()
 	private staged = new Map<string, { study: PersistedStudy; sequence: number }>()
 	private committed = new Map<string, number>()
 	private sequences = new Map<string, number>()
 	private queues = new Map<string, Promise<unknown>>()
 	onEvent: (event: LibraryEvent) => void = () => {}
 	constructor(
-		readonly path: string,
-		readonly appData: string,
-		private write = atomicWrite,
+		private readonly ports: {
+			files: FileStore
+			appData: FileStore
+			watch: FileWatch
+			host: HostIdentity
+			clock: Clock
+			hasher: Hasher
+			diagnostics: Diagnostics
+			path: string
+		},
 	) {}
-	file(id: string) {
-		return join(this.path, 'studies', `${id}.study.json`)
+	get path() {
+		return this.ports.path
 	}
+	private studyPath(id: string) {
+		return join('studies', `${id}.study.json`)
+	}
+	private hashed?: { content: string; digest: string }
+	private hash(content: string) {
+		if (this.hashed?.content === content) return this.hashed.digest
+		const digest = this.ports.hasher.sha256Hex(content)
+		// Re-reading a saved snapshot and its renderer baseline must not hash the same bytes again.
+		this.hashed = { content, digest }
+		return digest
+	}
+	private write(path: string, content: string, beforeReplace?: () => Promise<void>) {
+		return this.ports.files.writeAtomic({ path, content, beforeReplace })
+	}
+
 	async initialize(watching = true) {
-		await mkdir(join(this.path, 'studies'), { recursive: true })
-		const lock = await acquireLibraryLock(this.path)
+		await this.ports.files.makeDir('studies')
+		const lock = await acquireLibraryLock({
+			files: this.ports.files,
+			host: this.ports.host,
+			clock: this.ports.clock,
+			scope: this.path,
+		})
 		this.lock = lock
 		this.readOnly = lock.readOnly
 		this.lockOwner = lock.owner
@@ -60,41 +82,40 @@ export class Library {
 	}
 	private watcherClosed = false
 	private startWatcher(retry = true) {
-		this.watcher = watch(join(this.path, 'studies'), {
-			ignoreInitial: true,
-			awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 30 },
-		})
-		this.watcher.on('all', (_event, path) => {
-			const id = basename(path).match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
-			if (id)
-				void this.externalChange(id).catch((error) =>
-					this.onEvent({
-						kind: 'error',
-						studyId: id,
-						message: userMessage(
-							error,
-							'Margin couldn’t reload this study. Save a copy or close the study and try opening it again.',
-						),
-					}),
-				)
-		})
-		this.watcher.on('error', (error) => {
-			logFailure('library-watcher-failed', error)
-			this.onEvent({
-				kind: 'error',
-				studyId: '',
-				message: retry
-					? 'Margin couldn’t watch the library for changes. Trying again. Your unsaved studies are still open.'
-					: 'Margin couldn’t watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.',
-			})
-			if (!retry) return
-			retry = false
-			void this.watcher
-				?.close()
-				.then(() => {
-					if (!this.watcherClosed) this.startWatcher(false)
+		this.watcher = this.ports.watch.watch({
+			dir: 'studies',
+			onChange: (name) => {
+				const id = name.match(/^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/)?.[1]
+				if (id)
+					void this.externalChange(id).catch((error) =>
+						this.onEvent({
+							kind: 'error',
+							studyId: id,
+							message: userMessage(
+								error,
+								'Margin couldn’t reload this study. Save a copy or close the study and try opening it again.',
+							),
+						}),
+					)
+			},
+			onError: (error) => {
+				this.ports.diagnostics.failure('library-watcher-failed', error)
+				this.onEvent({
+					kind: 'error',
+					studyId: '',
+					message: retry
+						? 'Margin couldn’t watch the library for changes. Trying again. Your unsaved studies are still open.'
+						: 'Margin couldn’t watch the library for changes. Restart Margin to try again. Your unsaved studies are still open.',
 				})
-				.catch((error) => logFailure('library-watcher-restart-failed', error))
+				if (!retry) return
+				retry = false
+				void this.watcher
+					?.close()
+					.then(() => {
+						if (!this.watcherClosed) this.startWatcher(false)
+					})
+					.catch((error) => this.ports.diagnostics.failure('library-watcher-restart-failed', error))
+			},
 		})
 	}
 
@@ -123,14 +144,11 @@ export class Library {
 	}
 	async list() {
 		const studies: PersistedStudy[] = []
-		for (const filename of await readdir(join(this.path, 'studies'))) {
+		for (const filename of await this.ports.files.list('studies')) {
 			if (!filename.endsWith('.study.json')) continue
 			try {
 				const id = filename.replace('.study.json', '')
-				const { study } = this.parse(
-					id,
-					await readFile(join(this.path, 'studies', filename), 'utf8'),
-				)
+				const { study } = this.parse(id, await this.ports.files.read(join('studies', filename)))
 				if (filename !== `${study.id}.study.json`)
 					throw new UserFacingError(
 						'Margin couldn’t open this study because its filename has changed. Restore its original filename and try again.',
@@ -151,27 +169,24 @@ export class Library {
 		const index = JSON.stringify(
 			studies.map(({ id, title, createdAt, updatedAt }) => ({ id, title, createdAt, updatedAt })),
 		)
-		if (
-			!this.readOnly &&
-			(await readFile(join(this.path, 'library.json'), 'utf8').catch(() => '')) !== index
-		)
-			await this.write(join(this.path, 'library.json'), index)
+		if (!this.readOnly && (await this.ports.files.read('library.json').catch(() => '')) !== index)
+			await this.write('library.json', index)
 		return studies.map(({ id, title, updatedAt }) => ({ id, title, updatedAt }))
 	}
 	private async read(id: string) {
-		const content = await readFile(this.file(id), 'utf8')
+		const content = await this.ports.files.read(this.studyPath(id))
 		return this.parse(id, content)
 	}
 	private parse(id: string, content: string) {
-		const digest = hash(content)
 		const cached = this.known.get(id)
-		if (cached?.hash === digest) return cached
+		if (cached?.content === content) return cached
+		const digest = this.hash(content)
 		const study = migrateStudy(JSON.parse(content))
 		if (study.id !== id)
 			throw new UserFacingError(
 				'Margin couldn’t open this study because its filename has changed. Restore its original filename and try again.',
 			)
-		return { study, hash: digest }
+		return { study, hash: digest, content }
 	}
 	async open(id: string) {
 		const disk = await this.read(id).catch(async (error: unknown) => {
@@ -195,7 +210,7 @@ export class Library {
 	}
 	async create(title: string, document: PersistedStudy['document']) {
 		this.writable()
-		const now = new Date().toISOString()
+		const now = new Date(this.ports.clock.now()).toISOString()
 		const study = migrateStudy({
 			format: 'margin-study',
 			schemaVersion: 1,
@@ -250,7 +265,7 @@ export class Library {
 			if (
 				disk.hash !== known.hash ||
 				disk.study.revision !== known.study.revision ||
-				(base !== undefined && !this.baselines.get(study.id)?.has(hash(base)))
+				(base !== undefined && !this.baselines.get(study.id)?.has(this.hash(base)))
 			)
 				return this.conflict(study, disk)
 			if (
@@ -264,7 +279,7 @@ export class Library {
 			const saved = {
 				...study,
 				revision: known.study.revision + 1,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(this.ports.clock.now()).toISOString(),
 			}
 			await this.recoverThrottled(known.study)
 			await this.persist(saved, async () => {
@@ -284,9 +299,12 @@ export class Library {
 			return { study: saved, conflict: false }
 		})
 	}
-	private acceptExternal(id: string, disk: { study: PersistedStudy; hash: string }) {
+	private acceptExternal(
+		id: string,
+		disk: { study: PersistedStudy; hash: string; content: string },
+	) {
 		this.known.set(id, disk)
-		this.baselines.set(id, new Set([hash(JSON.stringify(disk.study))]))
+		this.baselines.set(id, new Set([this.hash(JSON.stringify(disk.study))]))
 	}
 	private async refreshIndex() {
 		try {
@@ -305,9 +323,9 @@ export class Library {
 
 	private async persist(study: PersistedStudy, beforeReplace?: () => Promise<void>) {
 		const content = JSON.stringify(study)
-		await this.write(this.file(study.id), content, beforeReplace)
-		const digest = hash(content)
-		this.known.set(study.id, { study, hash: digest })
+		await this.write(this.studyPath(study.id), content, beforeReplace)
+		const digest = this.hash(content)
+		this.known.set(study.id, { study, hash: digest, content })
 		const baselines = this.baselines.get(study.id) ?? new Set<string>()
 		baselines.add(digest)
 		this.baselines.set(study.id, baselines)
@@ -359,7 +377,7 @@ export class Library {
 			this.writable()
 			const disk = await this.read(id)
 			await this.recover(disk.study)
-			await rm(this.file(id))
+			await this.ports.files.remove(this.studyPath(id))
 			this.known.delete(id)
 			this.baselines.delete(id)
 			this.staged.delete(id)
@@ -370,30 +388,32 @@ export class Library {
 	/** Snapshots at most once per RECOVERY_INTERVAL_MS per study. Conflicts, reloads, and deletes always snapshot. */
 	private async recoverThrottled(study: PersistedStudy) {
 		const last = this.recovered.get(study.id)
-		if (last !== undefined && Date.now() - last < RECOVERY_INTERVAL_MS) return
+		if (last !== undefined && this.ports.clock.now() - last < RECOVERY_INTERVAL_MS) return
 		await this.recover(study)
 	}
 	private async recover(study: PersistedStudy) {
-		const folder = join(this.appData, 'recovery', study.id)
+		const folder = join('recovery', study.id)
 		const content = JSON.stringify(study)
-		await this.write(
-			join(folder, `${String(study.revision).padStart(16, '0')}-${hash(content)}.json`),
+		await this.ports.appData.writeAtomic({
+			path: join(folder, `${String(study.revision).padStart(16, '0')}-${this.hash(content)}.json`),
 			content,
-		)
-		this.recovered.set(study.id, Date.now())
-		const versions = (await readdir(folder))
+		})
+		this.recovered.set(study.id, this.ports.clock.now())
+		const versions = (await this.ports.appData.list(folder))
 			.filter((name) => name.endsWith('.json'))
 			.sort()
 			.reverse()
-		await Promise.all(versions.slice(20).map((name) => rm(join(folder, name))))
+		await Promise.all(
+			versions.slice(20).map((name) => this.ports.appData.remove(join(folder, name))),
+		)
 	}
 	async latestRecovery(id: string) {
-		const folder = join(this.appData, 'recovery', id)
-		const names = await readdir(folder).catch(() => [])
+		const folder = join('recovery', id)
+		const names = await this.ports.appData.list(folder).catch(() => [])
 		const versions: PersistedStudy[] = []
 		for (const name of names) {
 			try {
-				versions.push(migrateStudy(JSON.parse(await readFile(join(folder, name), 'utf8'))))
+				versions.push(migrateStudy(JSON.parse(await this.ports.appData.read(join(folder, name)))))
 			} catch {
 				/* A corrupt recovery must not hide a valid version. */
 			}
@@ -429,7 +449,7 @@ export class Library {
 				await this.recover({
 					...study,
 					revision: base + 1,
-					updatedAt: new Date().toISOString(),
+					updatedAt: new Date(this.ports.clock.now()).toISOString(),
 				})
 				preserved.push(study.id)
 			} catch {

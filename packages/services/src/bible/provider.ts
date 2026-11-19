@@ -36,14 +36,14 @@ export class SqliteBibleProvider implements BibleProvider {
 	readonly edition: TextEdition
 	readonly name: string
 	readonly books: BookId[]
-	private constructor(
-		private readonly db: Database,
-		args: {
-			edition: TextEdition
-			books: BookId[]
-			refs: VerseRef[]
-		},
-	) {
+	private readonly db: Database
+	private constructor(args: {
+		db: Database
+		edition: TextEdition
+		books: BookId[]
+		refs: VerseRef[]
+	}) {
+		this.db = args.db
 		this.edition = args.edition
 		this.name = this.edition.editionName
 		this.books = args.books
@@ -75,7 +75,7 @@ export class SqliteBibleProvider implements BibleProvider {
 					[translationId],
 				),
 			)
-		return new SqliteBibleProvider(db, { edition, books, refs })
+		return new SqliteBibleProvider({ db, edition, books, refs })
 	}
 	private readonly refs: VerseRef[]
 	allRefs(): VerseRef[] {
@@ -138,10 +138,18 @@ export class SqliteBibleProvider implements BibleProvider {
 }
 
 export class BibleService {
-	private constructor(
-		private readonly db: Database,
-		readonly providers: Record<TranslationId, SqliteBibleProvider>,
-	) {}
+	private readonly db: Database
+	readonly providers: Record<TranslationId, SqliteBibleProvider>
+	private constructor({
+		db,
+		providers,
+	}: {
+		db: Database
+		providers: Record<TranslationId, SqliteBibleProvider>
+	}) {
+		this.db = db
+		this.providers = providers
+	}
 	static async open(db: Database) {
 		try {
 			const storage = await db.userVersion()
@@ -156,7 +164,7 @@ export class BibleService {
 				kjv: await SqliteBibleProvider.open({ db, translationId: 'kjv' }),
 				jps1917: await SqliteBibleProvider.open({ db, translationId: 'jps1917' }),
 			}
-			return new BibleService(db, providers)
+			return new BibleService({ db, providers })
 		} catch (error) {
 			await db.close()
 			throw error

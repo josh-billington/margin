@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { LibraryEvent, LibraryFolder } from '@margin/contract/ipc/contract'
+import type { LibraryEvent, LibraryFolder, Preferences } from '@margin/contract/ipc/contract'
 
 export interface Database {
 	get(sql: string, params?: readonly unknown[]): Promise<unknown>
@@ -16,7 +16,7 @@ export class FileError extends Error {
 		readonly path: string,
 		options?: ErrorOptions,
 	) {
-		super(`${kind}: ${path}`, options)
+		super(options?.cause instanceof Error ? options.cause.message : `${kind}: ${path}`, options)
 	}
 }
 /** Paths are posix-style and relative to the store's host-chosen root. */
@@ -32,6 +32,7 @@ export interface FileStore {
 	remove(path: string): Promise<void>
 	makeDir(path: string): Promise<void>
 	modifiedAt(path: string): Promise<number>
+	move(args: { from: string; to: string }): Promise<void>
 }
 export interface FileWatch {
 	watch(args: {
@@ -61,19 +62,38 @@ export interface Codec {
 }
 export interface HostUi {
 	pickFolder(current: string): Promise<string | null>
-	confirmDiscard(args: { message: string; detail: string }): Promise<'keep' | 'discard'>
+	confirmDiscard(args: {
+		message: string
+		detail: string
+		quit: boolean
+		loseChanges: boolean
+	}): Promise<'keep' | 'discard'>
 	requestRendererFlush(): Promise<boolean>
 	emit(event: LibraryEvent): void
 	describeFolder(path: string): LibraryFolder
+	appearanceChanged(preferences: Preferences): void
+	copyText(text: string): void
+	showLookupMenu(args: { word: string; multiple: boolean }): Promise<void>
 }
 export interface Ports {
 	openDatabase: OpenDatabase
-	library: FileStore
+	library(path: string): { files: FileStore; watch: FileWatch }
 	appData: FileStore
-	watch: FileWatch
 	host: HostIdentity
 	clock: Clock
 	hasher: Hasher
 	codec: Codec
 	ui: HostUi
+	diagnostics: Diagnostics
+	configuration: {
+		defaultLibraryPath: string
+		libraryPathOverride?: string
+		setupComplete: boolean
+	}
 }
+
+export interface Diagnostics {
+	event(name: string, details?: Record<string, string | number>): void
+	failure(name: string, error: unknown): void
+}
+export const silentDiagnostics: Diagnostics = { event: () => {}, failure: () => {} }
