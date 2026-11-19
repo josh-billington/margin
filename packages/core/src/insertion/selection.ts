@@ -1,11 +1,13 @@
 import { bookIdSchema } from '@shared/bible/types'
+import type { TranslationId } from '@shared/bible/types'
 import { formatScriptureCopy } from './copy'
 import type { CopiedWord } from './copy'
+import { translationNames } from './labels'
 
 /** Collects the selected words in `root` in scripture order; null when no scripture is selected. */
 export function copySelectedScripture(
 	root: HTMLElement | null,
-	editionName: string,
+	translationId: TranslationId,
 ): string | null {
 	const selection = window.getSelection()
 	if (!root || !selection || selection.isCollapsed) return null
@@ -24,5 +26,5 @@ export function copySelectedScripture(
 			},
 		})
 	}
-	return words.length ? formatScriptureCopy(words, editionName) : null
+	return words.length ? formatScriptureCopy(words, translationNames[translationId].long) : null
 }

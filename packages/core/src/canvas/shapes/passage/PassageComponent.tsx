@@ -247,7 +247,7 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 					}
 					style={{ fontSize: SCRIPTURE_BASE_PX * props.fontScale }}
 					onCopy={(e) => {
-						const copied = copySelectedScripture(root.current, props.text.edition.editionName)
+						const copied = copySelectedScripture(root.current, props.text.edition.translationId)
 						if (!copied) return // Nothing selected: let the canvas copy the shape.
 						e.preventDefault()
 						e.stopPropagation()
