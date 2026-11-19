@@ -42,7 +42,7 @@ export interface FileWatch {
 	}): { close(): Promise<void> }
 }
 export const lockOwnerSchema = z.object({
-	pid: z.number().int().positive(),
+	pid: z.number().int().positive().optional(),
 	hostname: z.string(),
 	acquiredAt: z.string().optional(),
 })

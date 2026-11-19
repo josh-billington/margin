@@ -7,6 +7,7 @@ import { logEvent, logFailure } from '../logger'
 export const host: HostIdentity = {
 	current: () => ({ pid: process.pid, hostname: hostname(), acquiredAt: new Date().toISOString() }),
 	isAlive: (owner) => {
+		if (owner.pid === undefined) return false
 		try {
 			process.kill(owner.pid, 0)
 			return true

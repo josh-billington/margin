@@ -10,6 +10,8 @@ export default tseslint.config(
 			'**/test-results/**',
 			'**/playwright-report/**',
 			'**/node_modules/**',
+			'apps/ipad/www/**',
+			'apps/ipad/ios/**',
 			'site/**',
 			'docs/**',
 			'video/**',

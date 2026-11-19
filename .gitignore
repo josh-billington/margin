@@ -19,3 +19,10 @@ playwright-report
 /video/
 
 .nx/
+/.audit/
+apps/ipad/www/
+apps/ipad/ios/App/App/public/
+apps/ipad/ios/App/App/capacitor.config.json
+apps/ipad/ios/vendor/
+apps/ipad/ios/DerivedData/
+**/xcuserdata/

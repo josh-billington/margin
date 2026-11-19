@@ -1,6 +1,7 @@
 import { ipcContract } from '@shared/ipc/contract'
 import { validateDocument } from '@shared/study/validation'
 import { errorMessage } from '@margin/services/persistence'
+import { createServiceApi } from '@margin/services/api'
 import type { MarginHandlers } from '@margin/services/services'
 import { logFailure } from '../logger'
 import { ipcMain, type BrowserWindow } from 'electron'
@@ -70,36 +71,17 @@ export function registerServiceHandlers({
 	getWindow: () => BrowserWindow | null
 	handlers: MarginHandlers
 }) {
-	handleOperation(
-		getWindow,
-		ipcContract.library.getLibrary,
-		handlers[ipcContract.library.getLibrary.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.library.completeSetup,
-		handlers[ipcContract.library.completeSetup.channel],
-	)
+	const api = createServiceApi({ handlers })
+	handleOperation(getWindow, ipcContract.library.getLibrary, api.library.getLibrary)
+	handleOperation(getWindow, ipcContract.library.completeSetup, api.library.completeSetup)
 	handleOperation(
 		getWindow,
 		ipcContract.library.chooseLibraryFolder,
-		handlers[ipcContract.library.chooseLibraryFolder.channel],
+		api.library.chooseLibraryFolder,
 	)
-	handleOperation(
-		getWindow,
-		ipcContract.library.createStudy,
-		handlers[ipcContract.library.createStudy.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.library.listStudies,
-		handlers[ipcContract.library.listStudies.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.library.openStudy,
-		handlers[ipcContract.library.openStudy.channel],
-	)
+	handleOperation(getWindow, ipcContract.library.createStudy, api.library.createStudy)
+	handleOperation(getWindow, ipcContract.library.listStudies, api.library.listStudies)
+	handleOperation(getWindow, ipcContract.library.openStudy, api.library.openStudy)
 	handleOperation(getWindow, ipcContract.library.saveStudy, async (request) => {
 		try {
 			validateDocument(request.study.document)
@@ -114,13 +96,9 @@ export function registerServiceHandlers({
 				),
 			)
 		}
-		return handlers[ipcContract.library.saveStudy.channel](request)
+		return api.library.saveStudy(request)
 	})
-	handleOperation(
-		getWindow,
-		ipcContract.library.closeStudy,
-		handlers[ipcContract.library.closeStudy.channel],
-	)
+	handleOperation(getWindow, ipcContract.library.closeStudy, api.library.closeStudy)
 	handleOperation(getWindow, ipcContract.library.stageStudy, async (request) => {
 		try {
 			validateDocument(request.study.document)
@@ -135,61 +113,21 @@ export function registerServiceHandlers({
 				),
 			)
 		}
-		return handlers[ipcContract.library.stageStudy.channel](request)
+		return api.library.stageStudy(request)
 	})
-	handleOperation(getWindow, ipcContract.library.flush, handlers[ipcContract.library.flush.channel])
-	handleOperation(
-		getWindow,
-		ipcContract.library.takeOver,
-		handlers[ipcContract.library.takeOver.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.library.deleteStudy,
-		handlers[ipcContract.library.deleteStudy.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.bible.resolveReference,
-		handlers[ipcContract.bible.resolveReference.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.bible.getPassage,
-		handlers[ipcContract.bible.getPassage.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.bible.mapPassage,
-		handlers[ipcContract.bible.mapPassage.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.bible.listTranslations,
-		handlers[ipcContract.bible.listTranslations.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.lexicon.copyEntry,
-		handlers[ipcContract.lexicon.copyEntry.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.lexicon.lookupSelection,
-		handlers[ipcContract.lexicon.lookupSelection.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.lexicon.getEntry,
-		handlers[ipcContract.lexicon.getEntry.channel],
-	)
-	handleOperation(
-		getWindow,
-		ipcContract.lexicon.contextMenu,
-		handlers[ipcContract.lexicon.contextMenu.channel],
-	)
-	handleOperation(getWindow, ipcContract.prefs.get, handlers[ipcContract.prefs.get.channel])
-	handleOperation(getWindow, ipcContract.prefs.set, handlers[ipcContract.prefs.set.channel])
-	handleOperation(getWindow, ipcContract.camera.get, handlers[ipcContract.camera.get.channel])
-	handleOperation(getWindow, ipcContract.camera.set, handlers[ipcContract.camera.set.channel])
+	handleOperation(getWindow, ipcContract.library.flush, api.library.flush)
+	handleOperation(getWindow, ipcContract.library.takeOver, api.library.takeOver)
+	handleOperation(getWindow, ipcContract.library.deleteStudy, api.library.deleteStudy)
+	handleOperation(getWindow, ipcContract.bible.resolveReference, api.bible.resolveReference)
+	handleOperation(getWindow, ipcContract.bible.getPassage, api.bible.getPassage)
+	handleOperation(getWindow, ipcContract.bible.mapPassage, api.bible.mapPassage)
+	handleOperation(getWindow, ipcContract.bible.listTranslations, api.bible.listTranslations)
+	handleOperation(getWindow, ipcContract.lexicon.copyEntry, api.lexicon.copyEntry)
+	handleOperation(getWindow, ipcContract.lexicon.lookupSelection, api.lexicon.lookupSelection)
+	handleOperation(getWindow, ipcContract.lexicon.getEntry, api.lexicon.getEntry)
+	handleOperation(getWindow, ipcContract.lexicon.contextMenu, api.lexicon.contextMenu)
+	handleOperation(getWindow, ipcContract.prefs.get, api.prefs.get)
+	handleOperation(getWindow, ipcContract.prefs.set, api.prefs.set)
+	handleOperation(getWindow, ipcContract.camera.get, api.camera.get)
+	handleOperation(getWindow, ipcContract.camera.set, api.camera.set)
 }
