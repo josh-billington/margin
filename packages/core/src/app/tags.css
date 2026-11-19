@@ -64,7 +64,7 @@
 	transition: transform var(--duration-fast) var(--ease-out);
 }
 .color-choices button:active {
-	transform: scale(0.92);
+	transform: scale(0.95);
 }
 /* A ring with a gap reads on every swatch colour, including ink. */
 .color-choices button[aria-pressed='true'] {
