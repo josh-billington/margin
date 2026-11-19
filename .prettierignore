@@ -1,5 +1,6 @@
 node_modules
 **/out
+apps/mcp/dist
 **/release
 pnpm-lock.yaml
 **/resources/fonts

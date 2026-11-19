@@ -6,6 +6,7 @@ export default tseslint.config(
 		ignores: [
 			'**/data/raw/**',
 			'**/out/**',
+			'apps/mcp/dist/**',
 			'**/release/**',
 			'**/test-results/**',
 			'**/playwright-report/**',

@@ -1,0 +1,34 @@
+{
+	"name": "@margin/mcp",
+	"version": "0.9.0-beta.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.js",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint src",
+		"test": "vitest run src/mcp.test.ts"
+	},
+	"dependencies": {
+		"@margin/contract": "workspace:*",
+		"@modelcontextprotocol/sdk": "1.32.2",
+		"zod": "4.6.7"
+	},
+	"devDependencies": {
+		"esbuild": "0.28.2"
+	},
+	"nx": {
+		"targets": {
+			"build": {
+				"outputs": [
+					"{projectRoot}/dist"
+				]
+			},
+			"lint": {
+				"inputs": [
+					"default"
+				]
+			}
+		}
+	}
+}
