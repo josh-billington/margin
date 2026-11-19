@@ -20,6 +20,10 @@
 :root[data-platform='ipad'] body {
 	font: 400 var(--text-sm) / 1.4 var(--font-ui);
 }
+/* Labels set in a fixed column (a lookup's KJV, Origin, Compare) widen with the text. */
+:root[data-platform='ipad'] .lookup-facts {
+	grid-template-columns: minmax(56px, max-content) 1fr;
+}
 
 /* Shapes are laid out in canvas units with the Mac's sizes (tokens.css), whatever the text-size
    setting; their controls grow by hit area instead. */
