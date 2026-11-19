@@ -24,7 +24,7 @@ test('the welcome plays once on first launch before setup, and Help › Show Wel
 		await expect(setup).toHaveCount(0)
 		await expect(intro.getByRole('button', { name: 'Continue' })).toBeEnabled({ timeout: 10_000 })
 		await expect(intro).toHaveAccessibleDescription(/Study with a pen in hand\./)
-		await intro.getByRole('button', { name: 'Skip' }).click()
+		await intro.getByRole('button', { name: 'Skip intro' }).click()
 		await expect(intro).toHaveCount(0)
 		await expect(setup).toBeVisible()
 		await expect(setup).toBeFocused()
@@ -58,7 +58,8 @@ test('the welcome plays once on first launch before setup, and Help › Show Wel
 			await page.keyboard.press('Enter')
 			await expect(replay).toHaveAccessibleDescription(new RegExp(title.replace('.', '\\.')))
 		}
-		await expect(replay.locator('[data-intro-word="word"]')).toBeAttached()
+		await expect(replay.locator('[data-intro-word="transformed"]')).toBeAttached()
+		await expect(replay.locator('.passage-header')).toHaveText('Romans 12:2 · KJV')
 		await page.keyboard.press('Enter')
 		// The ending plays by itself and dissolves into the study.
 		await expect(replay).toHaveCount(0, { timeout: 15_000 })

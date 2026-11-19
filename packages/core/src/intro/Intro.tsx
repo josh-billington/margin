@@ -22,7 +22,7 @@ const nextPage = (index: PageIndex): PageIndex | null =>
 	index === 0 ? 1 : index === 1 ? 2 : index === 2 ? 3 : null
 
 /** Pause on the formed mark before the first page, and on the welcome before the dissolve. */
-const OPENING_HOLD = 450
+const OPENING_HOLD = 350
 const WELCOME_HOLD = 1400
 
 /**
@@ -255,23 +255,40 @@ export function Intro({ restoreFocus }: { restoreFocus: boolean }) {
 				{ duration: reduced ? REDUCED_FADE : 520 },
 			)
 			steps.add(play(pages.current, [{ opacity: 1 }], { duration: 0 }))
-			arrive(sheet.current, 160, { opacity: 0, transform: 'translateY(16px) scale(0.985)' })
-			arrive(title, 320)
-			arrive(body, 400)
-			arrive(footer.current, 520, { opacity: 0, transform: 'translateY(4px)' })
+			arrive(title, 260)
+			arrive(body, 340)
+			arrive(footer.current, 460, { opacity: 0, transform: 'translateY(4px)' })
 			if (hello.current)
 				if (reduced) arrive(hello.current, 0)
-				else writeHello({ svg: hello.current, steps, delay: 560 })
+				else writeHello({ svg: hello.current, steps, delay: 420 })
 			return
 		}
-		if (index === 1)
+		if (index === 1) {
+			// The handwriting lifts off the glass, then the verse card forms where it was: the one
+			// arrival the pages build towards.
 			steps.add(
 				retarget(
 					hello.current,
 					reduced ? { opacity: 0 } : { opacity: 0, transform: 'scale(0.98)', filter: 'blur(6px)' },
-					{ duration: reduced ? REDUCED_FADE : 420 },
+					{ duration: reduced ? REDUCED_FADE : 380 },
 				),
 			)
+			steps.add(
+				reduced
+					? play(sheet.current, [{ opacity: 0 }, { opacity: 1 }], {
+							duration: REDUCED_FADE,
+							delay: REDUCED_FADE / 2,
+						})
+					: play(
+							sheet.current,
+							[
+								{ opacity: 0, transform: 'translateY(14px) scale(0.96)', filter: 'blur(10px)' },
+								{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
+							],
+							{ duration: 950, delay: 260 },
+						),
+			)
+		}
 		arrive(title, 40)
 		arrive(body, 120)
 	}
@@ -332,44 +349,49 @@ export function Intro({ restoreFocus }: { restoreFocus: boolean }) {
 						</p>
 					</div>
 					<div ref={pages} className="intro-pages">
-						<div ref={sheet} className="intro-sheet" aria-hidden>
+						{/* The card keeps its place while hidden, so nothing below it moves between pages;
+						    on the first page "hello" is written straight onto the glass in that space. */}
+						<div className="intro-stage" aria-hidden>
+							<div ref={sheet} className="intro-sheet">
+								{passage && (
+									<VerseStudy
+										passage={passage}
+										stage={step.kind === 'page' ? step.index : pageIndex}
+										steps={steps}
+										reduced={reduced}
+									/>
+								)}
+							</div>
 							<Handwriting ref={hello} />
-							{passage && (
-								<VerseStudy
-									passage={passage}
-									stage={step.kind === 'page' ? step.index : pageIndex}
-									steps={steps}
-									reduced={reduced}
-								/>
-							)}
 						</div>
 						<div ref={text} className="intro-text" aria-hidden>
 							<h2>{page.title}</h2>
 							<p>{page.body}</p>
 						</div>
 						<div ref={footer} className="intro-footer">
-							<button
-								ref={next}
-								type="button"
-								className="button button-primary intro-next"
-								disabled={step.kind !== 'page'}
-								onClick={advance}
-							>
-								{pageIndex === LAST_PAGE ? introCopy.finish : introCopy.next}
-							</button>
 							<div className="intro-dots" aria-hidden>
 								{introCopy.pages.map((_, index) => (
 									<span key={index} data-current={index === pageIndex || undefined} />
 								))}
 							</div>
+							<button
+								ref={next}
+								type="button"
+								className="intro-next"
+								data-prominent={pageIndex === LAST_PAGE || undefined}
+								disabled={step.kind !== 'page'}
+								onClick={advance}
+							>
+								{pageIndex === LAST_PAGE ? introCopy.finish : introCopy.next}
+							</button>
+							<button type="button" className="intro-skip" onClick={skip}>
+								{introCopy.skip}
+							</button>
 						</div>
 					</div>
 				</div>
-				<div ref={chrome} className="intro-chrome">
-					<button type="button" className="text-button intro-skip" onClick={skip}>
-						{introCopy.skip}
-					</button>
-				</div>
+				{/* The title-bar strip stays draggable, as on the window it covers. */}
+				<div ref={chrome} className="intro-chrome" />
 			</Dialog.Content>
 		</Dialog.Root>
 	)

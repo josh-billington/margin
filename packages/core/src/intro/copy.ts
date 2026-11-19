@@ -6,7 +6,7 @@ import type { VerseRef } from '@shared/bible/types'
  */
 export const introCopy = {
 	label: 'Welcome to Margin',
-	skip: 'Skip',
+	skip: 'Skip intro',
 	next: 'Continue',
 	finish: 'Get started',
 	pages: [
@@ -29,12 +29,14 @@ export const introCopy = {
 	],
 	welcome: ['Welcome', 'to', 'Margin'],
 	verse: {
-		ref: { book: 'PSA', chapter: 119, verse: 105 } satisfies VerseRef,
+		ref: { book: 'ROM', chapter: 12, verse: 2 } satisfies VerseRef,
 		translation: 'kjv',
-		highlight: 'word',
-		arrowFrom: 'lamp',
-		arrowTo: 'light',
-		note: 'Enough light for the next step.',
+		/** Tagged on page 2, with the tag's name shown as Margin shows it. */
+		highlight: 'transformed',
+		tag: { name: 'Renewal', color: 'amber' },
+		arrowFrom: 'conformed',
+		arrowTo: 'transformed',
+		note: 'Changed from within — metamorphoō',
 	},
 } as const
 

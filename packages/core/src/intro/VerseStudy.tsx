@@ -13,11 +13,13 @@ import type { Steps } from './motion'
 
 const tokenText = (token: Token) => token.runs.map((run) => run.text).join('')
 const { verse: copy } = introCopy
+const tagColour = `var(--${copy.tag.color})`
 
 /** The parts of the verse page each step animates. */
 type Parts = {
 	block: HTMLElement
 	highlight: HTMLElement | null
+	tagName: HTMLElement | null
 	from: HTMLElement | null
 	to: HTMLElement | null
 	ink: SVGPathElement
@@ -41,26 +43,24 @@ function layoutRect(element: HTMLElement, stage: HTMLElement) {
 }
 
 /**
- * The stroke a hand would draw from the end of one word, out into the margin, and back to the end
- * of the other, with the pressure rising and easing off as a real pen stroke does.
+ * The stroke a hand would draw from one word over the line to another: up from the first, a low
+ * arc through the space under the heading, and down onto the second, with the pressure rising and
+ * easing off as a real pen stroke does.
  */
 function connectingStroke({ from, to }: { from: DOMRectLike; to: DOMRectLike }): InkStroke {
-	const start = { x: from.x + from.w + 6, y: from.y + from.h * 0.58 }
-	const end = { x: to.x + to.w + 8, y: to.y + to.h * 0.5 }
-	// A loose hand: the stroke swings out a little further than it comes back.
-	const reach = Math.max(start.x, end.x)
-	const out = { a: reach + 58, b: reach + 44 }
+	const start = { x: from.x + from.w * 0.55, y: from.y + 3 }
+	const end = { x: to.x + to.w * 0.42, y: to.y + 2 }
+	const peak = Math.min(start.y, end.y) - 30
+	// A loose hand: the stroke climbs quickly and lands a little more gently.
+	const c1 = { x: start.x + (end.x - start.x) * 0.18, y: peak }
+	const c2 = { x: start.x + (end.x - start.x) * 0.8, y: peak + 4 }
 	const point = (t: number): InkPoint => {
 		const u = 1 - t
-		const x = u ** 3 * start.x + 3 * u * u * t * out.a + 3 * u * t * t * out.b + t ** 3 * end.x
-		const y =
-			u ** 3 * start.y +
-			3 * u * u * t * (start.y - 4) +
-			3 * u * t * t * (end.y + 2) +
-			t ** 3 * end.y
+		const x = u ** 3 * start.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t ** 3 * end.x
+		const y = u ** 3 * start.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t ** 3 * end.y
 		return { x, y, z: 0.42 + 0.18 * Math.sin(Math.PI * t) }
 	}
-	const rest = Array.from({ length: 40 }, (_, i) => point((i + 1) / 40))
+	const rest = Array.from({ length: 48 }, (_, i) => point((i + 1) / 48))
 	return [point(0), ...rest]
 }
 type DOMRectLike = { x: number; y: number; w: number; h: number }
@@ -117,6 +117,7 @@ export function VerseStudy({
 		const parts: Parts = {
 			block,
 			highlight: find(copy.highlight),
+			tagName: stageElement.querySelector<HTMLElement>('.intro-tag-name'),
 			from: find(copy.arrowFrom),
 			to: find(copy.arrowTo),
 			ink,
@@ -148,6 +149,10 @@ export function VerseStudy({
 											</span>
 										))}
 										{token.trailing}
+										{tokenText(token).toLowerCase() === copy.highlight && (
+											// The tag's name, as the canvas shows it beside a tagged word.
+											<span className="intro-tag-name">{copy.tag.name}</span>
+										)}
 									</span>
 									{token.spaceAfter}
 								</span>
@@ -197,14 +202,11 @@ function reveal({
 		settle(play(target, [{ opacity: 0 }, { opacity: 1 }], { duration: REDUCED_FADE, delay }))
 	switch (stage) {
 		case 1: {
-			// The verse arrives on the canvas, then one word is marked in a tag colour.
+			// The verse arrives on its card, then one word is tagged: its colour, then the tag's name.
 			if (reduced) {
 				fade(parts.block)
-				settle(
-					play(parts.highlight, [{ fontWeight: 600, color: 'var(--amber)' }], {
-						duration: 0,
-					}),
-				)
+				settle(play(parts.highlight, [{ fontWeight: 600, color: tagColour }], { duration: 0 }))
+				fade(parts.tagName)
 				return
 			}
 			settle(play(parts.block, [{ opacity: 1 }], { duration: 0 }))
@@ -215,7 +217,7 @@ function reveal({
 						{ opacity: 0, transform: 'translateY(6px)' },
 						{ opacity: 1, transform: 'none' },
 					],
-					{ duration: 700, delay: 320 },
+					{ duration: 700, delay: 600 },
 				),
 			)
 			settle(
@@ -225,7 +227,7 @@ function reveal({
 						{ opacity: 0, transform: 'translateY(10px)', filter: 'blur(3px)' },
 						{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
 					],
-					{ duration: 800, delay: 400 },
+					{ duration: 800, delay: 680 },
 				),
 			)
 			// The highlight is the one place the intro animates more than transform and opacity: Margin
@@ -235,9 +237,19 @@ function reveal({
 					parts.highlight,
 					[
 						{ fontWeight: 400, color: 'var(--text-scripture)' },
-						{ fontWeight: 600, color: 'var(--amber)' },
+						{ fontWeight: 600, color: tagColour },
 					],
-					{ duration: 700, delay: 1050, easing: PEN },
+					{ duration: 700, delay: 1500, easing: PEN },
+				),
+			)
+			settle(
+				play(
+					parts.tagName,
+					[
+						{ opacity: 0, transform: 'translateX(-4px)' },
+						{ opacity: 1, transform: 'none' },
+					],
+					{ duration: 420, delay: 2100 },
 				),
 			)
 			return

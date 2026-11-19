@@ -28,7 +28,7 @@ export function Mark({
 }
 
 /** How long the mark takes to form, so the first page can follow it. */
-export const MARK_FORMED = 2900
+export const MARK_FORMED = 2150
 
 /**
  * The mark forms like glass: the tile condenses out of a blur, its rim catches the light, the cover
@@ -62,44 +62,44 @@ export function formMark({
 				{ opacity: 0, transform: 'scale(0.9)', filter: 'blur(12px)' },
 				{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
 			],
-			{ duration: 1300 },
+			{ duration: 1100 },
 		),
 	)
-	each('tile', [{ opacity: 0 }, { opacity: 1 }], { duration: 900, delay: 0 })
-	each('rim', [{ opacity: 0 }, { opacity: 1 }], { duration: 900, delay: 350 })
+	each('tile', [{ opacity: 0 }, { opacity: 1 }], { duration: 800, delay: 0 })
+	each('rim', [{ opacity: 0 }, { opacity: 1 }], { duration: 800, delay: 250 })
 	each(
 		'cover',
 		[
 			{ opacity: 0, transform: 'translateY(2px)' },
 			{ opacity: 1, transform: 'none' },
 		],
-		{ duration: 800, delay: 550 },
+		{ duration: 700, delay: 400 },
 	)
 	const settle = [
 		{ opacity: 0, transform: 'translateY(-2.5px) scale(0.97)' },
 		{ opacity: 1, transform: 'none' },
 	]
-	each('page-left', settle, { duration: 900, delay: 720 })
-	each('page-right', settle, { duration: 900, delay: 820 })
-	each('spine', [{ opacity: 0 }, { opacity: 1 }], { duration: 700, delay: 1050 })
+	each('page-left', settle, { duration: 800, delay: 520 })
+	each('page-right', settle, { duration: 800, delay: 600 })
+	each('spine', [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: 800 })
 	// The lines are written column by column, top to bottom, as the page would be read.
 	mark.querySelectorAll('[data-line]').forEach((line, index) => {
 		steps.add(
 			play(line, [{ strokeDashoffset: 1.001 }, { strokeDashoffset: 0 }], {
-				duration: 280,
-				delay: 1200 + index * 45,
+				duration: 260,
+				delay: 900 + index * 35,
 				easing: WRITE,
 			}),
 		)
 	})
-	each('sheen', [{ opacity: 0 }, { opacity: 1 }], { duration: 800, delay: 1750 })
+	each('sheen', [{ opacity: 0 }, { opacity: 1 }], { duration: 700, delay: 1350 })
 	each(
 		'ribbon',
 		[
 			{ opacity: 0, transform: 'translateY(-6px) scaleY(0.75)' },
 			{ opacity: 1, transform: 'none' },
 		],
-		{ duration: 750, delay: 2100, easing: SETTLE },
+		{ duration: 700, delay: 1600, easing: SETTLE },
 	)
 }
 

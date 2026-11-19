@@ -115,7 +115,7 @@ test('malformed preferences are kept aside while setup remains usable', async ()
 		// Defaults again, as for a new install: the welcome plays, then setup.
 		await running.page
 			.getByRole('dialog', { name: 'Welcome to Margin' })
-			.getByRole('button', { name: 'Skip' })
+			.getByRole('button', { name: 'Skip intro' })
 			.click()
 		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
 		await expect(setup).toBeVisible()
