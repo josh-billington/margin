@@ -64,6 +64,7 @@ const canvasColors = {
 }
 const canvasOptions = {
 	createTextOnCanvasDoubleClick: false,
+	...(platform.kind === 'mac' && { debouncedZoomThreshold: 100 }),
 	onBeforeCopyToClipboard: ({ editor, content }: { editor: Editor; content: TLContent }) =>
 		withReferencedTags(editor, content),
 }
