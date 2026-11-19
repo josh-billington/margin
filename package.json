@@ -3,12 +3,12 @@
 	"private": true,
 	"packageManager": "pnpm@11.5.2",
 	"scripts": {
-		"typecheck": "pnpm -r typecheck",
-		"test": "pnpm --filter @margin/desktop test",
-		"lint": "eslint .",
+		"typecheck": "nx run-many -t typecheck",
+		"test": "nx run-many -t test",
+		"lint": "nx run-many -t lint",
 		"format": "prettier --write .",
 		"dev": "pnpm --filter @margin/desktop dev",
-		"build": "pnpm --filter @margin/desktop build",
+		"build": "nx run-many -t build",
 		"test:e2e": "pnpm --filter @margin/desktop test:e2e",
 		"import:bible": "pnpm --filter @margin/desktop import:bible",
 		"import:lexicon": "pnpm --filter @margin/desktop import:lexicon",
@@ -25,6 +25,7 @@
 		"@vitejs/plugin-react": "5.2.0",
 		"eslint": "9.39.5",
 		"happy-dom": "21.0.4",
+		"nx": "24.0.6",
 		"prettier": "3.9.10",
 		"react": "19.3.1",
 		"react-dom": "19.3.1",
@@ -33,5 +34,16 @@
 		"typescript-eslint": "8.72.1",
 		"vite": "7.3.7",
 		"vitest": "4.1.12"
+	},
+	"nx": {
+		"includedScripts": [],
+		"targets": {
+			"lint": {
+				"command": "eslint .",
+				"inputs": [
+					"{workspaceRoot}/**/*"
+				]
+			}
+		}
 	}
 }

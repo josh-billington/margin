@@ -26,7 +26,7 @@
 		"dist:release": "node scripts/release-preflight.mjs && pnpm build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
 	},
 	"build": {
-		"copyright": "\u00a9 2026 Josh Billington",
+		"copyright": "© 2026 Josh Billington",
 		"appId": "com.margin.app",
 		"productName": "Margin",
 		"directories": {
@@ -99,5 +99,33 @@
 		"electron-vite": "6.0.0",
 		"tsx": "4.23.15",
 		"vite": "7.3.7"
+	},
+	"nx": {
+		"targets": {
+			"build": {
+				"inputs": [
+					"default",
+					"^default",
+					{
+						"fileset": "{workspaceRoot}/.env",
+						"includeIgnored": true
+					},
+					{
+						"fileset": "{projectRoot}/resources/**/*",
+						"includeIgnored": true
+					}
+				]
+			},
+			"test": {
+				"inputs": [
+					"default",
+					"^default",
+					{
+						"fileset": "{projectRoot}/resources/**/*",
+						"includeIgnored": true
+					}
+				]
+			}
+		}
 	}
 }
