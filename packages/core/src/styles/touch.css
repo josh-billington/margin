@@ -167,12 +167,15 @@
 	pointer-events: none;
 }
 
-/* Reading focus on screen (FocusLayer.tsx): ↑ ↓ and Esc for a finger, at the right edge. */
+/* Reading focus on screen (FocusLayer.tsx): ↑ ↓ and Esc for a finger, at the right edge. Centred
+   by margins, not a transform, so the entry scale has the transform to itself. */
 .focus-controls {
 	position: absolute;
-	top: 50%;
+	top: 0;
+	bottom: 0;
 	right: var(--space-6);
-	transform: translateY(-50%);
+	height: fit-content;
+	margin-block: auto;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -185,6 +188,7 @@
 	pointer-events: all;
 	user-select: none;
 	-webkit-user-select: none;
+	transform-origin: right center;
 	animation: pop-in var(--duration-base) var(--ease-out);
 }
 .focus-controls .icon-button {
