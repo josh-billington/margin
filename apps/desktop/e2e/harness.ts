@@ -2,7 +2,7 @@ import { _electron as electron, expect } from '@playwright/test'
 import type { ElectronApplication, Page } from '@playwright/test'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
+import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join, resolve } from 'node:path'
 
@@ -65,12 +65,43 @@ function serveRenderer(): Promise<string> {
 	return rendererServer
 }
 
+/**
+ * A fresh profile opens on the welcome intro. Tests that are not about it start from preferences
+ * as a launch after the intro would leave them (setup still pending for first-run tests); a
+ * profile the test has already written is left alone.
+ */
+async function seedIntroSeen(dirs: Dirs, firstRun: boolean) {
+	const path = join(dirs.userData, 'prefs.json')
+	if (
+		await access(path).then(
+			() => true,
+			() => false,
+		)
+	)
+		return
+	await mkdir(dirs.userData, { recursive: true })
+	await writeFile(
+		path,
+		JSON.stringify({
+			setup: firstRun ? 'pending' : 'done',
+			preferences: {
+				defaultTranslation: 'kjv',
+				oldTestamentTranslation: 'kjv',
+				defaultNoteFont: 'handwritten',
+				displayNotesInPlainFont: false,
+				introSeen: true,
+			},
+		}),
+	)
+}
+
 /** Launches the built app (out/main) with test-only data redirects; never touches real app data. */
 export async function launch(
 	dirs: Dirs,
 	extraEnv: Record<string, string> = {},
-	options: { executablePath?: string; args?: string[]; firstRun?: boolean } = {},
+	options: { executablePath?: string; args?: string[]; firstRun?: boolean; intro?: boolean } = {},
 ): Promise<Launched> {
+	if (!options.intro) await seedIntroSeen(dirs, options.firstRun ?? false)
 	const env: Record<string, string> = {}
 	for (const [key, value] of Object.entries(process.env))
 		if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE' && key !== 'MARGIN_LIBRARY_DIR')
