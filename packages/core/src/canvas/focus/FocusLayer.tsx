@@ -1,7 +1,11 @@
 import { useEffect, useId } from 'react'
 import { useEditor, useValue } from 'tldraw'
+import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import { verseKey } from '../highlights/ranges'
-import { laidOutVerseBounds } from './actions'
+import { ToolButton } from '../../app/ToolButton'
+import { iconLg } from '../../lib/icons'
+import { platform, useCoarsePointer } from '../../lib/platform'
+import { exitFocusLevel, laidOutVerseBounds, stepVerse } from './actions'
 import { computeBrightSet } from './dimming'
 import { dimModel } from './model'
 import { focusFor, passageLayout, resetFocus, useFocus } from './store'
@@ -129,5 +133,57 @@ export function FocusLayer() {
 				</svg>
 			)}
 		</>
+	)
+}
+
+/**
+ * ↑ ↓ and Esc on screen, for reading focus without a keyboard: a finger, or a host whose menu bar
+ * does not carry them.
+ */
+export function FocusControls() {
+	const editor = useEditor()
+	const coarse = useCoarsePointer()
+	const target = useFocus((state) => (state.editor === editor ? state.target : null))
+	const position = useValue(
+		'focused verse position',
+		() => {
+			if (!target) return null
+			const shape = editor.getCurrentPageShapes().find((shape) => shape.id === target.passageId)
+			if (shape?.type !== 'passage') return null
+			const verses = shape.props.text.verses
+			const index =
+				target.level === 'verse'
+					? verses.findIndex((verse) => verseKey(verse.ref) === verseKey(target.verse))
+					: -1
+			return { index, count: verses.length }
+		},
+		[editor, target],
+	)
+	if (!target || !position || !(coarse || !platform.nativeMenu)) return null
+	const inVerse = target.level === 'verse'
+	return (
+		<div className="focus-controls" role="toolbar" aria-label="Reading focus">
+			<ToolButton
+				label="Previous verse"
+				disabled={inVerse && position.index <= 0}
+				onClick={() => stepVerse(editor, -1)}
+			>
+				<ChevronUp {...iconLg} />
+			</ToolButton>
+			<ToolButton
+				label="Next verse"
+				disabled={inVerse && position.index >= position.count - 1}
+				onClick={() => stepVerse(editor, 1)}
+			>
+				<ChevronDown {...iconLg} />
+			</ToolButton>
+			<span className="toolbar-divider" aria-hidden="true" />
+			<ToolButton
+				label={inVerse ? 'Show all verses' : 'Leave focus'}
+				onClick={() => exitFocusLevel(editor)}
+			>
+				<X {...iconLg} />
+			</ToolButton>
+		</div>
 	)
 }

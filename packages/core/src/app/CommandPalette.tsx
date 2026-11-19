@@ -4,18 +4,22 @@ import { Command } from 'cmdk'
 import {
 	BookOpen,
 	Copy,
+	Maximize,
 	PanelLeft,
 	Plus,
+	Redo2,
 	Settings,
 	Search,
 	Tag,
 	Trash2,
+	Undo2,
 	type LucideIcon,
 } from 'lucide-react'
 import { commands, labelFor, runCommand } from './commands'
 import type { CommandId } from './commands'
 import { useUiStore } from './uiStore'
 import { iconMd } from '../lib/icons'
+import { platform } from '../lib/platform'
 
 interface CommandPaletteProps {
 	open: boolean
@@ -31,9 +35,18 @@ const icons: Partial<Record<CommandId, LucideIcon>> = {
 	'selection.delete': Trash2,
 	'sidebar.toggle': PanelLeft,
 	'settings.open': Settings,
+	'edit.undo': Undo2,
+	'edit.redo': Redo2,
+	'view.fit': Maximize,
 }
-const groups = ['Study', 'Selection', 'Workspace'] as const
-const paletteCommands = commands.filter((command) => command.palette)
+const paletteCommands = commands.filter(
+	(command) => command.palette || (command.paletteWithoutMenuBar && !platform.nativeMenu),
+)
+const groups = (['Study', 'Selection', 'Workspace', 'View'] as const).filter((group) =>
+	paletteCommands.some((command) => command.group === group),
+)
+/** Undo and redo act on what has focus, so they wait for the palette to hand it back. */
+const runsAfterClose = new Set<CommandId>(['word.lookup', 'edit.undo', 'edit.redo'])
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 	const [search, setSearch] = useState('')
@@ -101,7 +114,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 													value={title}
 													disabled={!(command.available?.() ?? true)}
 													onSelect={() =>
-														run(() => runCommand(command.id), command.id === 'word.lookup')
+														run(() => runCommand(command.id), runsAfterClose.has(command.id))
 													}
 												>
 													{Icon && <Icon {...iconMd} aria-hidden="true" />}

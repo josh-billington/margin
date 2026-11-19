@@ -6,12 +6,14 @@ import { readTextSelection, useTagging, wordFor } from '../highlights/tagging'
 import { targetFromElement } from '../bindings/words'
 import { wordKey } from '../highlights/ranges'
 import { contextLookupRequest } from './contextRange'
+import { createLongPress } from '../../lib/gestures'
 
 export const useLookup = create<{
 	editor: Editor | null
 	request: TagRequest | null
 	captured: TagRequest | null
-}>(() => ({ editor: null, request: null, captured: null }))
+	menu: WordMenu | null
+}>(() => ({ editor: null, request: null, captured: null, menu: null }))
 
 export function caretRequest(editor: Editor): TagRequest | null {
 	const element =
@@ -46,43 +48,102 @@ export function requestWordLookup(editor: Editor) {
 	useLookup.setState({ editor, request: { ...request } })
 }
 
-export function installLookupContextMenu(editor: Editor) {
+/** The in-page word menu a host without native context menus shows on long-press or right-click. */
+export interface WordMenu {
+	request: TagRequest
+	/** The word shown in "Look up “word”"; empty for a selection of several words. */
+	word: string
+}
+
+/** What a context gesture on this word acts on, as the native menu describes it. */
+function contextTarget(editor: Editor, element: HTMLElement, point: { x: number; y: number }) {
+	const shape = editor
+		.getCurrentPageShapes()
+		.find((shape) => shape.id === element.dataset.passageId)
+	if (shape?.type !== 'passage') return null
+	const target = targetFromElement(element)
+	const request = contextLookupRequest(
+		shape.props.text,
+		shape.id,
+		readTextSelection(editor),
+		target,
+		point,
+	)
+	const token = shape.props.text.verses.find(
+		(verse) =>
+			verse.ref.book === target.verse.book &&
+			verse.ref.chapter === target.verse.chapter &&
+			verse.ref.verse === target.verse.verse,
+	)?.tokens[target.token]
+	return {
+		request,
+		word: token?.runs.map((run) => run.text).join('') ?? '',
+		multiple: wordKey(request.start) !== wordKey(request.end),
+	}
+}
+const wordAt = (target: EventTarget | null) => wordFor(target instanceof Node ? target : null)
+
+export function installLookupContextMenu(
+	editor: Editor,
+	{ nativeContextMenu }: { nativeContextMenu: boolean },
+) {
 	const container = editor.getContainer()
+	const openWordMenu = (element: HTMLElement, point: { x: number; y: number }) => {
+		const context = contextTarget(editor, element, point)
+		if (!context) return false
+		useLookup.setState({
+			editor,
+			menu: { request: context.request, word: context.multiple ? '' : context.word },
+		})
+		return true
+	}
+	const longPress = createLongPress({
+		delay: editor.options.longPressDurationMs,
+		slop: 10,
+		onLongPress: ({ x, y }) => {
+			const element = wordAt(document.elementFromPoint(x, y))
+			if (element && editor.getCurrentToolId() === 'select') openWordMenu(element, { x, y })
+		},
+	})
+	const touchDown = (event: PointerEvent) => {
+		if (event.pointerType === 'mouse' || !event.isPrimary) return longPress.cancel()
+		if (editor.getCurrentToolId() !== 'select' || !wordAt(event.target)) return
+		longPress.down({ pointerId: event.pointerId, x: event.clientX, y: event.clientY })
+	}
+	const touchMove = (event: PointerEvent) =>
+		longPress.move({ pointerId: event.pointerId, x: event.clientX, y: event.clientY })
+	// The menu is open by now; the lift that ends the press must not also tap the word.
+	const touchUp = (event: PointerEvent) => {
+		if (!longPress.up(event.pointerId)) return
+		event.stopPropagation()
+		event.preventDefault()
+	}
 	const rightDown = (event: PointerEvent) => {
-		if (event.button === 2 && wordFor(event.target instanceof Node ? event.target : null)) {
+		if (event.button === 2 && wordAt(event.target)) {
 			event.stopPropagation()
 			event.preventDefault()
 		}
 	}
 	const contextMenu = (event: MouseEvent) => {
-		const element = wordFor(event.target instanceof Node ? event.target : null)
+		const element = wordAt(event.target)
 		if (!element) return
-		const shape = editor
-			.getCurrentPageShapes()
-			.find((shape) => shape.id === element.dataset.passageId)
-		if (shape?.type !== 'passage') return
+		if (!nativeContextMenu) {
+			// A touch long-press also raises contextmenu; the press already opened the menu.
+			if (
+				useLookup.getState().menu ||
+				openWordMenu(element, { x: event.clientX, y: event.clientY })
+			)
+				event.preventDefault()
+			return
+		}
+		const context = contextTarget(editor, element, { x: event.clientX, y: event.clientY })
+		if (!context) return
 		event.preventDefault()
 		event.stopPropagation()
-		const target = targetFromElement(element)
-		const request = contextLookupRequest(
-			shape.props.text,
-			shape.id,
-			readTextSelection(editor),
-			target,
-			{ x: event.clientX, y: event.clientY },
-		)
+		const { request } = context
 		useLookup.setState({ captured: request })
-		const token = shape.props.text.verses.find(
-			(verse) =>
-				verse.ref.book === target.verse.book &&
-				verse.ref.chapter === target.verse.chapter &&
-				verse.ref.verse === target.verse.verse,
-		)?.tokens[target.token]
 		void window.margin.lexicon
-			.contextMenu({
-				word: token?.runs.map((run) => run.text).join('') ?? '',
-				multiple: wordKey(request.start) !== wordKey(request.end),
-			})
+			.contextMenu({ word: context.word, multiple: context.multiple })
 			.then((result) => {
 				if (!result.ok) toast.error(result.error.message)
 				if (useLookup.getState().captured === request) useLookup.setState({ captured: null })
@@ -90,10 +151,21 @@ export function installLookupContextMenu(editor: Editor) {
 	}
 	container.addEventListener('pointerdown', rightDown, true)
 	container.addEventListener('contextmenu', contextMenu, true)
+	if (!nativeContextMenu) {
+		container.addEventListener('pointerdown', touchDown, true)
+		container.addEventListener('pointermove', touchMove, true)
+		container.addEventListener('pointerup', touchUp, true)
+		container.addEventListener('pointercancel', longPress.cancel, true)
+	}
 	return () => {
+		longPress.cancel()
 		container.removeEventListener('pointerdown', rightDown, true)
 		container.removeEventListener('contextmenu', contextMenu, true)
+		container.removeEventListener('pointerdown', touchDown, true)
+		container.removeEventListener('pointermove', touchMove, true)
+		container.removeEventListener('pointerup', touchUp, true)
+		container.removeEventListener('pointercancel', longPress.cancel, true)
 		if (useLookup.getState().editor === editor)
-			useLookup.setState({ editor: null, request: null, captured: null })
+			useLookup.setState({ editor: null, request: null, captured: null, menu: null })
 	}
 }

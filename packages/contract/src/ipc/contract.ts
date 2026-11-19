@@ -229,6 +229,8 @@ export const APPEARANCE_CHANNEL = 'margin:appearance'
 export const APPEARANCE_ARGUMENT = '--margin-appearance='
 export const GLASS_CHANNEL = 'margin:glass'
 export const GLASS_ARGUMENT = '--margin-glass='
+/** Development only: `MARGIN_PLATFORM=ipad` on an unpackaged build runs the iPad renderer paths. */
+export const PLATFORM_ARGUMENT = '--margin-platform=ipad'
 export const platformSchema = z.discriminatedUnion('kind', [
 	z.object({
 		kind: z.literal('mac'),

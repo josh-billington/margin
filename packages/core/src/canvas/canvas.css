@@ -224,6 +224,66 @@
 .passage-resize:focus-visible {
 	outline: 1px solid var(--accent);
 }
+/* A fingertip needs more than the 14px a cursor does; the visible edge stays where it is. */
+@media (pointer: coarse) {
+	.passage-resize {
+		width: 32px;
+	}
+	.passage-resize-left {
+		left: -24px;
+	}
+	.passage-resize-right {
+		right: -24px;
+	}
+}
+/* The long-press word menu is the callout on a touch host; the system's would sit on top of it. */
+:root[data-platform='ipad'] .passage-text {
+	-webkit-touch-callout: none;
+}
+.word-menu-anchor {
+	position: fixed;
+	pointer-events: none;
+}
+@media (pointer: coarse) {
+	.word-menu .margin-menu-item {
+		height: 36px;
+	}
+}
+/* Reading focus on screen (FocusLayer.tsx): ↑ ↓ and Esc for a finger, at the right edge. */
+.focus-controls {
+	position: absolute;
+	top: 50%;
+	right: var(--space-6);
+	transform: translateY(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: calc(var(--radius-sm) + var(--space-2));
+	box-shadow: var(--shadow-toolbar);
+	pointer-events: all;
+	user-select: none;
+	-webkit-user-select: none;
+	animation: pop-in var(--duration-base) var(--ease-out);
+}
+.focus-controls .icon-button {
+	width: var(--row-h);
+	height: var(--row-h);
+}
+.focus-controls .toolbar-divider {
+	width: 16px;
+	height: 1px;
+	margin: var(--space-2) 0;
+}
+@media (pointer: coarse) {
+	.focus-controls .icon-button {
+		width: 40px;
+		height: 40px;
+	}
+}
 
 .word[data-tag-name]:focus-visible::after {
 	content: attr(data-tag-name);

@@ -5,9 +5,12 @@ import {
 	MoveUpRight,
 	Highlighter,
 	BookOpen,
+	Maximize,
 	Minus,
 	Plus,
+	Redo2,
 	Tag,
+	Undo2,
 } from 'lucide-react'
 import { EASINGS, useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
@@ -17,6 +20,7 @@ import { ToolButton } from './ToolButton'
 import { noteFromSelection } from '../canvas/tools/noteFromSelection'
 import { iconLg } from '../lib/icons'
 import { prefersReducedMotion } from '../canvas/focus/camera'
+import { platform } from '../lib/platform'
 
 // Clicks animate so the reader keeps their place; ⌘+ / ⌘− stay instant.
 const zoomMotion = () =>
@@ -31,6 +35,8 @@ interface ToolbarProps {
 export function Toolbar({ editor }: ToolbarProps) {
 	const tool = useValue('active tool', () => editor?.getCurrentToolId() ?? 'select', [editor])
 	const zoom = useValue('zoom', () => Math.round((editor?.getZoomLevel() ?? 1) * 100), [editor])
+	// A host without a menu bar has no other pointer route to undo, redo and fit.
+	const menuCommands = !platform.nativeMenu
 	return (
 		<div className="canvas-toolbar" role="toolbar" aria-label="Canvas tools">
 			<ToolButton
@@ -87,6 +93,25 @@ export function Toolbar({ editor }: ToolbarProps) {
 				<BookOpen {...iconLg} />
 			</ToolButton>
 			<span className="toolbar-divider" aria-hidden="true" />
+			{menuCommands && (
+				<>
+					<ToolButton
+						label={titleFor('edit.undo')}
+						shortcut={shortcutFor('edit.undo')}
+						onClick={() => runCommand('edit.undo')}
+					>
+						<Undo2 {...iconLg} />
+					</ToolButton>
+					<ToolButton
+						label={titleFor('edit.redo')}
+						shortcut={shortcutFor('edit.redo')}
+						onClick={() => runCommand('edit.redo')}
+					>
+						<Redo2 {...iconLg} />
+					</ToolButton>
+					<span className="toolbar-divider" aria-hidden="true" />
+				</>
+			)}
 			<ToolButton
 				label={titleFor('view.zoomOut')}
 				shortcut={shortcutFor('view.zoomOut')}
@@ -109,6 +134,15 @@ export function Toolbar({ editor }: ToolbarProps) {
 			>
 				<Plus {...iconLg} />
 			</ToolButton>
+			{menuCommands && (
+				<ToolButton
+					label={titleFor('view.fit')}
+					shortcut={shortcutFor('view.fit')}
+					onClick={() => runCommand('view.fit')}
+				>
+					<Maximize {...iconLg} />
+				</ToolButton>
+			)}
 		</div>
 	)
 }

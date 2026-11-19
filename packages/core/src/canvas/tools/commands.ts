@@ -2,7 +2,6 @@ import { Box, createShapeId, react } from 'tldraw'
 import type { Editor, TLShapeId } from 'tldraw'
 import type { PassageText } from '@shared/bible/types'
 import { shortcutsSuppressed } from '../shortcutContext'
-import { newNoteProps } from '../shapes/note/newNote'
 import { moveCamera } from '../focus/actions'
 import { centerOn } from '../focus/camera'
 import { installShortcuts, shortcutContext } from './shortcuts'
@@ -116,25 +115,6 @@ export function installCanvasCommands(editor: Editor) {
 			}
 		}
 	}
-	const onDoubleClick = (event: MouseEvent) => {
-		if (
-			!(event.target instanceof Element) ||
-			!editor.getContainer().contains(event.target) ||
-			event.target.closest('[data-shape-id], .tl-html-container, button, input, textarea')
-		)
-			return
-		const point = editor.screenToPage({ x: event.clientX, y: event.clientY })
-		if (editor.getShapeAtPoint(point, { hitInside: true })) return
-		event.preventDefault()
-		event.stopImmediatePropagation()
-		const id = createShapeId()
-		editor.markHistoryStoppingPoint('create note')
-		editor
-			.createShape({ id, type: 'margin-note', x: point.x, y: point.y, props: newNoteProps() })
-			.setCurrentTool('select')
-			.select(id)
-			.setEditingShape(id)
-	}
 	const removeShortcuts = installShortcuts(editor)
 	document.addEventListener('keydown', onKeyDown, true)
 	editor.getContainer().addEventListener('pointermove', onPointerMove)
@@ -145,7 +125,6 @@ export function installCanvasCommands(editor: Editor) {
 		if (editor.getCurrentToolId() !== 'arrow' && !editor.isIn('select.dragging_handle'))
 			clearPreview()
 	})
-	editor.getContainer().addEventListener('dblclick', onDoubleClick, true)
 	return () => {
 		removeShortcuts()
 		document.removeEventListener('keydown', onKeyDown, true)
@@ -153,7 +132,6 @@ export function installCanvasCommands(editor: Editor) {
 		window.removeEventListener('pointerup', clearPreview, true)
 		window.removeEventListener('pointercancel', clearPreview, true)
 		stopToolWatch()
-		editor.getContainer().removeEventListener('dblclick', onDoubleClick, true)
 		preview?.classList.remove('word-anchor-preview')
 	}
 }

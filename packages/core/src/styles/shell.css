@@ -585,6 +585,12 @@ select:focus-visible {
 	width: var(--row-h);
 	height: var(--row-h);
 }
+@media (pointer: coarse) {
+	.canvas-toolbar .icon-button {
+		width: 36px;
+		height: 36px;
+	}
+}
 .toolbar-divider {
 	width: 1px;
 	height: 16px;

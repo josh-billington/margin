@@ -4,6 +4,7 @@ import { Pencil } from 'lucide-react'
 import { openStudy, renameStudy, useStudySession } from '../study/session'
 import { iconSm } from '../lib/icons'
 import { ToolButton } from './ToolButton'
+import { createDoubleTap } from '../lib/gestures'
 
 export function RenameStudy({
 	id,
@@ -43,6 +44,12 @@ export function RenameStudy({
 		setValue(state.sessions[id]?.study.title ?? title)
 		setEditing(true)
 	}
+	const beginRef = useRef(begin)
+	beginRef.current = begin
+	// Touch does not reliably raise dblclick; a double tap renames as a double click does.
+	const [onDoubleTap] = useState(() =>
+		createDoubleTap({ onDoubleTap: () => void beginRef.current() }),
+	)
 	return (
 		<>
 			<button
@@ -52,6 +59,7 @@ export function RenameStudy({
 				aria-current={current ? 'page' : undefined}
 				onClick={() => void openStudy(id)}
 				onDoubleClick={() => void begin()}
+				onPointerUp={(event) => onDoubleTap(event)}
 				onKeyDown={(event) => {
 					if (event.key === 'F2' && !disabled) {
 						event.preventDefault()

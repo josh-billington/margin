@@ -1,7 +1,12 @@
 import { app, BrowserWindow, nativeTheme, screen } from 'electron'
 import { join } from 'node:path'
 import { hardenWebContents } from '../security'
-import { APPEARANCE_ARGUMENT, APPEARANCE_CHANNEL, GLASS_ARGUMENT } from '@shared/ipc/contract'
+import {
+	APPEARANCE_ARGUMENT,
+	APPEARANCE_CHANNEL,
+	GLASS_ARGUMENT,
+	PLATFORM_ARGUMENT,
+} from '@shared/ipc/contract'
 import { attachGlass, resolveGlassMode } from './glass'
 import { resolvedAppearance, windowBackground } from './appearance'
 
@@ -36,6 +41,7 @@ export function createMainWindow(
 			additionalArguments: [
 				`${GLASS_ARGUMENT}${glass}`,
 				`${APPEARANCE_ARGUMENT}${resolvedAppearance()}`,
+				...(!app.isPackaged && process.env.MARGIN_PLATFORM === 'ipad' ? [PLATFORM_ARGUMENT] : []),
 			],
 		},
 	})

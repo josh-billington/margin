@@ -8,6 +8,7 @@ import {
 	GLASS_CHANNEL,
 	glassModeSchema,
 	ipcContract,
+	PLATFORM_ARGUMENT,
 } from '@shared/ipc/contract'
 import { appCommandSchema, COMMAND_CHANNEL, SIDEBAR_CHANNEL } from '@shared/ipc/commands'
 import type { AppCommandId } from '@shared/ipc/commands'
@@ -36,7 +37,9 @@ const initialAppearance = resolvedAppearanceSchema
 	)
 
 const api = {
-	platform: { kind: 'mac', nativeMenu: true, nativeContextMenu: true },
+	platform: process.argv.includes(PLATFORM_ARGUMENT)
+		? { kind: 'ipad', nativeMenu: false, nativeContextMenu: false }
+		: { kind: 'mac', nativeMenu: true, nativeContextMenu: true },
 	appearance: {
 		mode: initialAppearance,
 		onChange: (listener: (mode: ResolvedAppearance) => void) => {

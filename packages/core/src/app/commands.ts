@@ -28,6 +28,8 @@ export interface AppCommand {
 	binding?: { key: string; shift?: boolean; ctrl?: boolean }
 	/** Listed in the command palette. */
 	palette?: boolean
+	/** Listed in the palette only on a host with no menu bar to carry it, so a keyboard reaches it. */
+	paletteWithoutMenuBar?: boolean
 	/**
 	 * Whether the palette row is available, read when the palette renders (selection was captured as
 	 * it opened). Rows that can't act are dimmed, as in native menus. The menu and the shortcut still
@@ -156,12 +158,16 @@ export const commands: AppCommand[] = [
 		id: 'edit.undo',
 		title: 'Undo',
 		group: 'Workspace',
+		shortcut: '⌘Z',
+		paletteWithoutMenuBar: true,
 		run: () => (isEditingText() ? document.execCommand('undo') : getActiveEditor()?.undo()),
 	},
 	{
 		id: 'edit.redo',
 		title: 'Redo',
 		group: 'Workspace',
+		shortcut: '⇧⌘Z',
+		paletteWithoutMenuBar: true,
 		run: () => (isEditingText() ? document.execCommand('redo') : getActiveEditor()?.redo()),
 	},
 	// macOS: ⌘0 is Actual Size (Preview, Safari, Pages). Canvas apps such as Sketch then use ⌘1 to
@@ -173,7 +179,14 @@ export const commands: AppCommand[] = [
 		shortcut: '⌘0',
 		run: withEditor(zoomTo100),
 	},
-	{ id: 'view.fit', title: 'Zoom to fit', group: 'View', shortcut: '⌘1', run: withEditor(fitAll) },
+	{
+		id: 'view.fit',
+		title: 'Zoom to fit',
+		group: 'View',
+		shortcut: '⌘1',
+		paletteWithoutMenuBar: true,
+		run: withEditor(fitAll),
+	},
 	{
 		id: 'view.zoomIn',
 		title: 'Zoom in',

@@ -15,8 +15,11 @@ import { runM0Checks } from './devChecks'
 import { installAnnotationBehavior, withReferencedTags } from './annotations/editorOps'
 import { validateLoadedAnnotations } from './annotations/recovery'
 import { LookupOverlay } from './lookup/LookupPopover'
+import { WordMenuOverlay } from './lookup/WordMenu'
 import { installLookupContextMenu } from './lookup/store'
-import { FocusLayer } from './focus/FocusLayer'
+import { FocusControls, FocusLayer } from './focus/FocusLayer'
+import { installTouchRoutes } from './tools/touch'
+import { platform } from '../lib/platform'
 import { KEYBOARD_ZOOM, installFocusShortcuts } from './focus/shortcuts'
 import { useAppearance } from '../app/glass'
 import './canvas.css'
@@ -31,8 +34,10 @@ const components = {
 		<>
 			<FocusLayer />
 			<LookupOverlay />
+			<WordMenuOverlay />
 		</>
 	),
+	InFrontOfTheCanvas: FocusControls,
 }
 /** Hairline selection: the default 1.5px box plus 1.5px indicator read as a heavy 2px frame on text. */
 const overlayUtils = [
@@ -141,7 +146,10 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 	const removeCommands = installCanvasCommands(editor)
 	const removeFocus = installFocusShortcuts(editor)
 	const removeSpacePan = installSpacePan(editor)
-	const removeLookup = installLookupContextMenu(editor)
+	const removeLookup = installLookupContextMenu(editor, {
+		nativeContextMenu: platform.nativeContextMenu,
+	})
+	const removeTouchRoutes = installTouchRoutes(editor)
 	return () => {
 		removeTerminals()
 		removeBehavior()
@@ -149,5 +157,6 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 		removeFocus()
 		removeSpacePan()
 		removeLookup()
+		removeTouchRoutes()
 	}
 }

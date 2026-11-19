@@ -52,6 +52,15 @@
 .library-study-row:focus-within .row-actions {
 	opacity: 1;
 }
+/* Without hover (a finger), the row actions stay in view instead of waiting for it. */
+@media (hover: none) {
+	.library-study-row .row-actions {
+		opacity: 1;
+	}
+	.library-study-row .row-button {
+		padding-right: calc(2 * var(--control-h-sm) + var(--space-1) + var(--space-3));
+	}
+}
 .library-lock-notice {
 	display: flex;
 	align-items: center;
@@ -90,6 +99,11 @@
 .passage-list-row:is(:hover, :focus-within) > .row-icon-button,
 .passage-list-row > .row-icon-button[data-state$='open'] {
 	opacity: 1;
+}
+@media (hover: none) {
+	.passage-list-row > .row-icon-button {
+		opacity: 1;
+	}
 }
 .passage-list-row .row-button {
 	flex: 1;
