@@ -1,8 +1,7 @@
 import { join } from 'node:path'
 import { Library as SharedLibrary } from '@margin/services/library/library'
-import { hasher } from '@margin/services/codecs'
 import { createFileStore, createFileWatch } from './files'
-import { host, clock, diagnostics } from './host'
+import { host, clock, diagnostics, hasher } from './host'
 import { atomicWrite } from './atomic'
 export type { LibraryEvent } from '@margin/services/library/library'
 

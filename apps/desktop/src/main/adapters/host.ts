@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto'
 import { hostname } from 'node:os'
-import type { HostIdentity, Diagnostics } from '@margin/services/ports'
+import { inflateRawSync } from 'node:zlib'
+import type { HostIdentity, Diagnostics, Hasher, Codec } from '@margin/services/ports'
 import { logEvent, logFailure } from '../logger'
 
 export const host: HostIdentity = {
@@ -14,6 +16,11 @@ export const host: HostIdentity = {
 	},
 }
 export const clock = { now: () => Date.now() }
+// Native SHA-256 and inflate: the portable JS versions in services are for hosts without Node.
+export const hasher: Hasher = {
+	sha256Hex: (data) => createHash('sha256').update(data).digest('hex'),
+}
+export const codec: Codec = { inflateRaw: (data) => inflateRawSync(data) }
 export const diagnostics: Diagnostics = {
 	event: (name, details) => logEvent(name, details),
 	failure: (name, error) => logFailure(name, error),

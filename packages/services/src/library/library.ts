@@ -20,7 +20,7 @@ export class Library {
 	private recovered = new Map<string, number>()
 	private watcher?: ReturnType<FileWatch['watch']>
 	private baselines = new Map<string, Set<string>>()
-	private known = new Map<string, { study: PersistedStudy; hash: string; content: string }>()
+	private known = new Map<string, { study: PersistedStudy; hash: string }>()
 	private staged = new Map<string, { study: PersistedStudy; sequence: number }>()
 	private committed = new Map<string, number>()
 	private sequences = new Map<string, number>()
@@ -44,13 +44,8 @@ export class Library {
 	private studyPath(id: string) {
 		return join('studies', `${id}.study.json`)
 	}
-	private hashed?: { content: string; digest: string }
 	private hash(content: string) {
-		if (this.hashed?.content === content) return this.hashed.digest
-		const digest = this.ports.hasher.sha256Hex(content)
-		// Re-reading a saved snapshot and its renderer baseline must not hash the same bytes again.
-		this.hashed = { content, digest }
-		return digest
+		return this.ports.hasher.sha256Hex(content)
 	}
 	private write(path: string, content: string, beforeReplace?: () => Promise<void>) {
 		return this.ports.files.writeAtomic({ path, content, beforeReplace })
@@ -178,15 +173,15 @@ export class Library {
 		return this.parse(id, content)
 	}
 	private parse(id: string, content: string) {
-		const cached = this.known.get(id)
-		if (cached?.content === content) return cached
 		const digest = this.hash(content)
+		const cached = this.known.get(id)
+		if (cached?.hash === digest) return cached
 		const study = migrateStudy(JSON.parse(content))
 		if (study.id !== id)
 			throw new UserFacingError(
 				'Margin couldn’t open this study because its filename has changed. Restore its original filename and try again.',
 			)
-		return { study, hash: digest, content }
+		return { study, hash: digest }
 	}
 	async open(id: string) {
 		const disk = await this.read(id).catch(async (error: unknown) => {
@@ -299,10 +294,7 @@ export class Library {
 			return { study: saved, conflict: false }
 		})
 	}
-	private acceptExternal(
-		id: string,
-		disk: { study: PersistedStudy; hash: string; content: string },
-	) {
+	private acceptExternal(id: string, disk: { study: PersistedStudy; hash: string }) {
 		this.known.set(id, disk)
 		this.baselines.set(id, new Set([this.hash(JSON.stringify(disk.study))]))
 	}
@@ -325,7 +317,7 @@ export class Library {
 		const content = JSON.stringify(study)
 		await this.write(this.studyPath(study.id), content, beforeReplace)
 		const digest = this.hash(content)
-		this.known.set(study.id, { study, hash: digest, content })
+		this.known.set(study.id, { study, hash: digest })
 		const baselines = this.baselines.get(study.id) ?? new Set<string>()
 		baselines.add(digest)
 		this.baselines.set(study.id, baselines)
