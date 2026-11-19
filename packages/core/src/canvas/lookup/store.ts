@@ -97,12 +97,22 @@ export function installLookupContextMenu(
 		})
 		return true
 	}
+	// The held word shows the press at once, as iOS does, instead of waiting for the menu (touch.css).
+	let pressed: HTMLElement | null = null
 	const longPress = createLongPress({
 		delay: editor.options.longPressDurationMs,
 		slop: 10,
 		onLongPress: ({ x, y }) => {
 			const element = wordAt(document.elementFromPoint(x, y))
 			if (element && editor.getCurrentToolId() === 'select') openWordMenu(element, { x, y })
+		},
+		onPressStart: ({ x, y }) => {
+			pressed = wordAt(document.elementFromPoint(x, y))
+			pressed?.setAttribute('data-pressed', '')
+		},
+		onPressEnd: () => {
+			pressed?.removeAttribute('data-pressed')
+			pressed = null
 		},
 	})
 	const touchDown = (event: PointerEvent) => {

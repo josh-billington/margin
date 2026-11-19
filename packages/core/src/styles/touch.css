@@ -162,6 +162,13 @@
 .passage-text {
 	-webkit-touch-callout: none;
 }
+/* A held word shows the press at once, as iOS does, until the finger lifts or moves (lookup/store.ts).
+   Layered over any tag wash rather than replacing it. */
+.passage-text [data-word][data-pressed] {
+	background-image: linear-gradient(var(--ink-wash), var(--ink-wash));
+	box-shadow: 0 0 0 2px var(--ink-wash);
+	border-radius: 3px;
+}
 .word-menu-anchor {
 	position: fixed;
 	pointer-events: none;

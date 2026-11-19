@@ -7,25 +7,38 @@ export interface GesturePoint {
 /**
  * A finger held still on one spot. It fires once the hold time passes, and is cancelled by moving
  * past the slop, lifting early or a second finger, so pans, pinches and taps stay with tldraw.
+ * `onPressStart` and `onPressEnd` bracket the whole touch, held or not, for press feedback.
  */
 export function createLongPress({
 	delay,
 	slop,
 	onLongPress,
+	onPressStart,
+	onPressEnd,
 }: {
 	delay: number
 	slop: number
 	onLongPress: (point: GesturePoint) => void
+	onPressStart?: (point: GesturePoint) => void
+	onPressEnd?: () => void
 }) {
 	let pending: (GesturePoint & { timer: ReturnType<typeof setTimeout> }) | null = null
 	let firedFor: number | null = null
+	let pressing = false
+	const end = () => {
+		if (!pressing) return
+		pressing = false
+		onPressEnd?.()
+	}
 	const cancel = () => {
 		if (pending) clearTimeout(pending.timer)
 		pending = null
+		end()
 	}
 	return {
 		down(point: GesturePoint) {
 			if (pending) return cancel()
+			end()
 			firedFor = null
 			const timer = setTimeout(() => {
 				pending = null
@@ -33,6 +46,8 @@ export function createLongPress({
 				onLongPress(point)
 			}, delay)
 			pending = { ...point, timer }
+			pressing = true
+			onPressStart?.(point)
 		},
 		move(point: GesturePoint) {
 			if (pending?.pointerId !== point.pointerId) return
@@ -43,6 +58,7 @@ export function createLongPress({
 			if (pending?.pointerId === pointerId) cancel()
 			const fired = firedFor === pointerId
 			firedFor = null
+			if (fired) end()
 			return fired
 		},
 		cancel,
