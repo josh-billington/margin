@@ -40,7 +40,9 @@ const icons: Partial<Record<CommandId, LucideIcon>> = {
 	'view.fit': Maximize,
 }
 const paletteCommands = commands.filter(
-	(command) => command.palette || (command.paletteWithoutMenuBar && !platform.nativeMenu),
+	(command) =>
+		(typeof command.palette === 'function' ? command.palette(platform) : command.palette) ||
+		(command.paletteWithoutMenuBar && !platform.nativeMenu),
 )
 const groups = (['Study', 'Selection', 'Workspace', 'View'] as const).filter((group) =>
 	paletteCommands.some((command) => command.group === group),

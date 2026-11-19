@@ -17,6 +17,7 @@ export const appCommandSchema = z.enum([
 	'appearance.system',
 	'appearance.light',
 	'appearance.dark',
+	'intro.show',
 ])
 export type AppCommandId = z.infer<typeof appCommandSchema>
 export const COMMAND_CHANNEL = 'margin:command'

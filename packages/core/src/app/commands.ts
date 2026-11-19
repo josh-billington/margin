@@ -1,4 +1,5 @@
 import type { AppCommandId } from '@shared/ipc/commands'
+import type { Platform } from '@shared/ipc/contract'
 import { captureLookupSelection, requestWordLookup } from '../canvas/lookup/store'
 import { createStudy } from '../study/session'
 import {
@@ -13,6 +14,7 @@ import { KEYBOARD_ZOOM, fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
 import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
+import { isIntroOpen, showIntro } from '../intro/introStore'
 
 export type CommandId = AppCommandId | 'selection.tag' | 'selection.duplicate' | 'selection.delete'
 
@@ -26,8 +28,8 @@ export interface AppCommand {
 	shortcut?: string
 	/** Bound globally by useGlobalShortcuts (⌘ + key). Canvas-scoped shortcuts omit this. */
 	binding?: { key: string; shift?: boolean; ctrl?: boolean }
-	/** Listed in the command palette. */
-	palette?: boolean
+	/** Listed in the command palette (on every host, or on hosts that pass the check). */
+	palette?: boolean | ((host: Platform) => boolean)
 	/** Listed in the palette only on a host with no menu bar to carry it, so a keyboard reaches it. */
 	paletteWithoutMenuBar?: boolean
 	/**
@@ -219,6 +221,13 @@ export const commands: AppCommand[] = [
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'dark' }),
 	},
+	{
+		id: 'intro.show',
+		title: 'Show welcome',
+		group: 'Workspace',
+		palette: (host) => host.welcomeIntro,
+		run: showIntro,
+	},
 ]
 
 const byId = new Map(commands.map((command) => [command.id, command]))
@@ -231,6 +240,8 @@ export const titleFor = (id: CommandId) => {
 }
 
 export function runCommand(id: CommandId) {
+	// The welcome intro covers the app; only appearance changes reach past it.
+	if (isIntroOpen() && !id.startsWith('appearance.')) return
 	const command = byId.get(id)
 	if (command && (command.enabled?.() ?? true)) command.run()
 }
