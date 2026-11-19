@@ -355,15 +355,25 @@ select:focus-visible {
 	grid-template-columns: 1fr minmax(0, 420px) 1fr;
 	align-items: center;
 	gap: var(--space-4);
-	/* Traffic lights end at ~70px (x 18 + 3×12 + 2×8); leave ~18px before the first control. */
-	padding: 0 var(--space-5) 0 88px;
+	padding: 0 var(--space-5);
 	background: var(--chrome-bg);
 	border-bottom: 1px solid var(--border);
+}
+:root[data-platform='mac'] .title-bar {
+	/* Traffic lights end at ~70px (x 18 + 3×12 + 2×8); leave ~18px before the first control. */
+	padding-left: 88px;
 	-webkit-app-region: drag;
 }
-.title-bar button,
-.title-bar input {
+:root[data-platform='mac'] .title-bar button,
+:root[data-platform='mac'] .title-bar input {
 	-webkit-app-region: no-drag;
+}
+:root[data-platform='ipad'] .title-bar {
+	height: calc(var(--titlebar-h) + env(safe-area-inset-top));
+	min-height: calc(var(--titlebar-h) + env(safe-area-inset-top));
+	padding-top: env(safe-area-inset-top);
+	padding-right: calc(var(--space-5) + env(safe-area-inset-right));
+	padding-left: calc(var(--space-5) + env(safe-area-inset-left));
 }
 .title-leading {
 	display: flex;

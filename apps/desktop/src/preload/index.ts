@@ -36,6 +36,7 @@ const initialAppearance = resolvedAppearanceSchema
 	)
 
 const api = {
+	platform: { kind: 'mac', nativeMenu: true, nativeContextMenu: true },
 	appearance: {
 		mode: initialAppearance,
 		onChange: (listener: (mode: ResolvedAppearance) => void) => {

@@ -229,7 +229,21 @@ export const APPEARANCE_CHANNEL = 'margin:appearance'
 export const APPEARANCE_ARGUMENT = '--margin-appearance='
 export const GLASS_CHANNEL = 'margin:glass'
 export const GLASS_ARGUMENT = '--margin-glass='
+export const platformSchema = z.discriminatedUnion('kind', [
+	z.object({
+		kind: z.literal('mac'),
+		nativeMenu: z.literal(true),
+		nativeContextMenu: z.literal(true),
+	}),
+	z.object({
+		kind: z.literal('ipad'),
+		nativeMenu: z.literal(false),
+		nativeContextMenu: z.literal(false),
+	}),
+])
+export type Platform = z.infer<typeof platformSchema>
 export type MarginApi = ContractApi<typeof ipcContract> & {
+	platform: Platform
 	/** Window material behind the title bar and sidebar: the mode at launch, and later changes. */
 	/** The appearance in effect (preference resolved against the system): at launch, and later changes. */
 	appearance: {

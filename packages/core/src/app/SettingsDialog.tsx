@@ -8,6 +8,7 @@ import {
 } from '../lib/preferences'
 import type { NoteFontChoice } from '../lib/preferences'
 import { usePrefs } from '../lib/usePrefs'
+import { platform } from '../lib/platform'
 import { translationNames, translationOrder, wholeBibleTranslations } from '../insertion/labels'
 import { translationIdSchema } from '@shared/bible/types'
 import { appearanceSchema } from '@shared/ipc/contract'
@@ -27,7 +28,6 @@ export function SettingsDialog({
 }) {
 	const noteFont = usePreferences(noteFontChoice)
 	const { prefs, update } = usePrefs()
-	const isMac = navigator.userAgent.includes('Mac')
 	const panel = useRef<HTMLDivElement>(null)
 	// With Reduce Transparency on, macOS shows solid chrome whatever this setting says.
 	const transparencyReduced = useSyncExternalStore(
@@ -114,7 +114,7 @@ export function SettingsDialog({
 							<option value="system-all">System for all notes</option>
 						</select>
 					</label>
-					{isMac && (
+					{platform.kind === 'mac' && (
 						<label className="check-row">
 							<input
 								type="checkbox"
