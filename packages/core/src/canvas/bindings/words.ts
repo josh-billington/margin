@@ -3,6 +3,7 @@ import { wordTargetSchema, wordBindingMetadataSchema } from '@shared/study/types
 import type { WordTarget } from '@shared/study/types'
 import { wordKey } from '../highlights/ranges'
 import type { PassageShape } from '../shapes/types'
+import type { InkBinding } from '../ink/types'
 import { derived } from './derived'
 import {
 	DEFAULT_BEND,
@@ -175,6 +176,45 @@ export function wordAnchorForElement(
 	return wordAnchor(editor, arrow, terminal, passage, measureWord(editor, passage, element), bend)
 }
 
+export function inkWordAnchor({
+	editor,
+	shape,
+	element,
+	direction,
+	terminal,
+}: {
+	editor: Editor
+	shape: PassageShape
+	element: Element
+	direction: Point
+	terminal: 'start' | 'end'
+}) {
+	return inkWordPoint({ shape, box: measureWord(editor, shape, element), direction, terminal })
+}
+
+export function wordInkBindings({ editor, shapeId }: { editor: Editor; shapeId: TLShapeId }) {
+	return editor
+		.getBindingsToShape<InkBinding>(shapeId, 'margin-ink')
+		.filter((binding) => binding.type === 'margin-ink' && binding.props.anchor.kind === 'word')
+}
+
+function inkWordPoint({
+	shape,
+	box,
+	direction,
+	terminal,
+}: {
+	shape: PassageShape
+	box: Box
+	direction: Point
+	terminal: 'start' | 'end'
+}) {
+	return normalize(
+		shape,
+		wordTerminal(inkBox(box), direction, WORD_GAP, terminal === 'end' ? HEAD_LENGTH : 0),
+	)
+}
+
 /** Recompute word-bound terminals for `arrowIds`; batched, rounded, identical writes skipped. */
 export function syncWordArrows(editor: Editor, arrowIds: Iterable<TLShapeId>) {
 	const updates: {
@@ -223,6 +263,23 @@ export function reconcileWords(editor: Editor, shape: PassageShape, root: HTMLEl
 		arrows.add(binding.fromId)
 	}
 	syncWordArrows(editor, arrows)
+	const inkUpdates = editor
+		.getBindingsToShape<InkBinding>(shape.id, 'margin-ink')
+		.flatMap((binding) => {
+			const { anchor, terminal } = binding.props
+			if (anchor.kind !== 'word') return []
+			const element = elements.get(wordKey(anchor.target))
+			if (!element) return []
+			const point = inkWordPoint({
+				shape,
+				box: measureWord(editor, shape, element),
+				direction: anchor.direction,
+				terminal,
+			})
+			if (point.x === anchor.point.x && point.y === anchor.point.y) return []
+			return [{ id: binding.id, type: binding.type, props: { anchor: { ...anchor, point } } }]
+		})
+	if (inkUpdates.length) derived(editor, () => editor.updateBindings(inkUpdates))
 }
 
 /** Arrows with a word terminal whose approach may have changed. */

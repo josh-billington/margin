@@ -38,8 +38,8 @@ const initialAppearance = resolvedAppearanceSchema
 
 const api = {
 	platform: process.argv.includes(PLATFORM_ARGUMENT)
-		? { kind: 'ipad', nativeMenu: false, nativeContextMenu: false }
-		: { kind: 'mac', nativeMenu: true, nativeContextMenu: true },
+		? { kind: 'ipad', nativeMenu: false, nativeContextMenu: false, freehandInk: true }
+		: { kind: 'mac', nativeMenu: true, nativeContextMenu: true, freehandInk: false },
 	appearance: {
 		mode: initialAppearance,
 		onChange: (listener: (mode: ResolvedAppearance) => void) => {

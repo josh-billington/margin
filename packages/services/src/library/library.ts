@@ -1,5 +1,9 @@
 import { ulid } from 'ulid'
-import { migrateStudy, type PersistedStudy } from '@margin/contract/study/migrations'
+import {
+	documentVersion,
+	migrateStudy,
+	type PersistedStudy,
+} from '@margin/contract/study/migrations'
 import type { FileStore, FileWatch, HostIdentity, Clock, Hasher, Diagnostics } from '../ports'
 import { FileError } from '../ports'
 import { join } from '../path'
@@ -208,7 +212,7 @@ export class Library {
 		const now = new Date(this.ports.clock.now()).toISOString()
 		const study = migrateStudy({
 			format: 'margin-study',
-			schemaVersion: 1,
+			schemaVersion: documentVersion(document),
 			id: ulid(),
 			title,
 			createdAt: now,

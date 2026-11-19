@@ -236,11 +236,13 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('mac'),
 		nativeMenu: z.literal(true),
 		nativeContextMenu: z.literal(true),
+		freehandInk: z.literal(false),
 	}),
 	z.object({
 		kind: z.literal('ipad'),
 		nativeMenu: z.literal(false),
 		nativeContextMenu: z.literal(false),
+		freehandInk: z.literal(true),
 	}),
 ])
 export type Platform = z.infer<typeof platformSchema>

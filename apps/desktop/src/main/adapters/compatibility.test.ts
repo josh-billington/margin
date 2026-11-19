@@ -9,7 +9,6 @@ import {
 	marginPageMetadataSchema,
 	notePropsSchema,
 	passagePropsSchema,
-	STUDY_SCHEMA_VERSION,
 	wordBindingMetadataSchema,
 } from '@shared/study/types'
 
@@ -22,7 +21,7 @@ it('opens the first beta study through library loading, validation, and migratio
 		const original = migrateStudy(JSON.parse(await readFile(fixture, 'utf8')))
 		await copyFile(fixture, library.file(original.id))
 		const study = await library.open(original.id)
-		expect(STUDY_SCHEMA_VERSION).toBe(1)
+		expect(study.schemaVersion).toBe(1)
 		expect(study).toEqual(original)
 		const recordSchema = z
 			.object({

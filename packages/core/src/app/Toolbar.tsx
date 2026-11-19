@@ -3,6 +3,8 @@ import {
 	Hand,
 	StickyNote,
 	MoveUpRight,
+	PencilLine,
+	PenTool,
 	Highlighter,
 	BookOpen,
 	Maximize,
@@ -21,6 +23,7 @@ import { noteFromSelection } from '../canvas/tools/noteFromSelection'
 import { iconLg } from '../lib/icons'
 import { prefersReducedMotion } from '../canvas/focus/camera'
 import { platform } from '../lib/platform'
+import { HandwriteTool, InkArrowTool } from '../canvas/ink/tools'
 
 // Clicks animate so the reader keeps their place; ⌘+ / ⌘− stay instant.
 const zoomMotion = () =>
@@ -73,6 +76,25 @@ export function Toolbar({ editor }: ToolbarProps) {
 			>
 				<MoveUpRight {...iconLg} />
 			</ToolButton>
+			{platform.freehandInk && (
+				<>
+					<ToolButton
+						label="Ink arrow"
+						aria-pressed={tool === InkArrowTool.id}
+						onClick={() => editor?.setCurrentTool(InkArrowTool.id)}
+					>
+						<PenTool {...iconLg} />
+					</ToolButton>
+					<ToolButton
+						label="Handwrite in a note"
+						tip="Select or place a note, then write"
+						aria-pressed={tool === HandwriteTool.id}
+						onClick={() => editor?.setEditingShape(null).setCurrentTool(HandwriteTool.id)}
+					>
+						<PencilLine {...iconLg} />
+					</ToolButton>
+				</>
+			)}
 			<ToolButton
 				label="Highlight"
 				shortcut="H"

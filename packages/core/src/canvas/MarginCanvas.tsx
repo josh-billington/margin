@@ -22,10 +22,22 @@ import { installTouchRoutes } from './tools/touch'
 import { platform } from '../lib/platform'
 import { KEYBOARD_ZOOM, installFocusShortcuts } from './focus/shortcuts'
 import { useAppearance } from '../app/glass'
+import { InkBindingUtil, InkShapeUtil } from './ink/InkShapeUtil'
+import { HandwriteTool, InkArrowTool, installInkTools } from './ink/tools'
 import './canvas.css'
 
-const shapeUtils = [PassageShapeUtil, NoteShapeUtil, MarginArrowShapeUtil]
-const tools = [NoteTool, HighlightTool]
+const shapeUtils = [
+	PassageShapeUtil,
+	platform.freehandInk ? NoteShapeUtil.configure({ inkTools: true }) : NoteShapeUtil,
+	MarginArrowShapeUtil,
+	InkShapeUtil,
+]
+const bindingUtils = [InkBindingUtil]
+const tools = [
+	NoteTool,
+	HighlightTool,
+	...(platform.freehandInk ? [InkArrowTool, HandwriteTool] : []),
+]
 const components = {
 	// tldraw's stock menu (Move to page, Export as, Reorder…) survives hideUi and does not fit the
 	// app; words get the native lookup menu instead, and editing commands live in the menu bar.
@@ -97,6 +109,7 @@ export function MarginCanvas({ onMount }: { onMount: (editor: Editor) => void })
 				overlayUtils={overlayUtils}
 				options={canvasOptions}
 				shapeUtils={shapeUtils}
+				bindingUtils={bindingUtils}
 				tools={tools}
 				overrides={overrides}
 				colorScheme={appearance}
@@ -150,6 +163,7 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 		nativeContextMenu: platform.nativeContextMenu,
 	})
 	const removeTouchRoutes = installTouchRoutes(editor)
+	const removeInkTools = platform.freehandInk ? installInkTools(editor) : undefined
 	return () => {
 		removeTerminals()
 		removeBehavior()
@@ -158,5 +172,6 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 		removeSpacePan()
 		removeLookup()
 		removeTouchRoutes()
+		removeInkTools?.()
 	}
 }

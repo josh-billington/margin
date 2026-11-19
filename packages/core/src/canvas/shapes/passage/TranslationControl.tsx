@@ -11,6 +11,7 @@ import {
 	translationOrder,
 } from '../../../insertion/labels'
 import type { PassageShape } from '../types'
+import { wordInkBindings } from '../../bindings/words'
 
 /** Unannotated blocks change translation only through the versification map, never by guessing. */
 export function TranslationControl({
@@ -33,6 +34,7 @@ export function TranslationControl({
 			latest?.type === 'passage' &&
 			JSON.stringify(latest.props.text) === JSON.stringify(shape.props.text) &&
 			!latest.props.highlights.length &&
+			!wordInkBindings({ editor, shapeId: shape.id }).length &&
 			!editor
 				.getBindingsToShape(shape.id, 'arrow')
 				.some((binding) => wordBindingMetadataSchema.safeParse(binding.meta).success)

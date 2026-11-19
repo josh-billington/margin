@@ -8,6 +8,8 @@ import { NoteOptions } from './NoteOptions'
 import { parseEmphasis, stripEmphasis } from './emphasis'
 import { usePreferences } from '../../../lib/preferences'
 import { revealShape } from '../../focus/actions'
+import { NOTE_INK_HEIGHT, NOTE_INK_INSET, NOTE_INK_WIDTH, noteInkHeight } from '../../ink/notePad'
+import { strokePath } from '../../ink/stroke'
 
 /**
  * A note sizes itself to its text up to a margin-note measure, then wraps: about 320px at the
@@ -15,7 +17,24 @@ import { revealShape } from '../../focus/actions'
  */
 const NOTE_MEASURE = '14.5em'
 
-export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Editor }) {
+type NoteComponentProps = { shape: NoteShape; editor: Editor }
+
+export function TouchNoteComponent({ shape, editor }: NoteComponentProps) {
+	const writing = useValue(
+		'writing in note',
+		() => editor.isIn('margin-handwrite') && editor.getOnlySelectedShapeId() === shape.id,
+		[editor, shape.id],
+	)
+	return <NoteComponent shape={shape} editor={editor} writing={writing} />
+}
+
+export function NoteComponent({
+	shape,
+	editor,
+	writing = false,
+}: NoteComponentProps & { writing?: boolean }) {
+	const hasInk = shape.props.strokes.length > 0
+	const showPad = writing || hasInk
 	const editing = useValue('editing note', () => editor.getEditingShapeId() === shape.id, [
 		editor,
 		shape.id,
@@ -62,8 +81,12 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 				const current = editor.getShape(shape.id)
 				if (current?.type !== 'margin-note' || !element.offsetHeight) return
 				// +2px slack: scrollWidth rounds down, and a textarea a hair narrower than its text wraps and scrolls.
-				const w = Math.ceil(current.props.width ?? Math.max(100, element.scrollWidth + 10))
-				const h = Math.max(36, Math.ceil(element.offsetHeight + 8))
+				const w = Math.ceil(
+					current.props.width ?? Math.max(showPad ? 264 : 100, element.scrollWidth + 10),
+				)
+				const h =
+					Math.max(36, Math.ceil(element.offsetHeight + 8)) +
+					(showPad ? Math.ceil(noteInkHeight(w)) + NOTE_INK_INSET : 0)
 				if (w === current.props.w && h === current.props.h) return
 				derived(editor, () =>
 					editor.updateShape({ id: shape.id, type: 'margin-note', props: { w, h } }),
@@ -80,7 +103,7 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 			observer.disconnect()
 			cancelAnimationFrame(frame)
 		}
-	}, [shape, draft, editing, editor])
+	}, [shape, draft, editing, editor, showPad])
 	const commit = () => editor.setEditingShape(null)
 	const plainDisplay = usePreferences((state) => state.displayNotesInPlainFont)
 	const text = editing ? draft : stripEmphasis(shape.props.text)
@@ -119,6 +142,9 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 						ref={input}
 						aria-label="Note text"
 						value={draft}
+						style={
+							showPad ? { height: shape.props.h - noteInkHeight(shape.props.w) - 24 } : undefined
+						}
 						onChange={(e) => change(e.target.value)}
 						onBlur={commit}
 						onPointerDown={(e) => e.stopPropagation()}
@@ -136,10 +162,35 @@ export function NoteComponent({ shape, editor }: { shape: NoteShape; editor: Edi
 							? parseEmphasis(shape.props.text).map((segment, i) =>
 									segment.emphasis ? <em key={i}>{segment.text}</em> : segment.text,
 								)
-							: 'Write a note…'}
+							: showPad
+								? null
+								: 'Write a note…'}
 					</span>
 				)}
-				{selected && !editing && <NoteOptions editor={editor} shape={shape} />}
+				{showPad && (
+					<svg
+						data-note-ink={shape.id}
+						aria-label="Handwriting"
+						role="img"
+						viewBox={`0 0 ${NOTE_INK_WIDTH} ${NOTE_INK_HEIGHT}`}
+						width={shape.props.w - NOTE_INK_INSET * 2}
+						height={noteInkHeight(shape.props.w)}
+						fill="currentColor"
+						style={{
+							position: 'absolute',
+							left: NOTE_INK_INSET,
+							bottom: NOTE_INK_INSET,
+							overflow: 'hidden',
+							background: writing && !hasInk ? 'var(--surface)' : undefined,
+							cursor: writing ? 'crosshair' : undefined,
+						}}
+					>
+						{shape.props.strokes.map((points, index) => (
+							<path key={index} d={strokePath({ points })} />
+						))}
+					</svg>
+				)}
+				{selected && !editing && !writing && <NoteOptions editor={editor} shape={shape} />}
 			</div>
 		</HTMLContainer>
 	)

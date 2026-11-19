@@ -4,6 +4,8 @@
 @import './tokens.css';
 @import './shell.css';
 
+@source not '../canvas/ink';
+
 @theme inline {
 	--font-sans: var(--font-ui);
 	--font-handwritten: var(--font-hand);

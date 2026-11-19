@@ -2,7 +2,7 @@ import { validateLoadedAnnotations } from '../canvas/annotations/recovery'
 import { loadSnapshot, type Editor } from 'tldraw'
 import { toast } from 'sonner'
 import { UserFacingError } from '@shared/errors'
-import type { PersistedStudy } from '@shared/study/migrations'
+import { documentVersion, type PersistedStudy } from '@shared/study/migrations'
 import type { LibraryEvent } from '@shared/ipc/contract'
 import { attachEditor, snapshot, studySnapshot } from './editor'
 import { Autosave } from './autosave'
@@ -225,7 +225,7 @@ async function stage(id: string) {
 	const session = useStudySession.getState().sessions[id]
 	const editor = editors.get(id)
 	if (!session || !editor || useStudySession.getState().readOnly) return
-	const study = { ...session.study, document: snapshot(editor) }
+	const study = withCurrentDocument(session.study, editor)
 	pendingDocumentChanges.delete(id)
 	update(id, { study })
 	try {
@@ -236,6 +236,11 @@ async function stage(id: string) {
 		report(error)
 		throw error
 	}
+}
+function withCurrentDocument(study: PersistedStudy, editor: Editor) {
+	const document = snapshot(editor)
+	const schemaVersion = study.schemaVersion === 1 ? documentVersion(document) : study.schemaVersion
+	return { ...study, schemaVersion, document }
 }
 function changed(id: string) {
 	const session = useStudySession.getState().sessions[id]
@@ -281,9 +286,8 @@ export function renameStudy(title: string) {
 	const editor = editors.get(id)
 	update(id, {
 		study: {
-			...session.study,
+			...(editor ? withCurrentDocument(session.study, editor) : session.study),
 			title: title.trim(),
-			document: editor ? snapshot(editor) : session.study.document,
 		},
 		sequence: nextSequence(),
 		state: 'unsaved',

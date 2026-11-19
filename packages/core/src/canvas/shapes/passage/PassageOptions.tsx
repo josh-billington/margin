@@ -9,6 +9,7 @@ import { blockTitle } from '../../../insertion/labels'
 import { TranslationControl } from './TranslationControl'
 import { SliderField } from '../../../app/SliderField'
 import type { PassageShape } from '../types'
+import { wordInkBindings } from '../../bindings/words'
 
 export function PassageOptions({
 	editor,
@@ -36,9 +37,11 @@ export function PassageOptions({
 		() =>
 			translationLockReason({
 				highlights: shape.props.highlights.length,
-				wordArrows: editor
-					.getBindingsToShape(shape.id, 'arrow')
-					.filter((binding) => wordBindingMetadataSchema.safeParse(binding.meta).success).length,
+				wordArrows:
+					wordInkBindings({ editor, shapeId: shape.id }).length +
+					editor
+						.getBindingsToShape(shape.id, 'arrow')
+						.filter((binding) => wordBindingMetadataSchema.safeParse(binding.meta).success).length,
 			}),
 		[editor, shape.id, shape.props.highlights],
 	)

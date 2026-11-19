@@ -5,6 +5,8 @@ import {
 	passagePropsSchema,
 	notePropsSchema,
 	wordBindingMetadataSchema,
+	inkBindingPropsSchema,
+	inkShapePropsSchema,
 } from './types'
 
 const base = z
@@ -85,11 +87,15 @@ export function validateDocument(document: z.infer<typeof studyFileEnvelopeSchem
 			if (!document.store[parsed.fromId] || !document.store[parsed.toId])
 				throw new Error('Binding refers to a missing shape.')
 			if (parsed.meta.schemaVersion !== undefined) wordBindingMetadataSchema.parse(parsed.meta)
+			if (parsed.type === 'margin-ink') inkBindingPropsSchema.parse(parsed.props)
 		}
 		if (record.typeName !== 'shape') continue
 		const parsed = shape.parse(record)
 		if (!document.store[parsed.parentId]) throw new Error('Shape refers to a missing parent.')
 		if (parsed.type === 'note') notePropsSchema.parse(parsed.props)
+		if (parsed.type === 'margin-note' && parsed.props.strokes !== undefined)
+			notePropsSchema.shape.strokes.parse(parsed.props.strokes)
+		if (parsed.type === 'margin-ink') inkShapePropsSchema.parse(parsed.props)
 		if (parsed.type === 'passage') {
 			const props = passagePropsSchema.parse(parsed.props)
 			const words = props.text.verses.flatMap((verse) =>

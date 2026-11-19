@@ -14,11 +14,16 @@ export type PassageShape = TLShape<'passage'>
 export type NoteShape = TLShape<'margin-note'>
 const p = passagePropsSchema.shape
 const n = notePropsSchema.shape
-const validator = <V>(parse: (value: unknown) => V) =>
-	new T.Validator<V>((value) => {
+export function validator<Value>(parse: (value: unknown) => Value) {
+	const isValid = (value: unknown): value is Value => {
 		parse(value)
-		return value as V
+		return true
+	}
+	return new T.Validator((value) => {
+		if (!isValid(value)) throw new Error('Invalid shape property.')
+		return value
 	})
+}
 export const passageValidators = {
 	width: validator(p.width.parse),
 	text: validator(p.text.parse),
@@ -37,8 +42,21 @@ export const noteValidators = {
 	color: validator(n.color.parse),
 	font: validator(n.font.parse),
 	association: validator(n.association.parse),
+	strokes: validator(n.strokes.removeDefault().parse),
 	w: T.positiveNumber,
 	h: T.positiveNumber,
 }
 export const passageMigrations = createShapePropsMigrationSequence({ sequence: [] })
-export const noteMigrations = createShapePropsMigrationSequence({ sequence: [] })
+export const noteMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: 'com.tldraw.shape.margin-note/1',
+			up: (props) => {
+				props.strokes = []
+			},
+			down: (props) => {
+				delete props.strokes
+			},
+		},
+	],
+})
