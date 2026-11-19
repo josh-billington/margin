@@ -14,9 +14,12 @@ import { resolvedAppearance, windowBackground } from './appearance'
 /** If the renderer never reports ready-to-show, show anyway rather than leaving a hidden window. */
 const SHOW_FALLBACK_MS = 4000
 
+/** Read from the preferences as each window opens. */
+export type MainWindowOptions = { liquidGlass?: boolean; intro?: boolean }
+
 export function createMainWindow(
 	onClosed: () => void,
-	options: { liquidGlass?: boolean; intro?: boolean } = {},
+	options: MainWindowOptions = {},
 ): BrowserWindow {
 	const glass = resolveGlassMode(options.liquidGlass)
 	const isMac = process.platform === 'darwin'

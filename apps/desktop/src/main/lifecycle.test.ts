@@ -1,11 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import type { MainWindowOptions } from './window/create'
 
 const fake = vi.hoisted(() => ({
 	events: new Map<string, () => void>(),
 	closed: () => {},
 	window: { isMinimized: vi.fn(() => true), restore: vi.fn(), focus: vi.fn() },
 	create: vi.fn(),
-	options: [] as unknown[],
+	options: new Array<MainWindowOptions>(),
 	preferences: { liquidGlass: false, appearance: 'system', introSeen: false },
 }))
 vi.mock('electron', () => ({
@@ -22,7 +23,7 @@ vi.mock('electron', () => ({
 	BrowserWindow: { getAllWindows: () => [] },
 }))
 vi.mock('./window/create', () => ({
-	createMainWindow: (closed: () => void, options: unknown) => {
+	createMainWindow: (closed: () => void, options: MainWindowOptions) => {
 		fake.closed = closed
 		fake.options.push(options)
 		fake.create()
