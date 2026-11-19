@@ -62,7 +62,7 @@ function revealWhenMeasured(editor: Editor, id: TLShapeId, moved: boolean) {
 	}
 	requestAnimationFrame(check)
 }
-export function installCanvasCommands(editor: Editor) {
+export function installCanvasCommands(editor: Editor, { freehandInk = false } = {}) {
 	let preview: HTMLElement | undefined
 	const clearPreview = () => {
 		preview?.classList.remove('word-anchor-preview')
@@ -96,9 +96,12 @@ export function installCanvasCommands(editor: Editor) {
 			return
 		}
 		if (shortcutsSuppressed(context)) return
-		const tool = { v: 'select', t: 'margin-note', a: 'arrow', h: 'highlight' }[
-			event.key.toLowerCase()
-		]
+		const tool = {
+			v: 'select',
+			t: 'margin-note',
+			a: freehandInk ? undefined : 'arrow',
+			h: 'highlight',
+		}[event.key.toLowerCase()]
 		if (tool) {
 			event.preventDefault()
 			event.stopImmediatePropagation()

@@ -1,74 +1,45 @@
-import { createShapeId, StateNode } from 'tldraw'
-import type { Editor, TLShapeId } from 'tldraw'
+import { StateNode } from 'tldraw'
+import type { Editor } from 'tldraw'
 import type { InkPoint, InkStroke } from '@shared/study/types'
-import { newNoteProps } from '../shapes/note/newNote'
-import { finishArrow } from './finishArrow'
-import { NOTE_INK_HEIGHT, NOTE_INK_WIDTH } from './notePad'
+import { finishStroke, inkTargetAt } from './finishStroke'
 import { strokePath } from './stroke'
 
-export class InkArrowTool extends StateNode {
-	static override id = 'margin-ink-arrow'
-	override onCancel() {
-		this.editor.setCurrentTool('select')
+export class DrawTool extends StateNode {
+	static override id = 'margin-draw'
+	override onEnter() {
+		this.editor.stopCameraAnimation()
 	}
-}
-export class HandwriteTool extends StateNode {
-	static override id = 'margin-handwrite'
 	override onCancel() {
 		this.editor.setCurrentTool('select')
 	}
 }
 
 const svgNs = 'http://www.w3.org/2000/svg'
-const onCanvas = (target: EventTarget | null) =>
-	target instanceof Element &&
-	!target.closest('button, input, textarea, [role="menu"], [role="dialog"]')
+const PAN_SLOP_PX = 5
+const SAMPLE_SPACING_PX = 0.65
 const clientPoint = (event: PointerEvent) => ({ x: event.clientX, y: event.clientY })
 type Point = ReturnType<typeof clientPoint>
-let penUsed = false
 
-type DrawingSurface = { kind: 'canvas' } | { kind: 'note'; id: TLShapeId; pad: Element }
 type Gesture =
 	| {
 			kind: 'draw'
-			surface: DrawingSurface
 			pointerId: number
 			pen: boolean
+			tool: string
+			zoom: number
+			startHit: ReturnType<typeof inkTargetAt>
+			containsInStartNote: (point: Point) => boolean
+			staysInStartNote: boolean
 			points: InkStroke
 			sample: (event: PointerEvent) => InkPoint
 			svg: SVGSVGElement
 			path: SVGPathElement
 	  }
 	| { kind: 'pan'; pointerId: number; origin: Point; last: Point; moved: boolean }
-	| { kind: 'place-note'; pointerId: number; origin: Point }
 
-function targetAt({ editor, point }: { editor: Editor; point: Point }) {
-	return editor.getShapeAtPoint(editor.screenToPage(point), { hitInside: true })
-}
+type Drawing = Extract<Gesture, { kind: 'draw' }>
 
-function placeNote({ editor, point }: { editor: Editor; point: Point }) {
-	const target = targetAt({ editor, point })
-	if (target?.type === 'margin-note') {
-		editor.select(target.id)
-	} else if (!target) {
-		const position = editor.screenToPage(point)
-		const id = createShapeId()
-		editor.markHistoryStoppingPoint('create note')
-		editor
-			.createShape({ id, type: 'margin-note', x: position.x, y: position.y, props: newNoteProps() })
-			.select(id)
-	}
-}
-
-function beginDrawing({
-	editor,
-	surface,
-	event,
-}: {
-	editor: Editor
-	surface: DrawingSurface
-	event: PointerEvent
-}): Gesture {
+function beginDrawing({ editor, event }: { editor: Editor; event: PointerEvent }): Drawing {
 	const container = editor.getContainer()
 	const svg = document.createElementNS(svgNs, 'svg')
 	const path = document.createElementNS(svgNs, 'path')
@@ -87,55 +58,33 @@ function beginDrawing({
 	const origin = editor.pageToViewport({ x: 0, y: 0 })
 	const zoom = editor.getZoomLevel()
 	path.setAttribute('transform', `translate(${origin.x} ${origin.y}) scale(${zoom})`)
-	let toLocal: (point: Point) => Point = (point) => editor.screenToPage(point)
-	if (surface.kind === 'note') {
-		const rect = surface.pad.getBoundingClientRect()
-		const outer = container.getBoundingClientRect()
-		Object.assign(svg.style, {
-			inset: 'auto',
-			left: `${rect.left - outer.left}px`,
-			top: `${rect.top - outer.top}px`,
-			width: `${rect.width}px`,
-			height: `${rect.height}px`,
-			overflow: 'hidden',
-		})
-		svg.setAttribute('viewBox', `0 0 ${NOTE_INK_WIDTH} ${NOTE_INK_HEIGHT}`)
-		path.removeAttribute('transform')
-		path.setAttribute('fill', getComputedStyle(surface.pad).color)
-		toLocal = ({ x, y }) => ({
-			x: Math.max(0, Math.min(NOTE_INK_WIDTH, ((x - rect.left) / rect.width) * NOTE_INK_WIDTH)),
-			y: Math.max(0, Math.min(NOTE_INK_HEIGHT, ((y - rect.top) / rect.height) * NOTE_INK_HEIGHT)),
-		})
-	}
 	const pen = event.pointerType === 'pen'
 	const sample = (input: PointerEvent) => {
-		const { x, y } = toLocal(clientPoint(input))
+		const { x, y } = editor.screenToPage(clientPoint(input))
 		return { x, y, z: pen ? input.pressure : 0.5 }
 	}
 	const points: InkStroke = [sample(event)]
+	const startHit = inkTargetAt({ editor, point: points[0] })
+	let containsInStartNote: (point: Point) => boolean = () => false
+	if (startHit?.kind === 'note') {
+		const bounds = editor.getShapeGeometry(startHit.shape).bounds
+		const toNote = editor.getShapePageTransform(startHit.shape).clone().invert()
+		containsInStartNote = (point) => bounds.containsPoint(toNote.applyToPoint(point))
+	}
 	path.setAttribute('d', strokePath({ points }))
-	return { kind: 'draw', surface, pointerId: event.pointerId, pen, points, sample, svg, path }
-}
-
-function finishDrawing({
-	editor,
-	gesture,
-}: {
-	editor: Editor
-	gesture: Extract<Gesture, { kind: 'draw' }>
-}) {
-	const { surface, points } = gesture
-	if (surface.kind === 'canvas') {
-		finishArrow({ editor, points })
-	} else {
-		const note = editor.getShape(surface.id)
-		if (note?.type !== 'margin-note' || note.isLocked) return
-		editor.markHistoryStoppingPoint('write in note')
-		editor.updateShape({
-			id: note.id,
-			type: note.type,
-			props: { strokes: [...note.props.strokes, points] },
-		})
+	return {
+		kind: 'draw',
+		pointerId: event.pointerId,
+		pen,
+		tool: editor.getCurrentToolId(),
+		zoom,
+		startHit,
+		containsInStartNote,
+		staysInStartNote: containsInStartNote(points[0]),
+		points,
+		sample,
+		svg,
+		path,
 	}
 }
 
@@ -143,7 +92,7 @@ export function installInkTools(editor: Editor) {
 	const container = editor.getContainer()
 	let gesture: Gesture | undefined
 	let frame = 0
-	const isDrawingTool = () => editor.isIn(InkArrowTool.id) || editor.isIn(HandwriteTool.id)
+	let penUsed = false
 	const release = () => {
 		const current = gesture
 		gesture = undefined
@@ -161,38 +110,36 @@ export function installInkTools(editor: Editor) {
 		event.stopPropagation()
 	}
 	const down = (event: PointerEvent) => {
-		if (!onCanvas(event.target) || event.button !== 0) return
-		if (event.pointerType === 'pen') penUsed = true
+		const pen = event.pointerType === 'pen'
+		const touch = event.pointerType === 'touch'
+		if (!(event.target instanceof Element) || event.button !== 0) return
+		if (event.target.closest('button, input, [role="menu"], [role="dialog"]')) return
+		if (pen) penUsed = true
 		if (gesture) {
 			if (gesture.kind === 'draw' && gesture.pen) consume(event)
-			else if (event.pointerType === 'touch') release()
-			return
+			else if (touch || pen) release()
+			if (!pen || gesture) return
 		}
-		if (
-			!event.isPrimary ||
-			!isDrawingTool() ||
-			editor.getIsReadonly() ||
-			editor.inputs.getIsPanning()
-		)
-			return
-		const origin = clientPoint(event)
-		if (event.pointerType === 'touch' && penUsed) {
+		if (!event.isPrimary || editor.inputs.getIsPanning() || editor.inputs.getIsPinching()) return
+		const tool = editor.getCurrentToolId()
+		const editable = event.target.closest('textarea, [contenteditable="true"]')
+		const drawing =
+			!editor.getIsReadonly() &&
+			(tool === DrawTool.id || (pen && (tool === 'select' || tool === 'hand')))
+		if (editable && !(drawing && editable.closest('.margin-note'))) return
+		if (drawing) {
+			editor.stopCameraAnimation()
+			gesture = beginDrawing({ editor, event })
+			editor.setEditingShape(null)
+		} else if (touch && penUsed && tool === 'select') {
+			const origin = clientPoint(event)
 			gesture = { kind: 'pan', pointerId: event.pointerId, origin, last: origin, moved: false }
-		} else if (editor.isIn(InkArrowTool.id)) {
-			gesture = beginDrawing({ editor, surface: { kind: 'canvas' }, event })
+			editor.stopCameraAnimation()
 		} else {
-			const noteId = editor.getOnlySelectedShapeId()
-			const pad = event.target instanceof Element ? event.target.closest('[data-note-ink]') : null
-			if (noteId && pad?.getAttribute('data-note-ink') === noteId) {
-				if (editor.getShape(noteId)?.isLocked) return
-				gesture = beginDrawing({ editor, surface: { kind: 'note', id: noteId, pad }, event })
-			} else {
-				gesture = { kind: 'place-note', pointerId: event.pointerId, origin }
-			}
+			return
 		}
 		editor.getContainer().focus({ preventScroll: true })
-		editor.stopCameraAnimation()
-		if (event.pointerType === 'pen') editor.updateInstanceState({ isPenMode: true })
+		if (pen) editor.updateInstanceState({ isPenMode: true })
 		container.setPointerCapture(event.pointerId)
 		consume(event)
 	}
@@ -205,7 +152,10 @@ export function installInkTools(editor: Editor) {
 		consume(event)
 		if (gesture.kind === 'pan') {
 			const point = clientPoint(event)
-			if (!gesture.moved && Math.hypot(point.x - gesture.origin.x, point.y - gesture.origin.y) < 5)
+			if (
+				!gesture.moved &&
+				Math.hypot(point.x - gesture.origin.x, point.y - gesture.origin.y) < PAN_SLOP_PX
+			)
 				return
 			const { x, y, z } = editor.getCamera()
 			editor.setCamera({
@@ -221,8 +171,10 @@ export function installInkTools(editor: Editor) {
 		const coalesced = event.getCoalescedEvents?.() ?? []
 		for (const input of coalesced.length ? coalesced : [event]) {
 			const sample = current.sample(input)
+			current.staysInStartNote &&= current.containsInStartNote(sample)
 			const last = current.points.at(-1) ?? current.points[0]
-			if (Math.hypot(sample.x - last.x, sample.y - last.y) >= 0.65) current.points.push(sample)
+			if (Math.hypot(sample.x - last.x, sample.y - last.y) * current.zoom >= SAMPLE_SPACING_PX)
+				current.points.push(sample)
 		}
 		if (!frame)
 			frame = requestAnimationFrame(() => {
@@ -230,13 +182,16 @@ export function installInkTools(editor: Editor) {
 				current.path.setAttribute('d', strokePath({ points: current.points }))
 			})
 	}
+	const resetNativePenMode = (event: PointerEvent) => {
+		if (event.pointerType === 'pen' && editor.getInstanceState().isPenMode)
+			queueMicrotask(() => {
+				if (!gesture && !editor.isDisposed) editor.updateInstanceState({ isPenMode: false })
+			})
+	}
 	const up = (event: PointerEvent) => {
 		const current = gesture
 		if (!current) {
-			if (event.pointerType === 'pen' && editor.getInstanceState().isPenMode)
-				queueMicrotask(() => {
-					if (!gesture && !editor.isDisposed) editor.updateInstanceState({ isPenMode: false })
-				})
+			resetNativePenMode(event)
 			return
 		}
 		if (current.pointerId !== event.pointerId) {
@@ -245,24 +200,29 @@ export function installInkTools(editor: Editor) {
 		}
 		consume(event)
 		release()
-		if (!isDrawingTool() || editor.getIsReadonly()) return
 		if (current.kind === 'draw') {
-			if (!editor.isIn(current.surface.kind === 'note' ? HandwriteTool.id : InkArrowTool.id)) return
+			if (editor.getCurrentToolId() !== current.tool || editor.getIsReadonly()) return
 			const sample = current.sample(event)
 			const last = current.points.at(-1) ?? current.points[0]
 			if (sample.x !== last.x || sample.y !== last.y) current.points.push({ ...sample, z: last.z })
-			finishDrawing({ editor, gesture: current })
-		} else if (current.kind === 'place-note') {
-			placeNote({ editor, point: current.origin })
-		} else if (!current.moved) {
-			const target = targetAt({ editor, point: current.last })
+			finishStroke({
+				editor,
+				points: current.points,
+				startHit: current.startHit,
+				zoom: current.zoom,
+				staysInStartNote: current.staysInStartNote && current.containsInStartNote(sample),
+			})
+		} else if (!current.moved && editor.isIn('select')) {
+			const target = editor.getShapeAtPoint(editor.screenToPage(current.origin), {
+				hitInside: true,
+			})
 			if (target) editor.select(target.id)
-			else if (editor.isIn(HandwriteTool.id)) placeNote({ editor, point: current.last })
 			else editor.selectNone()
 		}
 	}
 	const cancel = (event: PointerEvent) => {
 		if (gesture?.pointerId === event.pointerId) release()
+		else if (!gesture) resetNativePenMode(event)
 	}
 	const palm = (event: TouchEvent) => {
 		if (gesture?.kind === 'draw' && gesture.pen) consume(event)

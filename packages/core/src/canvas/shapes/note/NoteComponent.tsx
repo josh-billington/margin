@@ -19,22 +19,8 @@ const NOTE_MEASURE = '14.5em'
 
 type NoteComponentProps = { shape: NoteShape; editor: Editor }
 
-export function TouchNoteComponent({ shape, editor }: NoteComponentProps) {
-	const writing = useValue(
-		'writing in note',
-		() => editor.isIn('margin-handwrite') && editor.getOnlySelectedShapeId() === shape.id,
-		[editor, shape.id],
-	)
-	return <NoteComponent shape={shape} editor={editor} writing={writing} />
-}
-
-export function NoteComponent({
-	shape,
-	editor,
-	writing = false,
-}: NoteComponentProps & { writing?: boolean }) {
-	const hasInk = shape.props.strokes.length > 0
-	const showPad = writing || hasInk
+export function NoteComponent({ shape, editor }: NoteComponentProps) {
+	const showPad = shape.props.strokes.length > 0
 	const editing = useValue('editing note', () => editor.getEditingShapeId() === shape.id, [
 		editor,
 		shape.id,
@@ -181,8 +167,6 @@ export function NoteComponent({
 							left: NOTE_INK_INSET,
 							bottom: NOTE_INK_INSET,
 							overflow: 'hidden',
-							background: writing && !hasInk ? 'var(--surface)' : undefined,
-							cursor: writing ? 'crosshair' : undefined,
 						}}
 					>
 						{shape.props.strokes.map((points, index) => (
@@ -190,7 +174,7 @@ export function NoteComponent({
 						))}
 					</svg>
 				)}
-				{selected && !editing && !writing && <NoteOptions editor={editor} shape={shape} />}
+				{selected && !editing && <NoteOptions editor={editor} shape={shape} />}
 			</div>
 		</HTMLContainer>
 	)

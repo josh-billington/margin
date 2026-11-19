@@ -2,14 +2,13 @@ import { ShapeUtil, Rectangle2d } from 'tldraw'
 import type { TLResizeInfo } from 'tldraw'
 import { noteMigrations, noteValidators } from '../types'
 import type { NoteShape } from '../types'
-import { NoteComponent, TouchNoteComponent } from './NoteComponent'
+import { NoteComponent } from './NoteComponent'
 
 export const noteSizes = { S: 18, M: 22, L: 28, XL: 36 }
 export class NoteShapeUtil extends ShapeUtil<NoteShape> {
 	static override type: NoteShape['type'] = 'margin-note'
 	static override props = noteValidators
 	static override migrations = noteMigrations
-	override options = { inkTools: false }
 	override getDefaultProps(): NoteShape['props'] {
 		return { text: '', size: 'M', color: 'ink', font: 'handwritten', w: 180, h: 40, strokes: [] }
 	}
@@ -27,8 +26,7 @@ export class NoteShapeUtil extends ShapeUtil<NoteShape> {
 		return { id: shape.id, type: shape.type, props: { width, w: width } }
 	}
 	component(shape: NoteShape) {
-		const Component = this.options.inkTools ? TouchNoteComponent : NoteComponent
-		return <Component shape={shape} editor={this.editor} />
+		return <NoteComponent shape={shape} editor={this.editor} />
 	}
 	getIndicatorPath(shape: NoteShape) {
 		const path = new Path2D()

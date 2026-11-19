@@ -23,21 +23,12 @@ import { platform } from '../lib/platform'
 import { KEYBOARD_ZOOM, installFocusShortcuts } from './focus/shortcuts'
 import { useAppearance } from '../app/glass'
 import { InkBindingUtil, InkShapeUtil } from './ink/InkShapeUtil'
-import { HandwriteTool, InkArrowTool, installInkTools } from './ink/tools'
+import { DrawTool, installInkTools } from './ink/tools'
 import './canvas.css'
 
-const shapeUtils = [
-	PassageShapeUtil,
-	platform.freehandInk ? NoteShapeUtil.configure({ inkTools: true }) : NoteShapeUtil,
-	MarginArrowShapeUtil,
-	InkShapeUtil,
-]
+const shapeUtils = [PassageShapeUtil, NoteShapeUtil, MarginArrowShapeUtil, InkShapeUtil]
 const bindingUtils = [InkBindingUtil]
-const tools = [
-	NoteTool,
-	HighlightTool,
-	...(platform.freehandInk ? [InkArrowTool, HandwriteTool] : []),
-]
+const tools = [NoteTool, HighlightTool, ...(platform.freehandInk ? [DrawTool] : [])]
 const components = {
 	// tldraw's stock menu (Move to page, Export as, Reorder…) survives hideUi and does not fit the
 	// app; words get the native lookup menu instead, and editing commands live in the menu bar.
@@ -156,7 +147,7 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 	validateLoadedAnnotations(editor)
 	const removeTerminals = installWordTerminals(editor)
 	const removeBehavior = installAnnotationBehavior(editor)
-	const removeCommands = installCanvasCommands(editor)
+	const removeCommands = installCanvasCommands(editor, { freehandInk: platform.freehandInk })
 	const removeFocus = installFocusShortcuts(editor)
 	const removeSpacePan = installSpacePan(editor)
 	const removeLookup = installLookupContextMenu(editor, {
