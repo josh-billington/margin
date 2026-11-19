@@ -7,18 +7,23 @@ import { createMainWindow } from './window/create'
 import { applyAppearance } from './window/appearance'
 import { initializeLogging, logEvent, logFailure } from './logger'
 import { WEBSITE } from './help'
+import type { Preferences } from '@shared/ipc/contract'
 
 let mainWindow: BrowserWindow | null = null
 const getWindow = () => mainWindow
 
-let liquidGlass: boolean | undefined
+let preferences: (() => Preferences) | null = null
 
 function openWindow() {
 	mainWindow = createMainWindow(
 		() => {
 			mainWindow = null
 		},
-		{ liquidGlass },
+		{
+			liquidGlass: preferences?.().liquidGlass,
+			// Read when each window opens, so a window reopened after the intro played skips it.
+			intro: preferences?.().introSeen === false,
+		},
 	)
 }
 
@@ -75,7 +80,7 @@ export function runApp() {
 			applyAppearance(preferences.appearance)
 			installAppMenu(getWindow, preferences.appearance)
 		})
-		liquidGlass = data.preferences.liquidGlass
+		preferences = () => data.preferences
 		applyAppearance(data.preferences.appearance)
 		installAppMenu(getWindow, data.preferences.appearance)
 		openWindow()

@@ -7,6 +7,7 @@ import {
 	GLASS_ARGUMENT,
 	GLASS_CHANNEL,
 	glassModeSchema,
+	INTRO_ARGUMENT,
 	ipcContract,
 	PLATFORM_ARGUMENT,
 } from '@shared/ipc/contract'
@@ -44,6 +45,7 @@ const api = {
 				nativeContextMenu: false,
 				freehandInk: true,
 				libraryFolderPicker: false,
+				welcomeIntro: false,
 			}
 		: {
 				kind: 'mac',
@@ -51,7 +53,9 @@ const api = {
 				nativeContextMenu: true,
 				freehandInk: false,
 				libraryFolderPicker: true,
+				welcomeIntro: true,
 			},
+	introAtLaunch: process.argv.includes(INTRO_ARGUMENT),
 	appearance: {
 		mode: initialAppearance,
 		onChange: (listener: (mode: ResolvedAppearance) => void) => {

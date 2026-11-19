@@ -5,6 +5,8 @@ const fake = vi.hoisted(() => ({
 	closed: () => {},
 	window: { isMinimized: vi.fn(() => true), restore: vi.fn(), focus: vi.fn() },
 	create: vi.fn(),
+	options: [] as unknown[],
+	preferences: { liquidGlass: false, appearance: 'system', introSeen: false },
 }))
 vi.mock('electron', () => ({
 	app: {
@@ -20,15 +22,20 @@ vi.mock('electron', () => ({
 	BrowserWindow: { getAllWindows: () => [] },
 }))
 vi.mock('./window/create', () => ({
-	createMainWindow: (closed: () => void) => {
+	createMainWindow: (closed: () => void, options: unknown) => {
 		fake.closed = closed
+		fake.options.push(options)
 		fake.create()
 		return fake.window
 	},
 }))
 vi.mock('./ipc/register', () => ({ registerIpcHandlers: vi.fn() }))
 vi.mock('./ipc/persistence', () => ({
-	registerPersistence: async () => ({ preferences: { liquidGlass: false, appearance: 'system' } }),
+	registerPersistence: async () => ({
+		get preferences() {
+			return fake.preferences
+		},
+	}),
 }))
 vi.mock('./menu', () => ({ installAppMenu: vi.fn() }))
 vi.mock('./window/appearance', () => ({ applyAppearance: vi.fn() }))
@@ -63,4 +70,22 @@ it('reopens, restores and focuses the main window on second instance and activat
 	fake.events.get('activate')?.()
 	expect(fake.create).toHaveBeenCalledTimes(3)
 	expect(fake.window.focus).toHaveBeenCalledTimes(3)
+})
+
+it('opens on the welcome intro until it has been seen, read afresh for each new window', async () => {
+	vi.stubGlobal(
+		'process',
+		Object.assign(Object.create(process), { getSystemVersion: () => 'test' }),
+	)
+	const { runApp } = await import('./lifecycle')
+	fake.options.length = 0
+	fake.create.mockClear()
+	fake.preferences.introSeen = false
+	runApp()
+	await vi.waitFor(() => expect(fake.create).toHaveBeenCalledTimes(1))
+	expect(fake.options.at(-1)).toEqual({ liquidGlass: false, intro: true })
+	fake.preferences.introSeen = true
+	fake.closed()
+	fake.events.get('activate')?.()
+	expect(fake.options.at(-1)).toEqual({ liquidGlass: false, intro: false })
 })

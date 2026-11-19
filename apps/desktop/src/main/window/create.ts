@@ -5,6 +5,7 @@ import {
 	APPEARANCE_ARGUMENT,
 	APPEARANCE_CHANNEL,
 	GLASS_ARGUMENT,
+	INTRO_ARGUMENT,
 	PLATFORM_ARGUMENT,
 } from '@shared/ipc/contract'
 import { attachGlass, resolveGlassMode } from './glass'
@@ -15,7 +16,7 @@ const SHOW_FALLBACK_MS = 4000
 
 export function createMainWindow(
 	onClosed: () => void,
-	options: { liquidGlass?: boolean } = {},
+	options: { liquidGlass?: boolean; intro?: boolean } = {},
 ): BrowserWindow {
 	const glass = resolveGlassMode(options.liquidGlass)
 	const isMac = process.platform === 'darwin'
@@ -41,6 +42,7 @@ export function createMainWindow(
 			additionalArguments: [
 				`${GLASS_ARGUMENT}${glass}`,
 				`${APPEARANCE_ARGUMENT}${resolvedAppearance()}`,
+				...(options.intro ? [INTRO_ARGUMENT] : []),
 				...(!app.isPackaged && process.env.MARGIN_PLATFORM === 'ipad' ? [PLATFORM_ARGUMENT] : []),
 			],
 		},

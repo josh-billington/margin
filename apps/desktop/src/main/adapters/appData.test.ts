@@ -34,6 +34,27 @@ it('keeps setup pending when prefs.json is missing', async () => {
 	const data = await new AppDataStore(root).open()
 	expect(data.setup).toBe('pending')
 })
+it('plays the welcome intro for a new install but not for preferences saved before it existed', async () => {
+	expect((await new AppDataStore(root).open()).preferences.introSeen).toBe(false)
+	await writeFile(
+		join(root, 'prefs.json'),
+		JSON.stringify({
+			setup: 'done',
+			preferences: {
+				defaultTranslation: 'kjv',
+				oldTestamentTranslation: 'kjv',
+				defaultNoteFont: 'handwritten',
+				displayNotesInPlainFont: false,
+			},
+		}),
+	)
+	const existing = await new AppDataStore(root).open()
+	expect(existing.preferences.introSeen).toBeUndefined()
+	await existing.update((settings) => {
+		settings.preferences.introSeen = true
+	})
+	expect((await new AppDataStore(root).open()).preferences.introSeen).toBe(true)
+})
 it('skips setup for existing preferences without a setup field', async () => {
 	await writeFile(join(root, 'prefs.json'), '{}')
 	expect((await new AppDataStore(root).open()).setup).toBe('done')
