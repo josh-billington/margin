@@ -3,20 +3,43 @@
  * (main.tsx), so the Mac's stylesheet stays as it is.
  */
 
-/* Shapes are laid out in canvas units with the Mac's sizes (tokens.css); their controls grow by hit
-   area instead. */
+/* Dynamic Type: the iPad's text-size setting arrives as the system body size (17px by default).
+   The UI type scale is expressed against it, so the default reads exactly as the fixed scale and a
+   larger setting grows the chrome with it, up to half again so the sidebar still holds a title.
+   Canvas shapes keep their own scale below; scripture follows each passage's text size. */
+:root[data-platform='ipad'] {
+	/* Where the system style isn't understood (the Mac renderer with MARGIN_PLATFORM=ipad). */
+	font: 400 17px / 1.4 var(--font-ui);
+	font: -apple-system-body;
+	--text-2xs: min(calc(10rem / 17), 15px);
+	--text-xs: min(calc(11rem / 17), 16.5px);
+	--text-sm: min(calc(12rem / 17), 18px);
+	--text-md: min(calc(13rem / 17), 19.5px);
+	--text-lg: min(calc(15rem / 17), 22.5px);
+}
+:root[data-platform='ipad'] body {
+	font: 400 var(--text-sm) / 1.4 var(--font-ui);
+}
+
+/* Shapes are laid out in canvas units with the Mac's sizes (tokens.css), whatever the text-size
+   setting; their controls grow by hit area instead. */
 .tl-shape {
+	--text-2xs: 10px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-lg: 15px;
 	--control-h-sm: 22px;
 	--control-h: 26px;
 	--row-h: 28px;
 }
 
-/* A fingertip needs 44pt (Apple HIG). Rows and fields grow to it; icons keep
-   their size, only the box around them grows. */
+/* A fingertip needs 44pt (Apple HIG). Rows and fields grow to it, and with the text after that;
+   icons keep their size, only the box around them grows. */
 @media (pointer: coarse) {
 	:root {
 		--touch-target: 44px;
-		--control-h-sm: var(--touch-target);
+		--control-h-sm: clamp(var(--touch-target), calc(44rem / 17), 66px);
 		--control-h: var(--control-h-sm);
 		--row-h: var(--control-h-sm);
 	}
