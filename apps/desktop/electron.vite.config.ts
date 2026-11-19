@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const alias = {
-	'@shared': resolve('../../src/shared'),
+	'@shared': resolve('../../packages/contract/src'),
 	'@renderer': resolve('../../src/renderer/src'),
 }
 

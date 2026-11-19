@@ -17,7 +17,7 @@
 		"types": ["node", "vite/client"],
 		"baseUrl": ".",
 		"paths": {
-			"@shared/*": ["src/shared/*"],
+			"@shared/*": ["packages/contract/src/*"],
 			"@renderer/*": ["src/renderer/src/*"]
 		}
 	}
