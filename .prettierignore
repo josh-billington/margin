@@ -1,5 +1,9 @@
 node_modules
-out
-release
+**/out
+**/release
 pnpm-lock.yaml
-resources/fonts
+**/resources/fonts
+site
+docs
+video
+.audit

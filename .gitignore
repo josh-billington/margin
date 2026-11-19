@@ -4,8 +4,8 @@ dist/
 release/
 *.log
 .DS_Store
-resources/bible/*.sqlite
-data/raw/
+**/resources/bible/*.sqlite
+**/data/raw/
 
 .env
 .env.*
@@ -14,6 +14,6 @@ data/raw/
 test-results
 playwright-report
 .claude/worktrees/
-resources/lexicon/*.sqlite
+**/resources/lexicon/*.sqlite
 /docs/
 /video/

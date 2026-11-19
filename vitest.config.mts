@@ -3,7 +3,13 @@ import { resolve } from 'node:path'
 
 export default defineConfig({
 	resolve: {
-		alias: { '@shared': resolve('src/shared'), '@renderer': resolve('src/renderer/src') },
+		alias: {
+			'@shared': resolve(import.meta.dirname, 'src/shared'),
+			'@renderer': resolve(import.meta.dirname, 'src/renderer/src'),
+		},
 	},
-	test: { environment: 'node', include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
+	test: {
+		environment: 'node',
+		include: ['src/**/*.test.ts', 'scripts/**/*.test.ts', '../../src/**/*.test.ts'],
+	},
 })
