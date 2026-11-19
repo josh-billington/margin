@@ -180,6 +180,19 @@
 	/* Every control above draws its own press; WebKit's grey tap flash would double it. */
 	-webkit-tap-highlight-color: transparent;
 }
+/* WebKit sizes a grid dialog's `fit-content` height to its maximum. Here it takes its content's
+   height and is centred by `translate`, which composes with the entry scale instead of replacing it. */
+.dialog-panel {
+	top: 50%;
+	bottom: auto;
+	height: auto;
+	translate: 0 -50%;
+}
+/* A dialog closes on a tap outside it once that tap clicks, but WebKit only clicks what it takes to
+   be clickable, and the overlay sits outside the app's root. */
+.dialog-overlay {
+	cursor: pointer;
+}
 
 /* The long-press word menu is the callout here; the system's would sit on top of it. */
 .passage-text {
