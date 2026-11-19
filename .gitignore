@@ -16,3 +16,4 @@ playwright-report
 .claude/worktrees/
 resources/lexicon/*.sqlite
 /docs/
+/video/

@@ -62,9 +62,9 @@
 		"format": "prettier --write .",
 		"import:bible": "tsx scripts/import-bible/index.ts",
 		"postinstall": "electron-builder install-app-deps",
-		"dist": "yarn build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
+		"dist": "pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
 		"import:lexicon": "tsx scripts/import-lexicon/index.ts",
-		"dist:release": "node scripts/release-preflight.mjs && yarn build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
+		"dist:release": "node scripts/release-preflight.mjs && pnpm build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
 	},
 	"build": {
 		"copyright": "© 2026 Josh Billington",
@@ -128,5 +128,6 @@
 			"enableEmbeddedAsarIntegrityValidation": true,
 			"onlyLoadAppFromAsar": true
 		}
-	}
+	},
+	"packageManager": "pnpm@11.5.2"
 }
