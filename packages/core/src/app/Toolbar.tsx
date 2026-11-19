@@ -127,6 +127,7 @@ export function Toolbar({ editor }: ToolbarProps) {
 			<ToolButton
 				label={titleFor('view.zoomOut')}
 				shortcut={shortcutFor('view.zoomOut')}
+				className="zoom-step"
 				onClick={() => editor?.zoomOut(undefined, zoomMotion())}
 			>
 				<Minus {...iconLg} />
@@ -142,6 +143,7 @@ export function Toolbar({ editor }: ToolbarProps) {
 			<ToolButton
 				label={titleFor('view.zoomIn')}
 				shortcut={shortcutFor('view.zoomIn')}
+				className="zoom-step"
 				onClick={() => editor?.zoomIn(undefined, zoomMotion())}
 			>
 				<Plus {...iconLg} />
