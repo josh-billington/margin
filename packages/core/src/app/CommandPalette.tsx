@@ -6,6 +6,7 @@ import {
 	BookOpen,
 	CirclePlay,
 	Copy,
+	Droplet,
 	Maximize,
 	Moon,
 	PanelLeft,
@@ -58,6 +59,7 @@ const icons: Record<Exclude<CommandId, 'palette.toggle'>, LucideIcon> = {
 	'appearance.dark': Moon,
 	'intro.show': CirclePlay,
 	'dev.fluidPopoverMotion': Spline,
+	'dev.toolbarGlass': Droplet,
 }
 const paletteCommands = commands.filter(
 	(command) =>

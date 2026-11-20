@@ -6,6 +6,9 @@
 
 @source not '../canvas/ink';
 @source not '../intro';
+/* The glass toolbar experiment names SVG filters and rounded shapes; none are utilities. */
+@source not '../app/toolbarGlass.tsx';
+@source not '../app/lensField*';
 
 @theme inline {
 	--font-sans: var(--font-ui);

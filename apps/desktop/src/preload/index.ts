@@ -10,6 +10,7 @@ import {
 	INTRO_ARGUMENT,
 	ipcContract,
 	PLATFORM_ARGUMENT,
+	TOOLBAR_GLASS_ARGUMENT,
 } from '@shared/ipc/contract'
 import { appCommandSchema, COMMAND_CHANNEL, SIDEBAR_CHANNEL } from '@shared/ipc/commands'
 import type { AppCommandId } from '@shared/ipc/commands'
@@ -56,6 +57,9 @@ const api = {
 				welcomeIntro: true,
 			},
 	introAtLaunch: process.argv.includes(INTRO_ARGUMENT),
+	toolbarGlass: process.argv
+		.find((arg) => arg.startsWith(TOOLBAR_GLASS_ARGUMENT))
+		?.slice(TOOLBAR_GLASS_ARGUMENT.length),
 	appearance: {
 		mode: initialAppearance,
 		onChange: (listener: (mode: ResolvedAppearance) => void) => {

@@ -7,6 +7,7 @@ import {
 	GLASS_ARGUMENT,
 	INTRO_ARGUMENT,
 	PLATFORM_ARGUMENT,
+	TOOLBAR_GLASS_ARGUMENT,
 } from '@shared/ipc/contract'
 import { attachGlass, resolveGlassMode } from './glass'
 import { resolvedAppearance, windowBackground } from './appearance'
@@ -47,6 +48,9 @@ export function createMainWindow(
 				`${APPEARANCE_ARGUMENT}${resolvedAppearance()}`,
 				...(options.intro ? [INTRO_ARGUMENT] : []),
 				...(!app.isPackaged && process.env.MARGIN_PLATFORM === 'ipad' ? [PLATFORM_ARGUMENT] : []),
+				...(process.env.MARGIN_TOOLBAR_GLASS
+					? [`${TOOLBAR_GLASS_ARGUMENT}${process.env.MARGIN_TOOLBAR_GLASS}`]
+					: []),
 			],
 		},
 	})

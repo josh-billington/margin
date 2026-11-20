@@ -248,6 +248,8 @@ export const GLASS_CHANNEL = 'margin:glass'
 export const GLASS_ARGUMENT = '--margin-glass='
 /** Development only: `MARGIN_PLATFORM=ipad` on an unpackaged build runs the iPad renderer paths. */
 export const PLATFORM_ARGUMENT = '--margin-platform=ipad'
+/** Experiment: MARGIN_TOOLBAR_GLASS at launch (`1` or `0`). See core app/toolbarGlass. */
+export const TOOLBAR_GLASS_ARGUMENT = '--margin-toolbar-glass='
 /** The window opens on the welcome intro (first launch), so the renderer never paints the app first. */
 export const INTRO_ARGUMENT = '--margin-intro'
 export const platformSchema = z.discriminatedUnion('kind', [
@@ -276,6 +278,8 @@ export type MarginApi = ContractApi<typeof ipcContract> & {
 	platform: Platform
 	/** The welcome intro has not played yet, so the window opens on it. */
 	introAtLaunch: boolean
+	/** Experiment: MARGIN_TOOLBAR_GLASS as the window opened; absent when unset. */
+	toolbarGlass?: string
 	/** Window material behind the title bar and sidebar: the mode at launch, and later changes. */
 	/** The appearance in effect (preference resolved against the system): at launch, and later changes. */
 	appearance: {

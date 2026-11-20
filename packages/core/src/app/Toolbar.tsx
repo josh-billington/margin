@@ -24,6 +24,7 @@ import { prefersReducedMotion } from '../canvas/focus/camera'
 import { platform } from '../lib/platform'
 import { DrawTool } from '../canvas/ink/tools'
 import { DiagramTools } from './DiagramTools'
+import { useToolbarGlass } from './toolbarGlass'
 
 // Clicks animate so the reader keeps their place; ⌘+ / ⌘− stay instant.
 const zoomMotion = () =>
@@ -40,8 +41,16 @@ export function Toolbar({ editor }: ToolbarProps) {
 	const zoom = useValue('zoom', () => Math.round((editor?.getZoomLevel() ?? 1) * 100), [editor])
 	// A host without a menu bar has no other pointer route to undo, redo and fit.
 	const menuCommands = !platform.nativeMenu
+	const glass = useToolbarGlass()
 	return (
-		<div className="canvas-toolbar" role="toolbar" aria-label="Canvas tools">
+		<div
+			ref={glass.ref}
+			className="canvas-toolbar"
+			role="toolbar"
+			aria-label="Canvas tools"
+			{...glass.props}
+		>
+			{glass.defs}
 			<ToolButton
 				label="Select"
 				shortcut="V"

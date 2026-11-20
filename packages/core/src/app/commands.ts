@@ -17,6 +17,7 @@ import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
 import { isIntroOpen, showIntro } from '../intro/introStore'
 import { toggleFluidPopoverMotion } from './popoverMotion'
+import { toggleToolbarGlass, toolbarGlassListed } from './toolbarGlass'
 
 export type CommandId =
 	| AppCommandId
@@ -24,6 +25,7 @@ export type CommandId =
 	| 'selection.duplicate'
 	| 'selection.delete'
 	| 'dev.fluidPopoverMotion'
+	| 'dev.toolbarGlass'
 
 export interface AppCommand {
 	id: CommandId
@@ -236,6 +238,14 @@ export const commands: AppCommand[] = [
 		title: 'Use dark appearance',
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'dark' }),
+	},
+	// Experiment, off by default; listed only in development or when a launch set the flag.
+	{
+		id: 'dev.toolbarGlass',
+		title: 'Toggle glass toolbar',
+		group: 'View',
+		palette: toolbarGlassListed,
+		run: toggleToolbarGlass,
 	},
 	{
 		id: 'intro.show',
