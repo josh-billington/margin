@@ -305,6 +305,9 @@ function SearchRows({
 		const offset = element.scrollTop
 		const anchor = virtualizer.getVirtualItemForOffset(offset)
 		virtualizer.measure()
+		// Rebuild positions from the new estimates first: a rendered row is re-measured against them,
+		// and one compared with its stale size would look unchanged and keep the estimate.
+		virtualizer.getVirtualItems()
 		virtualizer.elementsCache.forEach((node) => virtualizer.measureElement(node))
 		if (!anchor || offset === 0) return
 		virtualizer.getVirtualItems()
