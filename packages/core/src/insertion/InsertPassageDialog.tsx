@@ -9,6 +9,7 @@ import { Spinner } from '../canvas/lookup/Spinner'
 import { blockNoun, formatRanges, translationNames, translationOrder } from './labels'
 import { usePreview } from './usePreview'
 import type { PreviewState } from './usePreview'
+import { useDialogMotion } from '../app/dialogMotion'
 
 interface Props {
 	open: boolean
@@ -104,6 +105,7 @@ export function InsertPassageDialog({
 }: Props) {
 	const [query, setQuery] = useState(initialQuery)
 	const [busy, setBusy] = useState(false)
+	const motion = useDialogMotion({ open, keyboard: 'instant' })
 	const generation = useRef(0)
 	const inFlight = useRef(false)
 	useEffect(() => {
@@ -175,9 +177,10 @@ export function InsertPassageDialog({
 	return (
 		<Dialog.Root open={open} onOpenChange={changeOpen}>
 			<Dialog.Portal>
-				<Dialog.Overlay className="dialog-overlay palette-overlay" />
+				<Dialog.Overlay className="dialog-overlay" data-motion={motion} />
 				<Dialog.Content
 					className="command-dialog insert-dialog"
+					data-motion={motion}
 					aria-describedby="insert-description"
 				>
 					<Dialog.Title className="insert-title">Add verses</Dialog.Title>

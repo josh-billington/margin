@@ -713,9 +713,11 @@ select:focus-visible {
 .command-dialog[data-state='closed'] {
 	animation: pop-out var(--duration-fast) var(--ease-out) forwards;
 }
-/* Keyboard-opened palette and insert dialog are used constantly: no motion. */
-:root[data-input='keyboard'] .palette-overlay,
-:root[data-input='keyboard'] .command-dialog {
+/* The palette and insert dialog are used constantly: no motion from the keyboard, and none when the
+   palette hands over to a dialog (dialogMotion.ts). */
+.dialog-overlay[data-motion='instant'],
+.dialog-panel[data-motion='instant'],
+.command-dialog[data-motion='instant'] {
 	animation: none;
 }
 @keyframes pop-in {

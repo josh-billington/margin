@@ -2,6 +2,7 @@ import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { describeImpact } from '../canvas/annotations/deletion'
 import type { DeletionPlan } from '../canvas/annotations/deletion'
 import { cancelDeletion, confirmDeletion, useDeleteRequest } from '../canvas/annotations/editorOps'
+import { useDialogMotion } from './dialogMotion'
 
 function deleteTitle({ passages, passageNoun }: DeletionPlan['counts']) {
 	if (passages > 1) return `Delete ${passages} blocks of verses?`
@@ -12,11 +13,12 @@ function deleteTitle({ passages, passageNoun }: DeletionPlan['counts']) {
 /** One confirmation for deleting verses and chapters, listing what else goes with them (SPEC §4.6). */
 export function DeleteConfirm() {
 	const plan = useDeleteRequest((state) => state.plan)
+	const motion = useDialogMotion({ open: plan !== null, keyboard: 'animated' })
 	return (
 		<AlertDialog.Root open={plan !== null} onOpenChange={(open) => !open && cancelDeletion()}>
 			<AlertDialog.Portal>
-				<AlertDialog.Overlay className="dialog-overlay" />
-				<AlertDialog.Content className="dialog-panel">
+				<AlertDialog.Overlay className="dialog-overlay" data-motion={motion} />
+				<AlertDialog.Content className="dialog-panel" data-motion={motion}>
 					<AlertDialog.Title>{plan ? deleteTitle(plan.counts) : ''}</AlertDialog.Title>
 					<AlertDialog.Description>
 						{plan ? describeImpact(plan.counts) : ''} You can undo this.

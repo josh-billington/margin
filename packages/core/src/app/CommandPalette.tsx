@@ -18,6 +18,7 @@ import {
 import { commands, labelFor, runCommand } from './commands'
 import type { CommandId } from './commands'
 import { useUiStore } from './uiStore'
+import { handOff, useDialogMotion } from './dialogMotion'
 import { iconMd } from '../lib/icons'
 import { platform } from '../lib/platform'
 
@@ -54,17 +55,23 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 	const [search, setSearch] = useState('')
 	const afterClose = useRef<(() => void) | null>(null)
 	const typed = search.trim()
+	const motion = useDialogMotion({ open, keyboard: 'instant' })
 	function run(action: () => void, waitForClose = false) {
-		if (waitForClose) afterClose.current = action
+		if (!waitForClose)
+			return handOff(() => {
+				onOpenChange(false)
+				action()
+			})
+		afterClose.current = action
 		onOpenChange(false)
-		if (!waitForClose) action()
 	}
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
-				<Dialog.Overlay className="dialog-overlay palette-overlay" />
+				<Dialog.Overlay className="dialog-overlay" data-motion={motion} />
 				<Dialog.Content
 					className="command-dialog"
+					data-motion={motion}
 					aria-describedby="command-description"
 					onCloseAutoFocus={(event) => {
 						const action = afterClose.current

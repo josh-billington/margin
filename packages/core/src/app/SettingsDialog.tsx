@@ -9,6 +9,7 @@ import {
 import type { NoteFontChoice } from '../lib/preferences'
 import { usePrefs } from '../lib/usePrefs'
 import { platform } from '../lib/platform'
+import { useDialogMotion } from './dialogMotion'
 import { translationNames, translationOrder, wholeBibleTranslations } from '../insertion/labels'
 import { translationIdSchema } from '@shared/bible/types'
 import { appearanceSchema } from '@shared/ipc/contract'
@@ -29,6 +30,7 @@ export function SettingsDialog({
 	const noteFont = usePreferences(noteFontChoice)
 	const { prefs, update } = usePrefs()
 	const panel = useRef<HTMLDivElement>(null)
+	const motion = useDialogMotion({ open, keyboard: 'animated' })
 	// With Reduce Transparency on, macOS shows solid chrome whatever this setting says.
 	const transparencyReduced = useSyncExternalStore(
 		subscribeTransparency,
@@ -37,9 +39,10 @@ export function SettingsDialog({
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
-				<Dialog.Overlay className="dialog-overlay" />
+				<Dialog.Overlay className="dialog-overlay" data-motion={motion} />
 				<Dialog.Content
 					ref={panel}
+					data-motion={motion}
 					tabIndex={-1}
 					className="dialog-panel settings-panel"
 					aria-describedby="settings-description"

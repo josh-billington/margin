@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { GlassMode, ResolvedAppearance } from '@shared/ipc/contract'
+import { noteInput } from './dialogMotion'
 
 /**
  * Mirrors the window material onto <html data-glass>. CSS makes the title bar and sidebar
@@ -17,6 +18,7 @@ export function syncGlassMode() {
 export function trackInputModality() {
 	const set = (value: 'keyboard' | 'pointer') => () => {
 		document.documentElement.dataset.input = value
+		noteInput(value)
 	}
 	const onKey = set('keyboard'),
 		onPointer = set('pointer')
