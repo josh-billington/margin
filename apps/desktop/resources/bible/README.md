@@ -10,10 +10,18 @@ eBible's URL is mutable, and obsolete cloud-object generations may be removed.
 
 `margin-bible.sqlite` is generated and gitignored. The importer writes it in
 `data/raw/` and publishes it after corpus/map checks. It contains editions, books,
-verses, paragraph starts, and book-level source metadata. Storage version 2 keeps
+verses, paragraph starts, and book-level source metadata. Storage version 3 keeps
 each verse as `[text, italic]` runs (about 29 MiB total for five editions); tokens are re-derived with
 the edition's tokenizer on read, and the importer refuses any verse that does not
 round-trip to identical tokens. Version 1 (168 MiB of token JSON) is rejected.
+
+Version 3 adds one contentless FTS5 table per translation. `pnpm import:bible --index-only`
+rebuilds those tables directly from an existing version 2 or 3 database, without
+raw sources or network access. The source database is replaced only after the new
+index passes integrity checks. Canonical book/chapter/verse order is encoded in
+the FTS rowids. Search lowercases text, drops internal straight or curly apostrophes,
+and treats other punctuation as word boundaries; italic words remain searchable.
+The verse corpus and tokenizer revisions do not change when only the index changes.
 
 The committed manifests include exact URLs, dates/revisions, individual source
 SHA-256 hashes, rights, corpus/tokenizer revisions, full per-book totals and chapter

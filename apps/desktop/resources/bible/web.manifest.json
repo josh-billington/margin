@@ -12,7 +12,7 @@
   "attribution": "World English Bible, Protestant edition, eBible.org. Public domain; World English Bible is a trademark of eBible.org.",
   "corpusRevision": "v1-0961489b8c021139",
   "tokenizerVersion": "1",
-  "storageVersion": 2,
+  "storageVersion": 3,
   "sources": [
     {
       "translationId": "web",

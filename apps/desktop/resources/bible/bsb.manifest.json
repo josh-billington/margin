@@ -12,7 +12,7 @@
   "attribution": "Berean Standard Bible. Produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee. Dedicated to the public domain April 30, 2023.",
   "corpusRevision": "v1-45c3d6cefced5c8f",
   "tokenizerVersion": "1",
-  "storageVersion": 2,
+  "storageVersion": 3,
   "sources": [
     {
       "translationId": "bsb",

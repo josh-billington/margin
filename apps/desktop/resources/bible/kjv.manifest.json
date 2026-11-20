@@ -12,7 +12,7 @@
   "attribution": "King James Version (1769), eBible.org USFM transcription.",
   "corpusRevision": "v1-8636c49305c158a1",
   "tokenizerVersion": "1",
-  "storageVersion": 2,
+  "storageVersion": 3,
   "sources": [
     {
       "translationId": "kjv",

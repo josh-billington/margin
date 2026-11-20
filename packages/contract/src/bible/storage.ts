@@ -4,12 +4,20 @@ import type { TextRun } from './tokenizer'
 import type { Token } from './types'
 
 /**
- * Version of the bundled SQLite layout. Version 2 stores each verse as its italic-annotated
- * text; tokens are re-derived with the tokenizer named by the edition's tokenizerVersion.
+ * Version of the bundled SQLite layout. Each verse is stored as its italic-annotated text;
+ * tokens are re-derived with the tokenizer named by the edition's tokenizerVersion. Version 3
+ * adds one FTS5 search table per translation.
  */
-export const STORAGE_VERSION = 2
+export const STORAGE_VERSION = 3
 
 const storedRunsSchema = z.array(z.tuple([z.string(), z.union([z.literal(0), z.literal(1)])]))
+
+export function decodeVerseText(stored: string): string {
+	return storedRunsSchema
+		.parse(JSON.parse(stored))
+		.map(([text]) => text)
+		.join('')
+}
 
 /**
  * Serializes a verse's tokens as `[text, italic]` runs. Punctuation and whitespace never affect

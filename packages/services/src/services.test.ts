@@ -4,12 +4,12 @@ import { deflateSync } from 'fflate'
 import { translationIdSchema, verseRefSchema } from '@margin/contract/bible/types'
 import type { TranslationId, VerseRef } from '@margin/contract/bible/types'
 import { tokenize } from '@margin/contract/bible/tokenizer'
-import { encodeVerseRuns } from '@margin/contract/bible/storage'
+import { STORAGE_VERSION, encodeVerseRuns } from '@margin/contract/bible/storage'
 import { createServices } from './services'
 import { FileError, silentDiagnostics } from './ports'
 import type { Database, FileStore, Ports } from './ports'
 import { hasher, codec } from './codecs'
-import { tokenFingerprint } from './lexicon/storage'
+import { LEXICON_STORAGE_VERSION, tokenFingerprint } from './lexicon/storage'
 
 class MemoryFiles implements FileStore {
 	readonly contents = new Map<string, string>()
@@ -72,7 +72,7 @@ class MemoryCorpus implements Database {
 	selections = 0
 	constructor(private readonly corpus: 'bible' | 'lexicon') {}
 	async userVersion() {
-		return 2
+		return this.corpus === 'bible' ? STORAGE_VERSION : LEXICON_STORAGE_VERSION
 	}
 	async close() {
 		this.closed = true

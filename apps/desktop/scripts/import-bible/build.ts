@@ -12,6 +12,7 @@ import { importUsfm } from './usfm'
 import type { ImportedBook } from './usfm'
 import { readSource, sha256, sourceFileSchema } from './sources'
 import { readZip } from './zip'
+import { buildSearchIndex } from './search-index'
 import { translationIdSchema } from '@shared/bible/types'
 import type { TranslationId } from '@shared/bible/types'
 
@@ -192,6 +193,7 @@ export async function buildBible(root: string) {
 				`${translationId}: ${manifest.verseCount} verses in ${corpus.length} books (${corpusRevision})`,
 			)
 		}
+		buildSearchIndex(db)
 		if (db.pragma('integrity_check', { simple: true }) !== 'ok')
 			throw new Error('SQLite integrity check failed')
 	} finally {

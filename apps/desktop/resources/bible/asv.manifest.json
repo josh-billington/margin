@@ -12,7 +12,7 @@
   "attribution": "American Standard Version (1901), eBible.org USFM transcription. Public domain.",
   "corpusRevision": "v1-a7383da438193e24",
   "tokenizerVersion": "1",
-  "storageVersion": 2,
+  "storageVersion": 3,
   "sources": [
     {
       "translationId": "asv",

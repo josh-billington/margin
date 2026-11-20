@@ -9,11 +9,16 @@ async function main() {
 		const electron: unknown = createRequire(resolve('package.json'))('electron')
 		const child = spawnSync(
 			z.string().parse(electron),
-			['--import', 'tsx', resolve('scripts/import-bible/index.ts')],
+			['--import', 'tsx', resolve('scripts/import-bible/index.ts'), ...process.argv.slice(2)],
 			{ stdio: 'inherit', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } },
 		)
 		if (child.error) throw child.error
 		process.exitCode = child.status ?? 1
+		return
+	}
+	if (process.argv[2] === '--index-only') {
+		const { reindexBible } = await import('./search-index')
+		await reindexBible(resolve('resources/bible/margin-bible.sqlite'))
 		return
 	}
 	const { buildBible } = await import('./build')
