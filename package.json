@@ -13,6 +13,7 @@
 		"import:bible": "pnpm --filter @margin/desktop import:bible",
 		"import:lexicon": "pnpm --filter @margin/desktop import:lexicon",
 		"dist": "pnpm --filter @margin/desktop dist",
+		"dist:test": "pnpm --filter @margin/desktop dist:test",
 		"dist:release": "pnpm --filter @margin/desktop dist:release"
 	},
 	"devDependencies": {

@@ -61,7 +61,9 @@ Other commands: `pnpm typecheck`, `pnpm lint`, `pnpm test` (unit), `pnpm test:e2
 (Playwright against the built app), `pnpm dist` (unsigned macOS `.app`, DMG, and ZIP
 in `apps/desktop/release/`). `pnpm dist` and the signed `dist:release` first check that
 both imported databases open with the current schema and answer a search and a dictionary
-lookup, and that a tldraw licence key is set; they stop before building if not.
+lookup, and that a tldraw licence key is set; they stop before building if not. Both
+leave Node's inspector disabled. `pnpm dist:test` builds a separate, inspectable `.app` in
+`apps/desktop/release/test/` that the packaged Playwright test drives; never distribute it.
 
 ### tldraw licence key
 

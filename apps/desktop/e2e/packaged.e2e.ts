@@ -3,11 +3,14 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { addAmos, closeApp, launch, makeDirs, removeDirs, saved } from './harness'
 
-// `yarn dist` keeps enableNodeCliInspectArguments on so Playwright can attach with --inspect=0; `dist:release` turns it off.
-// Runs the ad-hoc .app produced by `yarn dist` (skipped when it has not been built).
-const executable = resolve(__dirname, '../release/mac-arm64/Margin.app/Contents/MacOS/Margin')
+// Public builds turn enableNodeCliInspectArguments off. `pnpm dist:test` builds a separate ad-hoc .app
+// with it on so Playwright can attach with --inspect=0 (skipped when it has not been built).
+const executable = resolve(__dirname, '../release/test/mac-arm64/Margin.app/Contents/MacOS/Margin')
 
-test.skip(!existsSync(executable), 'Run `yarn dist` first to produce release/mac-arm64/Margin.app')
+test.skip(
+	!existsSync(executable),
+	'Run `pnpm dist:test` first to produce release/test/mac-arm64/Margin.app',
+)
 
 test('packaged app: scripture loads offline, native glass, no network requests', async () => {
 	const dirs = await makeDirs()

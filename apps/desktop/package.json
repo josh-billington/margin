@@ -23,8 +23,9 @@
 		"import:bible": "tsx scripts/import-bible/index.ts",
 		"postinstall": "electron-builder install-app-deps",
 		"dist": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
+		"dist:test": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --dir --config.directories.output=release/test --config.electronFuses.enableNodeCliInspectArguments=true --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
 		"import:lexicon": "tsx scripts/import-lexicon/index.ts",
-		"dist:release": "tsx scripts/release-preflight.mts --signed && pnpm build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
+		"dist:release": "tsx scripts/release-preflight.mts --signed && pnpm build && electron-builder --mac --config.forceCodeSigning=true"
 	},
 	"build": {
 		"copyright": "© 2026 Josh Billington",
@@ -85,7 +86,7 @@
 			"runAsNode": false,
 			"enableCookieEncryption": true,
 			"enableNodeOptionsEnvironmentVariable": false,
-			"enableNodeCliInspectArguments": true,
+			"enableNodeCliInspectArguments": false,
 			"enableEmbeddedAsarIntegrityValidation": true,
 			"onlyLoadAppFromAsar": true
 		}
