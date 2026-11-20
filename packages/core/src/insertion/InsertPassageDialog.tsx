@@ -196,9 +196,6 @@ export function InsertPassageDialog({
 		onOpenChange(next)
 	}
 	const [insist, setInsist] = useState(false)
-	useEffect(() => {
-		if (open) setQuery(initialQuery)
-	}, [open, initialQuery])
 	useEffect(() => setInsist(false), [query, open])
 	// The dialog widens the first time results show and stays wide until it closes, so editing
 	// the query never flips its width back and forth.
@@ -208,16 +205,22 @@ export function InsertPassageDialog({
 	const [chosen, setChosen] = useState<TranslationId | null>(null)
 	// Scope narrows a search; it starts at the whole Bible each time the dialog opens.
 	const [scope, setScope] = useState('all')
-	useEffect(() => {
-		if (open) {
+	// Each opening starts fresh, reset while rendering so its first frame never shows the last
+	// session's query, results or width. Closing changes nothing: the dialog leaves as it was.
+	const [session, setSession] = useState({ open, initialQuery })
+	if (session.open !== open || (open && session.initialQuery !== initialQuery)) {
+		setSession({ open, initialQuery })
+		if (open) setQuery(initialQuery)
+		if (open && !session.open) {
+			setWide(false)
 			setChosen(null)
 			setScope('all')
 		}
-	}, [open])
+	}
 	// A reference ("John 3", "Amos 1:3–5") previews as before; anything else searches.
 	const mode = !query.trim() ? 'empty' : looksLikeReference(query) ? 'reference' : 'search'
 	const state = usePreview(
-		open && mode === 'reference' ? query : '',
+		mode === 'reference' ? query : '',
 		chosen ?? translation,
 		chosen ? undefined : oldTestamentTranslation,
 	)
@@ -226,7 +229,7 @@ export function InsertPassageDialog({
 	const switched = !!resolved?.notice && resolved.translation !== (chosen ?? translation)
 
 	const search = useBibleSearch({
-		query: open && mode === 'search' ? query : '',
+		query: mode === 'search' ? query : '',
 		edition: chosen,
 		translation,
 		oldTestamentTranslation,
@@ -396,10 +399,8 @@ export function InsertPassageDialog({
 			? searchReady && chosenHits.length > 0
 			: !!resolved && !(state.status === 'resolved' && state.stale))
 	const showResults = mode === 'search' && hits.length > 0
-	useEffect(() => {
-		if (!open) setWide(false)
-		else if (showResults) setWide(true)
-	}, [open, showResults])
+	// Set while rendering, so the dialog starts widening in the frame the results first show.
+	if (open && showResults && !wide) setWide(true)
 
 	return (
 		<Dialog.Root open={open} onOpenChange={changeOpen}>
