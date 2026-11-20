@@ -419,6 +419,7 @@ function SearchRows({
 								Couldn’t load more verses.{' '}
 								<button
 									type="button"
+									className="text-button"
 									tabIndex={-1}
 									onMouseDown={(event) => event.preventDefault()}
 									onClick={() => loadMore.current()}

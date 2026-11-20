@@ -127,18 +127,19 @@
 	background: transparent;
 	border: none;
 	border-radius: var(--radius-sm);
-	cursor: pointer;
+	transition:
+		background-color var(--duration-fast) ease,
+		color var(--duration-fast) ease;
 }
 .search-scope svg {
 	position: absolute;
 	right: var(--space-3);
 	pointer-events: none;
 }
-@media (hover: hover) and (pointer: fine) {
-	.search-scope select:hover {
-		color: var(--ink);
-		background: var(--hover);
-	}
+/* A borderless pop-up: it answers the press, not the hover, like the other menus. */
+.search-scope select:active {
+	color: var(--ink);
+	background: var(--pressed);
 }
 /* Grows only while results are shown; the dialog keeps the Add verses size otherwise. */
 .search-results {
@@ -156,7 +157,9 @@
 	border-block: var(--stroke-hairline) solid var(--hairline);
 }
 .search-results:focus-visible {
-	outline: none;
+	/* The system ring, drawn inside: the list runs edge to edge in a dialog that clips. */
+	outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+	outline-offset: -3px;
 }
 @media (prefers-reduced-motion: reduce) {
 	.search-results {
@@ -214,13 +217,9 @@
 .search-end p {
 	margin: 0;
 }
-.search-end button {
+.search-end .text-button {
 	padding: 0;
-	color: var(--accent);
 	font: inherit;
-	background: none;
-	border: none;
-	cursor: pointer;
 }
 .search-hit {
 	padding: var(--space-2) var(--space-3);
@@ -232,8 +231,13 @@
 .search-hit[aria-selected='true'] {
 	background: var(--selected);
 }
+/* The keyboard row takes a menu-style wash rather than a ring, over the selection when it's
+   one of the selected rows. */
 .search-results:focus-visible .search-hit[data-active='true'] {
-	box-shadow: inset 0 0 0 var(--stroke-focus, 2px) var(--accent);
+	background: var(--hover);
+}
+.search-results:focus-visible .search-hit[data-active='true'][aria-selected='true'] {
+	background: linear-gradient(var(--hover), var(--hover)), var(--selected);
 }
 @media (hover: hover) and (pointer: fine) {
 	.search-hit[aria-selected='false']:hover {
