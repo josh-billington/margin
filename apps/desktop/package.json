@@ -22,9 +22,9 @@
 		"test:e2e": "electron-vite build && playwright test",
 		"import:bible": "tsx scripts/import-bible/index.ts",
 		"postinstall": "electron-builder install-app-deps",
-		"dist": "pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
+		"dist": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
 		"import:lexicon": "tsx scripts/import-lexicon/index.ts",
-		"dist:release": "node scripts/release-preflight.mjs && pnpm build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
+		"dist:release": "tsx scripts/release-preflight.mts --signed && pnpm build && electron-builder --mac --config.forceCodeSigning=true --config.electronFuses.enableNodeCliInspectArguments=false"
 	},
 	"build": {
 		"copyright": "© 2026 Josh Billington",
@@ -45,7 +45,8 @@
 				"from": "resources",
 				"to": "resources",
 				"filter": [
-					"**/*"
+					"**/*",
+					"!**/*.sqlite-{wal,shm}"
 				]
 			}
 		],

@@ -59,7 +59,9 @@ generated databases are gitignored.
 
 Other commands: `pnpm typecheck`, `pnpm lint`, `pnpm test` (unit), `pnpm test:e2e`
 (Playwright against the built app), `pnpm dist` (unsigned macOS `.app`, DMG, and ZIP
-in `apps/desktop/release/`).
+in `apps/desktop/release/`). `pnpm dist` and the signed `dist:release` first check that
+both imported databases open with the current schema and answer a search and a dictionary
+lookup, and that a tldraw licence key is set; they stop before building if not.
 
 ### tldraw licence key
 
