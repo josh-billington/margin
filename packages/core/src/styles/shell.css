@@ -243,6 +243,13 @@ kbd {
 	color: var(--accent-ink);
 	font-weight: 600;
 }
+/* Unavailable, it loses the accent as a macOS default button does: a plain fill with muted text,
+   rather than a dimmed blue whose dark label sinks into it. */
+.button-primary:disabled {
+	opacity: 1;
+	background: var(--hover);
+	color: var(--text-muted);
+}
 .button-danger {
 	background: var(--coral-tint);
 	color: var(--coral);
