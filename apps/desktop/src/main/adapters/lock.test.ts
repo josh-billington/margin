@@ -5,11 +5,16 @@ import { join } from 'node:path'
 import type * as FsModule from 'node:fs/promises'
 import { acquireLibraryLock, type LibraryLock } from './lock'
 
-const injected = vi.hoisted(() => ({ fail: false }))
+const injected = vi.hoisted(() => ({ fail: false, linkError: '' }))
 vi.mock('node:fs/promises', async (original) => {
 	const fs = await original<typeof FsModule>()
 	return {
 		...fs,
+		link: async (...args: Parameters<typeof fs.link>) => {
+			if (injected.linkError)
+				throw Object.assign(new Error('Links unavailable'), { code: injected.linkError })
+			return fs.link(...args)
+		},
 		open: async (...args: Parameters<typeof fs.open>) => {
 			const handle = await fs.open(...args)
 			if (injected.fail && args[1] === 'wx') {
@@ -28,9 +33,23 @@ beforeEach(async () => {
 })
 afterEach(async () => {
 	injected.fail = false
+	injected.linkError = ''
 	await Promise.all(locks.splice(0).map((lock) => lock.release()))
 	await rm(root, { recursive: true, force: true })
 })
+it.each(['ENOTSUP', 'EPERM', 'EXDEV'])(
+	'acquires just one owner on volumes that reject hard links: %s',
+	async (code) => {
+		injected.linkError = code
+		const first = await acquireLibraryLock(root)
+		locks.push(first)
+		const owner = await readFile(join(root, '.margin-lock'), 'utf8')
+		const second = await acquireLibraryLock(root)
+		locks.push(second)
+		expect([first.readOnly, second.readOnly]).toEqual([false, true])
+		expect(await readFile(join(root, '.margin-lock'), 'utf8')).toBe(owner)
+	},
+)
 it('leaves no partial lock after an interrupted write and can retry', async () => {
 	injected.fail = true
 	await expect(acquireLibraryLock(root)).rejects.toMatchObject({ code: 'ENOSPC' })

@@ -5,6 +5,19 @@ import { FileError } from '@margin/services/ports'
 import type { FileStore, FileWatch } from '@margin/services/ports'
 import { atomicWrite } from './atomic'
 
+async function writeExclusive(path: string, content: string) {
+	const file = await open(path, 'wx', 0o600)
+	try {
+		await file.writeFile(content)
+		await file.sync()
+	} catch (error) {
+		await rm(path, { force: true })
+		throw error
+	} finally {
+		await file.close()
+	}
+}
+
 export function fileError(error: unknown, path: string): unknown {
 	if (!(error instanceof Error) || !('code' in error)) return error
 	const kind = (() => {
@@ -51,20 +64,22 @@ export function createFileStore({
 			run(path, async (absolute) => {
 				const temporary = join(dirname(absolute), `.${crypto.randomUUID()}.lock.tmp`)
 				try {
-					const file = await open(temporary, 'wx', 0o600)
-					try {
-						await file.writeFile(content)
-						await file.sync()
-					} finally {
-						await file.close()
-					}
+					await writeExclusive(temporary, content)
 					try {
 						await link(temporary, absolute)
-						return true
 					} catch (error) {
-						if (error instanceof Error && 'code' in error && error.code === 'EEXIST') return false
-						throw error
+						if (!(
+							error instanceof Error &&
+							'code' in error &&
+							['ENOTSUP', 'EOPNOTSUPP', 'EPERM', 'EXDEV', 'ENOSYS'].includes(String(error.code))
+						))
+							throw error
+						await writeExclusive(absolute, content)
 					}
+					return true
+				} catch (error) {
+					if (error instanceof Error && 'code' in error && error.code === 'EEXIST') return false
+					throw error
 				} finally {
 					await rm(temporary, { force: true })
 				}
