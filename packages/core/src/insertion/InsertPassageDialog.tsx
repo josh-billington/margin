@@ -19,6 +19,7 @@ import { blockNoun, formatRanges, translationNames, translationOrder } from './l
 import { usePreview } from './usePreview'
 import type { PreviewState } from './usePreview'
 import { useDialogMotion } from '../app/dialogMotion'
+import { useLingering } from '../lib/useLingering'
 import { useBibleSearch } from './useBibleSearch'
 import type { SearchList, SearchState } from './useBibleSearch'
 
@@ -117,10 +118,13 @@ function describeSearch({
 	state,
 	shown,
 	query,
+	slow,
 }: {
 	state: SearchState
 	shown: number
 	query: string
+	/** The first results have taken long enough to say so; a fast search never flashes it. */
+	slow: boolean
 }) {
 	switch (state.kind) {
 		case 'idle':
@@ -128,7 +132,9 @@ function describeSearch({
 		case 'loading':
 			return state.previous
 				? describeTotal({ total: state.previous.counts.total, shown, query })
-				: 'Searching…'
+				: slow
+					? 'Searching…'
+					: ''
 		case 'error':
 			return state.message
 		case 'ready':
@@ -270,6 +276,7 @@ export function InsertPassageDialog({
 		.sort((left, right) => left - right)
 		.flatMap((index) => hits[index] ?? [])
 	const searchReady = search.state.kind === 'ready'
+	const searchSlow = useLingering(search.state.kind === 'loading' && !list, 300)
 
 	// The list scrolls to the active row itself, since the row may not be rendered yet.
 	const [reveal, setReveal] = useState(0)
@@ -383,7 +390,10 @@ export function InsertPassageDialog({
 		}
 	}
 
-	const addLabel = busy
+	// Adding is usually quicker than a frame or two: the button only says so when it isn't, so it
+	// never flickers on the way out.
+	const adding = useLingering(busy)
+	const addLabel = adding
 		? 'Adding…'
 		: mode === 'search'
 			? chosenHits.length > 1
@@ -394,7 +404,7 @@ export function InsertPassageDialog({
 				: `Add ${resolved ? blockNoun(resolved.ranges, resolved.translation) : 'verses'}`
 	const canAdd =
 		!!editor &&
-		!busy &&
+		!adding &&
 		(mode === 'search'
 			? searchReady && chosenHits.length > 0
 			: !!resolved && !(state.status === 'resolved' && state.stale))
@@ -470,7 +480,12 @@ export function InsertPassageDialog({
 							{mode === 'search' ? (
 								<div className="search-status">
 									<p role="status">
-										{describeSearch({ state: search.state, shown: hits.length, query })}
+										{describeSearch({
+											state: search.state,
+											shown: hits.length,
+											query,
+											slow: searchSlow,
+										})}
 									</p>
 									<label className="plain-popup">
 										<span className="sr-only">Search in</span>
