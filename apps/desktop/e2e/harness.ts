@@ -95,6 +95,11 @@ async function seedIntroSeen(dirs: Dirs, firstRun: boolean) {
 	)
 }
 
+function withFluidFlag(url: string, extraEnv: Record<string, string>) {
+	const flag = extraEnv.MARGIN_E2E_FLUID_POPOVERS ?? process.env.MARGIN_E2E_FLUID_POPOVERS
+	return flag === '1' || flag === '0' ? `${url}?fluidPopovers=${flag}` : url
+}
+
 /** Launches the built app (out/main) with test-only data redirects; never touches real app data. */
 export async function launch(
 	dirs: Dirs,
@@ -119,15 +124,8 @@ export async function launch(
 				? { MARGIN_DEFAULT_LIBRARY_DIR: dirs.library }
 				: { MARGIN_LIBRARY_DIR: dirs.library }),
 			MARGIN_GLASS: '0',
-			// MARGIN_E2E_FLUID_POPOVERS=1 runs the suite with the prototype popover motion (popoverMotion.ts).
-			...(rendererUrl
-				? {
-						ELECTRON_RENDERER_URL:
-							(extraEnv.MARGIN_E2E_FLUID_POPOVERS ?? process.env.MARGIN_E2E_FLUID_POPOVERS) === '1'
-								? `${rendererUrl}?fluidPopovers=1`
-								: rendererUrl,
-					}
-				: {}),
+			// MARGIN_E2E_FLUID_POPOVERS=1 or 0 forces the fluid popover motion (popoverMotion.ts) on or off.
+			...(rendererUrl ? { ELECTRON_RENDERER_URL: withFluidFlag(rendererUrl, extraEnv) } : {}),
 			...extraEnv,
 		},
 	})

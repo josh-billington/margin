@@ -3,8 +3,8 @@ import { motionNow } from './dialogMotion'
 
 /*
  * Prototype: a popover that opens out of the control it came from on a well-damped spring, and
- * settles back into it when it leaves. Behind a temporary switch (off by default) so it can be
- * compared with the plain pop-in in the same build. Transform and opacity only, through the Web
+ * settles back into it when it leaves. On by default, behind a switch that can turn it off to
+ * compare with the plain pop-in in the same build. Transform and opacity only, through the Web
  * Animations API, so it runs on the compositor and never touches layout or inherited properties.
  */
 
@@ -16,9 +16,9 @@ export function fluidPopoverMotion(): boolean {
 	try {
 		const flag = new URLSearchParams(window.location.search).get(URL_FLAG)
 		if (flag !== null) return flag === '1'
-		return window.localStorage.getItem(STORAGE_KEY) === '1'
+		return window.localStorage.getItem(STORAGE_KEY) !== '0'
 	} catch {
-		return false
+		return true
 	}
 }
 

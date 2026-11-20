@@ -239,7 +239,7 @@ export const commands: AppCommand[] = [
 		group: 'View',
 		run: () => void updatePrefs({ appearance: 'dark' }),
 	},
-	// Experiment, off by default; listed only in development or when a launch set the flag.
+	// Experiment, on by default; listed only in development or when a launch set the flag.
 	{
 		id: 'dev.toolbarGlass',
 		title: 'Toggle glass toolbar',

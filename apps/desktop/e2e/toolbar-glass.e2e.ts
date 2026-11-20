@@ -3,8 +3,8 @@ import type { Page } from '@playwright/test'
 import { closeApp, launch, makeDirs, removeDirs } from './harness'
 import type { Dirs } from './harness'
 
-// The glass toolbar experiment (core app/toolbarGlass.tsx): off unless MARGIN_TOOLBAR_GLASS or the
-// palette toggle turns it on; Mac only; Reduce Transparency and Increase Contrast keep it solid.
+// The glass toolbar experiment (core app/toolbarGlass.tsx): on unless MARGIN_TOOLBAR_GLASS=0 or the
+// palette toggle turns it off; Mac only; Reduce Transparency and Increase Contrast keep it solid.
 
 let dirs: Dirs
 test.beforeEach(async () => {
@@ -28,11 +28,11 @@ const material = (page: Page) =>
 		}
 	})
 
-test('glass toolbar: off by default and not listed in the palette', async () => {
+test('glass toolbar: on by default and not listed in the palette', async () => {
 	const { app, page } = await launch(dirs, { MARGIN_TOOLBAR_GLASS: '' })
 	try {
-		await expect(toolbar(page)).toBeVisible()
-		expect(await material(page)).toMatchObject({ lens: null, backdrop: 'none', filters: 0 })
+		await expect(toolbar(page)).toHaveAttribute('data-lens', '')
+		expect(await material(page)).toMatchObject({ radius: '999px', filters: 1 })
 		await page.keyboard.press('Meta+k')
 		await page.locator('[cmdk-input]').fill('glass')
 		await expect(page.getByRole('option', { name: 'Toggle glass toolbar' })).toHaveCount(0)

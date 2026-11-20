@@ -4,7 +4,7 @@ import type { Platform } from '@shared/ipc/contract'
 import { LENS_SHIFT, lensField } from './lensField'
 
 /*
- * Experiment, off by default: the floating canvas toolbar as refractive glass. An SVG lens
+ * Experiment, on by default: the floating canvas toolbar as refractive glass. An SVG lens
  * (feDisplacementMap through `backdrop-filter: url()`, which only Chromium renders) bends the
  * canvas at the toolbar's rim and leaves its middle undistorted; frost and a tint keep the
  * buttons readable. Mac only; the iPad's WebKit can't filter a backdrop through SVG.
@@ -23,7 +23,7 @@ const isEnabled = () =>
 	(enabled ??=
 		supported() &&
 		(launchValue() === undefined
-			? localStorage.getItem(STORAGE_KEY) === '1'
+			? localStorage.getItem(STORAGE_KEY) !== '0'
 			: launchValue() !== '0'))
 const listeners = new Set<() => void>()
 const subscribe = (listener: () => void) => {
