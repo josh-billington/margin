@@ -10,6 +10,8 @@ import { initializeIntro } from './intro/introStore'
 const root = document.getElementById('root')
 if (!root) throw new Error('Margin root element is missing')
 document.documentElement.dataset.platform = platform.kind
+// Touch styles load only on touch hosts. Their `:has()` rules, even unmatched, make Chromium
+// recalculate styles across a heavy study on every zoom frame on the Mac.
 if (!platform.nativeMenu || matchMedia('(pointer: coarse), (hover: none)').matches) {
 	const style = document.createElement('style')
 	style.textContent = touchStyles
