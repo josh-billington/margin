@@ -843,10 +843,13 @@ select {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
+	/* Zero, not a token 1 ms: every element transitions `all` by default, so 1 ms turned each style
+	   change anywhere (a search row moving, the canvas camera) into a transition. Nothing here
+	   listens for transitionend. */
 	*,
 	*::before,
 	*::after {
-		transition-duration: 1ms !important;
+		transition-duration: 0s !important;
 		scroll-behavior: auto !important;
 	}
 	/* Reduce, don't remove: keep the opacity fades, drop scale and spin. */
