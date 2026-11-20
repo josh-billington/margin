@@ -308,14 +308,24 @@ select {
 	min-width: 0;
 	padding: 0 var(--space-4);
 	color: var(--ink);
-	background: var(--chrome-bg);
+	background-color: var(--chrome-bg);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
 }
+/* The app draws the chevron (up and down, as on macOS and iPadOS, in --ink), inset like the text
+   on the left, so Chromium and WebKit agree. Long values ellipsize before it. Set here rather than
+   as a :root custom property, which every canvas element would inherit and restyle on zoom. */
 select {
-	/* Room for the native chevron, so long values ellipsize before it. */
-	padding-right: var(--space-3);
+	appearance: none;
+	padding-right: calc(var(--space-4) + 12px + var(--space-3));
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-opacity='.8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5M7 9l5-5 5 5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right var(--space-4) center;
+	background-size: 12px;
 	text-overflow: ellipsis;
+}
+:root[data-appearance='light'] select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231c191d' stroke-opacity='.8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5M7 9l5-5 5 5'/%3E%3C/svg%3E");
 }
 .field:focus-visible,
 select:focus-visible {
