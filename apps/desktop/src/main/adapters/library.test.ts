@@ -296,16 +296,19 @@ describe('library persistence', () => {
 		expect(await disk(study.id)).toEqual(external)
 	})
 	it.each([false, true])(
-		'keeps both versions when disk changes during a save (conflict copy fails: %s)',
+		'leaves a second external save untouched during the conflict copy (copy fails: %s)',
 		async (copyFails) => {
 			await library.close()
 			let replace: (() => Promise<void>) | undefined
+			let replaceDuringCopy: (() => Promise<void>) | undefined
 			library = await new Library(
 				join(root, 'library'),
 				join(root, 'private'),
 				async (path, content, beforeReplace) => {
-					if (copyFails && JSON.parse(content).title === 'External edit (conflict copy)')
-						throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
+					if (JSON.parse(content).title?.endsWith('(conflict copy)')) {
+						await replaceDuringCopy?.()
+						if (copyFails) throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
+					}
 					if (path.endsWith('.study.json') && replace) {
 						const action = replace
 						replace = undefined
@@ -330,10 +333,20 @@ describe('library persistence', () => {
 					}),
 				)
 			const saving = library.save({ ...study, title: 'Local edit' }, 1)
+			replaceDuringCopy = () =>
+				atomicWrite(
+					library.file(study.id),
+					JSON.stringify({
+						...study,
+						title: 'External two',
+						document: externalDocument,
+						revision: 9,
+					}),
+				)
 			if (copyFails) {
 				await expect(saving).rejects.toMatchObject({ code: 'ENOSPC' })
 				expect(await disk(study.id)).toMatchObject({
-					title: 'External edit',
+					title: 'External two',
 					document: externalDocument,
 				})
 				expect([...library.stagedIds()]).toEqual([study.id])
@@ -342,14 +355,14 @@ describe('library persistence', () => {
 				return
 			}
 			const result = await saving
-			expect(await disk(study.id)).toMatchObject({ title: 'Local edit' })
+			expect(await disk(study.id)).toMatchObject({ title: 'External two', revision: 9 })
 			const copies = (await library.list()).filter(({ id }) => id !== study.id)
 			expect(copies).toHaveLength(1)
 			expect(await disk(copies[0]!.id)).toMatchObject({
-				title: 'External edit (conflict copy)',
-				document: externalDocument,
+				title: 'Local edit (conflict copy)',
+				document,
 			})
-			expect(result.study.title).toBe('Local edit')
+			expect(result).toMatchObject({ conflict: true, study: { id: copies[0]!.id } })
 			await expect(library.flush()).resolves.toBeUndefined()
 		},
 	)

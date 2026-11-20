@@ -15,6 +15,7 @@ export type { LibraryEvent } from '@margin/contract/ipc/contract'
 const absent = (error: unknown) => error instanceof FileError && error.kind === 'missing'
 /** Recovery snapshots are throttled per study; each save inside this window skips its snapshot. */
 const RECOVERY_INTERVAL_MS = 5 * 60 * 1000
+class ChangedBeforeReplace extends Error {}
 export class Library {
 	readOnly = true
 	/** Set when another owner holds the lock; the renderer shows who and since when. */
@@ -266,7 +267,7 @@ export class Library {
 				disk.study.revision !== known.study.revision ||
 				(base !== undefined && !this.baselines.get(study.id)?.has(this.hash(base)))
 			)
-				return this.conflict(study, disk)
+				return this.conflict(study)
 			if (
 				JSON.stringify(study.document) === JSON.stringify(known.study.document) &&
 				study.title === known.study.title
@@ -281,17 +282,14 @@ export class Library {
 				updatedAt: new Date(this.ports.clock.now()).toISOString(),
 			}
 			await this.recoverThrottled(known.study)
-			await this.persist(saved, async () => {
-				const current = await this.read(study.id)
-				if (current.hash === disk.hash) return
-				await this.create(`${current.study.title} (conflict copy)`, current.study.document)
-				this.onEvent({
-					kind: 'error',
-					studyId: '',
-					message:
-						'This study changed outside Margin while saving. Margin kept that version in a conflict copy.',
+			try {
+				await this.persist(saved, async () => {
+					if ((await this.read(study.id)).hash !== disk.hash) throw new ChangedBeforeReplace()
 				})
-			})
+			} catch (error) {
+				if (error instanceof ChangedBeforeReplace) return this.conflict(study)
+				throw error
+			}
 			this.committed.set(study.id, sequence)
 			if (this.staged.get(study.id)?.sequence === sequence) this.staged.delete(study.id)
 			await this.refreshIndex()
@@ -326,14 +324,14 @@ export class Library {
 		baselines.add(digest)
 		this.baselines.set(study.id, baselines)
 	}
-	private async conflict(local: PersistedStudy, external: Awaited<ReturnType<Library['read']>>) {
+	private async conflict(local: PersistedStudy) {
 		const staged = this.staged.get(local.id)
 		const captured = staged?.study ?? local
 		const copiedSequence = staged?.sequence ?? -1
 		const copy = await this.create(`${captured.title} (conflict copy)`, captured.document)
 		const known = this.known.get(local.id)
 		if (known) await this.recover(known.study)
-		this.acceptExternal(local.id, external)
+		this.acceptExternal(local.id, await this.read(local.id))
 		this.committed.set(local.id, copiedSequence)
 		if ((this.staged.get(local.id)?.sequence ?? -1) <= copiedSequence) this.staged.delete(local.id)
 		this.onEvent({ kind: 'conflict', study: copy, originalId: local.id })
@@ -346,7 +344,7 @@ export class Library {
 				const disk = await this.read(id)
 				if (known?.hash === disk.hash && known.study.revision === disk.study.revision) return
 				const staged = this.staged.get(id)
-				if (staged && known) await this.conflict(staged.study, disk)
+				if (staged && known) await this.conflict(staged.study)
 				else if (known) {
 					await this.recover(known.study)
 					this.acceptExternal(id, disk)
