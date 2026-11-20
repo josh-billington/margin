@@ -173,7 +173,10 @@ function fixture() {
 		},
 		configuration: { defaultLibraryPath: 'library', setupComplete: true },
 	}
-	return { library, ports, clipboard, databases }
+	const failClipboard = () => {
+		clipboardFails = true
+	}
+	return { library, ports, clipboard, databases, failClipboard }
 }
 
 const document = {
@@ -310,7 +313,7 @@ it('requires explicit loss confirmation when the latest snapshot never reached a
 })
 
 it('runs corpus lookups and a library save/conflict/reopen round trip through portable ports', async () => {
-	const { ports, library, clipboard, databases } = fixture()
+	const { ports, library, clipboard, databases, failClipboard } = fixture()
 	const services = await createServices(ports)
 	try {
 		const passage = await services.handlers['margin:bible:get-passage']({
@@ -355,7 +358,7 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 			data: null,
 		})
 		expect(clipboard).toEqual(['shape\nverb\nQal: create\nBrown-Driver-Briggs · H1254'])
-		clipboardFails = true
+		failClipboard()
 		expect(await services.handlers['margin:lexicon:copy-entry']({ id: 'H1254' })).toEqual({
 			ok: false,
 			error: { code: 'INTERNAL_ERROR', message: 'Margin couldn’t copy the definition. Try again.' },
