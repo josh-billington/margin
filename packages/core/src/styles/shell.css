@@ -497,6 +497,7 @@ select {
 	background: var(--chrome-bg);
 	border-right: 1px solid var(--border);
 	overflow: hidden auto;
+	overscroll-behavior: contain;
 	/* Scrolls by trackpad or wheel without ever drawing a scroll bar. */
 	scrollbar-width: none;
 }
@@ -820,6 +821,7 @@ select {
 	padding: var(--space-3);
 	max-height: 360px;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 [cmdk-group-heading] {
 	color: var(--text-muted);

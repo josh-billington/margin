@@ -123,6 +123,8 @@
 	max-width: 300px;
 	max-height: 70vh;
 	overflow: auto;
+	/* Scrolling past either end stays in the popover instead of bouncing the app on iPad. */
+	overscroll-behavior: contain;
 	z-index: 1000;
 	background: var(--surface);
 	color: var(--ink);
@@ -313,6 +315,7 @@
 .margin-menu-scroll {
 	max-height: 50vh;
 	overflow: auto;
+	overscroll-behavior: contain;
 }
 .margin-menu-item {
 	display: flex;
@@ -426,6 +429,7 @@
 	gap: 0;
 	max-height: 40vh;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 .margin-popover.tag-popover > hr {
 	width: auto;
