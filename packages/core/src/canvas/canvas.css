@@ -607,9 +607,12 @@
 	-webkit-line-clamp: 2;
 	overflow: hidden;
 }
+/* Its own line under the renderings, expanded or not, never run on after the last word. */
 .lookup-facts .text-button {
+	display: block;
 	height: auto;
-	padding: var(--space-1) 0 0;
+	margin-top: var(--space-2);
+	padding: 0;
 	font-size: var(--text-sm);
 }
 /* A Strong's cross-reference: reads as a link, opens that entry in the same popover. */
