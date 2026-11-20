@@ -60,7 +60,7 @@ export async function installHost() {
 			throw error
 	}
 	const libraryEvents = listeners<(event: LibraryEvent) => void>()
-	const flushEvents = listeners<() => Promise<boolean>>()
+	const flushEvents = listeners<Parameters<MarginApi['events']['onFlush']>[0]>()
 	const commandEvents = listeners<Parameters<MarginApi['events']['onCommand']>[0]>()
 	const appearanceEvents = listeners<(mode: ResolvedAppearance) => void>()
 	const system = matchMedia('(prefers-color-scheme: dark)')
@@ -72,7 +72,9 @@ export async function installHost() {
 	}
 	const flush = async () => {
 		try {
-			const results = await Promise.all([...flushEvents.values].map((listener) => listener()))
+			const results = await Promise.all(
+				[...flushEvents.values].map((listener) => listener('checkpoint')),
+			)
 			return results.every(Boolean)
 		} catch {
 			return false

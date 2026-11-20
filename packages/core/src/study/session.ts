@@ -108,7 +108,8 @@ export async function flushStudies() {
 		return false
 	}
 }
-export async function flushBeforeClose() {
+export async function flushBeforeClose(reason: 'checkpoint' | 'close' = 'close') {
+	if (reason === 'checkpoint') return flushStudies()
 	useStudySession.setState({ closing: true })
 	for (const editor of editors.values()) editor.updateInstanceState({ isReadonly: true })
 	const ok = await flushStudies()

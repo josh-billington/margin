@@ -290,7 +290,7 @@ export type MarginApi = ContractApi<typeof ipcContract> & {
 	menu: { setSidebarShown: (shown: boolean) => void }
 	events: {
 		onLibrary: (listener: (event: LibraryEvent) => void) => () => void
-		onFlush: (listener: () => Promise<boolean>) => () => void
+		onFlush: (listener: (reason: 'checkpoint' | 'close') => Promise<boolean>) => () => void
 		onCommand: (listener: (id: AppCommandId) => void) => () => void
 	}
 }

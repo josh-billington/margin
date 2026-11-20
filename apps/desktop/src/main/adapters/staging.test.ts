@@ -5,8 +5,19 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Library } from './library'
-import { attachStudyEditor, flushBeforeClose, flushStudies, openStudy } from '@renderer/study/session'
-import { autosaves, editors, install, pendingDocumentChanges, useStudySession } from '@renderer/study/state'
+import {
+	attachStudyEditor,
+	flushBeforeClose,
+	flushStudies,
+	openStudy,
+} from '@renderer/study/session'
+import {
+	autosaves,
+	editors,
+	install,
+	pendingDocumentChanges,
+	useStudySession,
+} from '@renderer/study/state'
 
 const id = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
 const otherId = '01ARZ3NDEKTSV4RRFFQ69G5FAW'
@@ -125,6 +136,27 @@ it.each(['close', 'switch', 'quit'] as const)(
 		expect(pageName(saved.at(-1))).toMatchObject({ name: 'Latest edit' })
 	},
 )
+it('can resume, edit and switch while a background checkpoint is still running', async () => {
+	let resume!: () => void
+	const paused = new Promise<void>((resolve) => {
+		resume = resolve
+	})
+	vi.mocked(window.margin.library.flush).mockImplementationOnce(async () => {
+		await paused
+		return success(null)
+	})
+	edit('Before backgrounding')
+	const checkpoint = flushBeforeClose('checkpoint')
+	await vi.advanceTimersByTimeAsync(0)
+	expect(pageName(saved.at(-1))).toMatchObject({ name: 'Before backgrounding' })
+	expect(useStudySession.getState().closing).toBe(false)
+	edit('After resuming')
+	await openStudy(otherId)
+	expect(useStudySession.getState().currentId).toBe(otherId)
+	expect(pageName(saved.at(-1))).toMatchObject({ name: 'After resuming' })
+	resume()
+	expect(await checkpoint).toBe(true)
+})
 it('stages recent edits for recovery even when the disk save fails', async () => {
 	window.margin.library.saveStudy = vi.fn().mockRejectedValue(new Error('Disk full'))
 	edit('Recovery edit')

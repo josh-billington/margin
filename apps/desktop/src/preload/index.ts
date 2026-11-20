@@ -137,10 +137,10 @@ const api = {
 				ipcRenderer.removeListener(COMMAND_CHANNEL, handler)
 			}
 		},
-		onFlush: (listener: () => Promise<boolean>) => {
+		onFlush: (listener: (reason: 'checkpoint' | 'close') => Promise<boolean>) => {
 			const handler = (_event: Electron.IpcRendererEvent, token: unknown) => {
 				if (typeof token === 'string')
-					void listener()
+					void listener('close')
 						.then((ok) => ipcRenderer.send('margin:library:flushed', { token, ok }))
 						.catch(() => ipcRenderer.send('margin:library:flushed', { token, ok: false }))
 			}
