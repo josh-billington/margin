@@ -1,12 +1,13 @@
 import type { z } from 'zod'
 import { ipcContract } from '@margin/contract/ipc/contract'
 import { entryCitation } from '@margin/contract/lexicon/types'
-import { BibleService } from './bible/provider'
+import { BibleService, checkBibleStorage } from './bible/provider'
+import { searchBible } from './bible/search'
 import { LexiconService } from './lexicon/service'
 import { Library } from './library/library'
 import { AppDataStore } from './appData/store'
 import { createPersistence } from './persistence'
-import type { Ports } from './ports'
+import type { Database, Ports } from './ports'
 
 type Contract = typeof ipcContract
 type Operations = { [G in keyof Contract]: Contract[G][keyof Contract[G]] }[keyof Contract]
@@ -44,11 +45,27 @@ export async function createServices(ports: Ports) {
 		diagnostics: ports.diagnostics,
 	})
 	let bible: Promise<BibleService> | undefined
+	let bibleDb: Promise<Database> | undefined
 	let lexicon: Promise<LexiconService> | undefined
-	const getBible = () =>
-		(bible ??= ports
+	const getBibleDb = () =>
+		(bibleDb ??= ports
 			.openDatabase('bible')
-			.then((db) => BibleService.open(db))
+			.then(async (db) => {
+				try {
+					await checkBibleStorage(db)
+					return db
+				} catch (error) {
+					await db.close()
+					throw error
+				}
+			})
+			.catch((error) => {
+				bibleDb = undefined
+				throw error
+			}))
+	const getBible = () =>
+		(bible ??= getBibleDb()
+			.then(BibleService.loadInventory)
 			.catch((error) => {
 				bible = undefined
 				throw error
@@ -90,6 +107,10 @@ export async function createServices(ports: Ports) {
 	}
 	const handlers = {
 		...persistence.handlers,
+		[ipcContract.bible.search.channel]: respond({
+			operation: ipcContract.bible.search,
+			action: async (request) => searchBible({ db: await getBibleDb(), request }),
+		}),
 		[ipcContract.bible.getPassage.channel]: respond({
 			operation: ipcContract.bible.getPassage,
 			action: async (request) =>
@@ -151,7 +172,13 @@ export async function createServices(ports: Ports) {
 				await persistence.close()
 			} finally {
 				await Promise.all([
-					bible?.then((service) => service.close()),
+					bibleDb?.then(async (db) => {
+						try {
+							await bible
+						} finally {
+							await db.close()
+						}
+					}),
 					lexicon?.then((service) => service.close()),
 				])
 			}

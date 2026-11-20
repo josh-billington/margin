@@ -102,6 +102,7 @@ const api = {
 	bible: {
 		resolveReference: bind(ipcContract.bible.resolveReference),
 		getPassage: bind(ipcContract.bible.getPassage),
+		search: bind(ipcContract.bible.search),
 		mapPassage: bind(ipcContract.bible.mapPassage),
 		listTranslations: bind(ipcContract.bible.listTranslations),
 	},

@@ -36,6 +36,18 @@ test('packaged app: scripture loads offline, native glass, no network requests',
 		const entry = await page.evaluate(() => window.margin.lexicon.getEntry({ id: 'H01254' }))
 		expect(entry.ok && entry.data?.id).toBe('H1254')
 		expect(entry.ok && entry.data?.definition).toContain('create')
+		const search = await page.evaluate(() =>
+			window.margin.bible.search({
+				query: '"valley of the shadow of death"',
+				translation: { kind: 'edition', id: 'kjv' },
+				scope: { kind: 'all' },
+			}),
+		)
+		expect(search.ok && search.data.groups[0]?.hits[0]?.ref).toEqual({
+			book: 'PSA',
+			chapter: 23,
+			verse: 4,
+		})
 		await expect(page.locator('html')).toHaveAttribute('data-glass', 'native')
 		// An unlicensed production tldraw blanks the canvas ~5 s after mount; licensed, the passage stays.
 		await page.waitForTimeout(6500)

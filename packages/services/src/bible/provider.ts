@@ -137,6 +137,14 @@ export class SqliteBibleProvider implements BibleProvider {
 	}
 }
 
+export async function checkBibleStorage(db: Database) {
+	const storage = await db.userVersion()
+	if (storage !== STORAGE_VERSION)
+		throw new Error(
+			`Bible storage version ${String(storage)} is not supported (expected ${STORAGE_VERSION}). Run pnpm import:bible.`,
+		)
+}
+
 export class BibleService {
 	private readonly db: Database
 	readonly providers: Record<TranslationId, SqliteBibleProvider>
@@ -152,23 +160,23 @@ export class BibleService {
 	}
 	static async open(db: Database) {
 		try {
-			const storage = await db.userVersion()
-			if (storage !== STORAGE_VERSION)
-				throw new Error(
-					`Bible storage version ${String(storage)} is not supported (expected ${STORAGE_VERSION}). Run yarn import:bible.`,
-				)
-			const providers = {
-				bsb: await SqliteBibleProvider.open({ db, translationId: 'bsb' }),
-				web: await SqliteBibleProvider.open({ db, translationId: 'web' }),
-				asv: await SqliteBibleProvider.open({ db, translationId: 'asv' }),
-				kjv: await SqliteBibleProvider.open({ db, translationId: 'kjv' }),
-				jps1917: await SqliteBibleProvider.open({ db, translationId: 'jps1917' }),
-			}
-			return new BibleService({ db, providers })
+			await checkBibleStorage(db)
+			return await BibleService.loadInventory(db)
 		} catch (error) {
 			await db.close()
 			throw error
 		}
+	}
+
+	static async loadInventory(db: Database) {
+		const providers = {
+			bsb: await SqliteBibleProvider.open({ db, translationId: 'bsb' }),
+			web: await SqliteBibleProvider.open({ db, translationId: 'web' }),
+			asv: await SqliteBibleProvider.open({ db, translationId: 'asv' }),
+			kjv: await SqliteBibleProvider.open({ db, translationId: 'kjv' }),
+			jps1917: await SqliteBibleProvider.open({ db, translationId: 'jps1917' }),
+		}
+		return new BibleService({ db, providers })
 	}
 
 	private maps?: EditionMaps

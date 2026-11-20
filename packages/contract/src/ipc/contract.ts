@@ -14,6 +14,7 @@ import {
 	translationIdSchema,
 } from '../bible/types'
 import { insertionPreviewSchema } from '../bible/reference'
+import { bibleSearchRequestSchema, bibleSearchResultsSchema } from '../bible/search'
 import {
 	paletteColorSchema,
 	studyFileEnvelopeSchema,
@@ -149,6 +150,7 @@ export const ipcContract = {
 		deleteStudy: operation('margin:library:delete-study', studyIdRequest, z.null()),
 	},
 	bible: {
+		search: operation('margin:bible:search', bibleSearchRequestSchema, bibleSearchResultsSchema),
 		resolveReference: operation(
 			'margin:bible:resolve-reference',
 			z.object({

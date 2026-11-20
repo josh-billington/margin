@@ -119,6 +119,7 @@ export function registerServiceHandlers({
 	handleOperation(getWindow, ipcContract.library.takeOver, api.library.takeOver)
 	handleOperation(getWindow, ipcContract.library.deleteStudy, api.library.deleteStudy)
 	handleOperation(getWindow, ipcContract.bible.resolveReference, api.bible.resolveReference)
+	handleOperation(getWindow, ipcContract.bible.search, api.bible.search)
 	handleOperation(getWindow, ipcContract.bible.getPassage, api.bible.getPassage)
 	handleOperation(getWindow, ipcContract.bible.mapPassage, api.bible.mapPassage)
 	handleOperation(getWindow, ipcContract.bible.listTranslations, api.bible.listTranslations)

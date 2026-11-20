@@ -18,6 +18,7 @@ export function createServiceApi({ handlers }: { handlers: MarginHandlers }) {
 			deleteStudy: handlers[ipcContract.library.deleteStudy.channel],
 		},
 		bible: {
+			search: handlers[ipcContract.bible.search.channel],
 			resolveReference: handlers[ipcContract.bible.resolveReference.channel],
 			getPassage: handlers[ipcContract.bible.getPassage.channel],
 			mapPassage: handlers[ipcContract.bible.mapPassage.channel],
