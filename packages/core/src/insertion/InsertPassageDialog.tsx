@@ -13,14 +13,14 @@ import type { PassageRange, TranslationId } from '@shared/bible/types'
 import { insertPassage } from '../canvas/tools/commands'
 import { Spinner } from '../canvas/lookup/Spinner'
 import { iconSm } from '../lib/icons'
-import { BibleSearchResults, searchOptionId } from './BibleSearchResults'
+import { BibleSearchResults } from './BibleSearchResults'
 import type { SearchPick } from './BibleSearchResults'
 import { blockNoun, formatRanges, translationNames, translationOrder } from './labels'
 import { usePreview } from './usePreview'
 import type { PreviewState } from './usePreview'
 import { useDialogMotion } from '../app/dialogMotion'
 import { useBibleSearch } from './useBibleSearch'
-import type { SearchState } from './useBibleSearch'
+import type { SearchList, SearchState } from './useBibleSearch'
 
 interface Props {
 	open: boolean
@@ -127,12 +127,12 @@ function describeSearch({
 			return ''
 		case 'loading':
 			return state.previous
-				? describeTotal({ total: state.previous.total, shown, query })
+				? describeTotal({ total: state.previous.counts.total, shown, query })
 				: 'Searching…'
 		case 'error':
 			return state.message
 		case 'ready':
-			return describeTotal({ total: state.results.total, shown, query })
+			return describeTotal({ total: state.list.counts.total, shown, query })
 	}
 }
 
@@ -228,14 +228,15 @@ export function InsertPassageDialog({
 		oldTestamentTranslation,
 		scope,
 	})
-	const results =
+	const list: SearchList | undefined =
 		search.state.kind === 'ready'
-			? search.state.results
+			? search.state.list
 			: search.state.kind === 'loading'
 				? search.state.previous
 				: undefined
-	const groups = results?.groups ?? []
-	const hits = groups.flatMap((group) => group.hits)
+	const hits = list?.hits ?? []
+	// More pages remain for the query on screen (not one still being typed).
+	const more = search.state.kind === 'ready' && search.state.list.next !== null
 	// The selection follows the active row (click, arrows) until ⌘-click, ⇧ or Space starts marking
 	// rows; from then on the arrows only move the active row. Return adds whatever is selected.
 	const [active, setActive] = useState(0)
@@ -244,19 +245,50 @@ export function InsertPassageDialog({
 	const anchor = useRef(0)
 	const listbox = useRef<HTMLDivElement>(null)
 	const input = useRef<HTMLInputElement>(null)
+	// End, or ArrowDown on the last loaded row, waits for the next page and then carries on: to
+	// the new last row (End keeps loading until the end), or one row on.
+	const follow = useRef<{ to: 'end' | 'next'; from: number; kind: 'select' | 'range' | 'move' }>(
+		null,
+	)
 	useEffect(() => {
 		setActive(0)
 		setSelected(new Set([0]))
 		setMarking(false)
 		anchor.current = 0
+		follow.current = null
 	}, [search.key])
-	const chosenHits = hits.filter((_, index) => selected.has(index))
+	// Hits only ever append, so selected indices stay valid while pages load; they're added in
+	// canonical order even when their rows are scrolled out of the rendered range.
+	const chosenHits = [...selected]
+		.sort((left, right) => left - right)
+		.flatMap((index) => hits[index] ?? [])
 	const searchReady = search.state.kind === 'ready'
 
+	// The list scrolls to the active row itself, since the row may not be rendered yet.
+	const [reveal, setReveal] = useState(0)
 	function moveTo(index: number) {
 		setActive(index)
-		document.getElementById(searchOptionId(index))?.scrollIntoView({ block: 'nearest' })
+		setReveal((count) => count + 1)
 	}
+
+	function step(index: number, kind: 'select' | 'range' | 'move') {
+		if (kind === 'move') moveTo(index)
+		else pick({ index, kind })
+	}
+	useEffect(() => {
+		const pending = follow.current
+		if (!pending || busy) return
+		const last = hits.length - 1
+		if (pending.to === 'next') {
+			if (last <= pending.from) return
+			follow.current = null
+			return step(pending.from + 1, pending.kind)
+		}
+		if (last > pending.from) step(last, pending.kind)
+		pending.from = last
+		if (more) search.loadMore()
+		else follow.current = null
+	}, [hits.length])
 
 	function pick({ index, kind }: SearchPick) {
 		if (busy || !hits[index]) return
@@ -290,11 +322,18 @@ export function InsertPassageDialog({
 			End: last,
 		}
 		const to = move[event.key]
+		follow.current = null
 		if (to !== undefined) {
 			event.preventDefault()
 			if (to < 0) return input.current?.focus()
-			if (marking && !event.shiftKey) return moveTo(to)
-			pick({ index: to, kind: event.shiftKey ? 'range' : 'select' })
+			const kind = marking && !event.shiftKey ? 'move' : event.shiftKey ? 'range' : 'select'
+			const ahead =
+				event.key === 'End' ? 'end' : event.key === 'ArrowDown' && active === last ? 'next' : null
+			if (ahead && more) {
+				follow.current = { to: ahead, from: last, kind }
+				search.loadMore()
+			}
+			step(to, kind)
 		} else if (event.key === ' ') {
 			event.preventDefault()
 			pick({ index: active, kind: 'toggle' })
@@ -455,29 +494,22 @@ export function InsertPassageDialog({
 								<PreviewBody state={state} onPick={setQuery} insist={insist} />
 							)}
 						</div>
-						<div
-							ref={listbox}
-							id="search-results"
-							role="listbox"
-							aria-label="Matching verses"
-							aria-multiselectable="true"
-							aria-busy={search.state.kind === 'loading'}
-							aria-activedescendant={showResults ? searchOptionId(active) : undefined}
-							tabIndex={showResults ? 0 : -1}
-							className="search-results"
-							data-open={showResults}
+						<BibleSearchResults
+							listRef={listbox}
+							list={list}
+							open={showResults}
+							busy={search.state.kind === 'loading' || list?.more === 'loading'}
+							active={active}
+							reveal={reveal}
+							selected={selected}
+							translation={chosen ?? translation}
+							onPick={(value) => {
+								follow.current = null
+								pick(value)
+							}}
+							onLoadMore={search.loadMore}
 							onKeyDown={onResultsKey}
-						>
-							{showResults && (
-								<BibleSearchResults
-									groups={groups}
-									active={active}
-									selected={selected}
-									translation={chosen ?? translation}
-									onPick={pick}
-								/>
-							)}
-						</div>
+						/>
 						<div className="insert-actions">
 							<button type="button" className="button" onClick={() => changeOpen(false)}>
 								Cancel

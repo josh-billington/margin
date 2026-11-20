@@ -163,9 +163,18 @@
 		transition: none;
 	}
 }
-.search-group-heading {
-	position: sticky;
+.search-rows {
+	position: relative;
+	width: 100%;
+}
+/* Rows are virtualized: each is placed by the list and measured as it renders. */
+.search-row {
+	position: absolute;
 	top: 0;
+	left: 0;
+	width: 100%;
+}
+.search-group-heading {
 	display: flex;
 	justify-content: space-between;
 	padding: var(--space-4) var(--space-3) var(--space-2);
@@ -177,6 +186,41 @@
 .search-group-heading span {
 	font-weight: 400;
 	font-variant-numeric: tabular-nums;
+}
+/* The row keeps the heading's place; the visible heading is the sticky one in its book's box,
+   which spans the book's rows so the next heading pushes it off the top. */
+.search-row.search-group-heading {
+	visibility: hidden;
+}
+.search-section {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	pointer-events: none;
+}
+.search-section .search-group-heading {
+	position: sticky;
+	top: 0;
+	pointer-events: auto;
+}
+.search-end {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var(--row-h);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.search-end p {
+	margin: 0;
+}
+.search-end button {
+	padding: 0;
+	color: var(--accent);
+	font: inherit;
+	background: none;
+	border: none;
+	cursor: pointer;
 }
 .search-hit {
 	padding: var(--space-2) var(--space-3);
