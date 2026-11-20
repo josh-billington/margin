@@ -14,7 +14,7 @@ for (const [translation, next] of [
 			let { page } = running
 			await page.getByRole('button', { name: 'Add verses' }).first().click()
 			await page.getByLabel('Reference').fill('Genesis 1:27')
-			await page.getByRole('radio', { name: translation, exact: true }).click()
+			await page.getByLabel('Translation').selectOption({ label: translation })
 			await expect(page.locator('.insert-actions .button-primary')).toBeEnabled({ timeout: 15_000 })
 			await page.locator('.insert-actions .button-primary').click()
 			await expect(page.locator('.passage-header')).toContainText(`Genesis 1:27 · ${translation}`)

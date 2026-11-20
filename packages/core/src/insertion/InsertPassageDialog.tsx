@@ -203,7 +203,8 @@ export function InsertPassageDialog({
 	// The dialog widens the first time results show and stays wide until it closes, so editing
 	// the query never flips its width back and forth.
 	const [wide, setWide] = useState(false)
-	// An explicit toggle click outranks the Old Testament default (a qualifier still outranks both).
+	// A translation picked from the pop-up outranks the Old Testament default (a qualifier still
+	// outranks both).
 	const [chosen, setChosen] = useState<TranslationId | null>(null)
 	// Scope narrows a search; it starts at the whole Bible each time the dialog opens.
 	const [scope, setScope] = useState('all')
@@ -445,26 +446,24 @@ export function InsertPassageDialog({
 								autoComplete="off"
 								spellCheck={false}
 							/>
-							<div
-								role="radiogroup"
-								aria-label="Translation"
-								className="segmented insert-translations"
-							>
-								{translationOrder.map((id) => (
-									<button
-										key={id}
-										type="button"
-										role="radio"
-										aria-checked={(chosen ?? resolved?.translation ?? translation) === id}
-										onClick={() => {
-											setChosen(id)
-											onTranslationChange(id)
-										}}
-									>
-										{translationNames[id].short}
-									</button>
-								))}
-							</div>
+							<label className="plain-popup insert-translation">
+								<span className="sr-only">Translation</span>
+								<select
+									value={chosen ?? resolved?.translation ?? translation}
+									onChange={(event) => {
+										const id = event.target.value as TranslationId
+										setChosen(id)
+										onTranslationChange(id)
+									}}
+								>
+									{translationOrder.map((id) => (
+										<option value={id} key={id}>
+											{translationNames[id].short}
+										</option>
+									))}
+								</select>
+								<ChevronDown {...iconSm} aria-hidden="true" />
+							</label>
 						</div>
 						<div className="insert-feedback">
 							{mode === 'search' ? (
@@ -472,7 +471,7 @@ export function InsertPassageDialog({
 									<p role="status">
 										{describeSearch({ state: search.state, shown: hits.length, query })}
 									</p>
-									<label className="search-scope">
+									<label className="plain-popup">
 										<span className="sr-only">Search in</span>
 										<select value={scope} onChange={(event) => setScope(event.target.value)}>
 											<option value="all">Whole Bible</option>

@@ -26,10 +26,13 @@
 	font-weight: 600;
 	line-height: 1.3;
 }
+/* The field takes the width; the translation pop-up sits at its end, on the field's baseline. */
 .insert-row {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: baseline;
 	min-width: 0;
-	gap: var(--space-4);
+	gap: var(--space-3);
 }
 .insert-row input {
 	width: 100%;
@@ -41,7 +44,6 @@
 	border: var(--stroke-hairline) solid var(--border);
 	border-radius: var(--radius-sm);
 }
-/* The translation picker is the shared .segmented control. */
 @media (hover: hover) and (pointer: fine) {
 	.insert-candidates button:hover {
 		color: var(--ink);
@@ -122,14 +124,16 @@
 	margin: 0;
 	min-width: 0;
 }
-.search-scope {
+/* A borderless pop-up (search scope, translation) drawn with its own down chevron. */
+.plain-popup {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
 	flex: none;
 	color: var(--text-muted);
+	font-size: var(--text-sm);
 }
-.search-scope select {
+.plain-popup select {
 	appearance: none;
 	max-width: 180px;
 	min-height: var(--control-h-sm);
@@ -146,18 +150,22 @@
 }
 /* Its own chevron replaces the one every pop-up draws, which the light appearance re-applies with
    a more specific rule. */
-:root[data-appearance] .search-scope select {
+:root[data-appearance] .plain-popup select {
 	background-image: none;
 }
-.search-scope svg {
+.plain-popup svg {
 	position: absolute;
 	right: var(--space-3);
 	pointer-events: none;
 }
-/* A borderless pop-up: it answers the press, not the hover, like the other menus. */
-.search-scope select:active {
+/* It answers the press, not the hover, like the other menus. */
+.plain-popup select:active {
 	color: var(--ink);
 	background: var(--pressed);
+}
+/* Beside the field, the translation pop-up takes the field's height. */
+.insert-translation select {
+	height: var(--row-h);
 }
 /* Grows only while results are shown; the dialog keeps the Add verses size otherwise. */
 .search-results {

@@ -43,7 +43,7 @@ test('first launch sets the translation and never shows setup again', async () =
 		await expect(setup).toBeHidden()
 		await expect.poll(async () => (await studyFiles(dirs)).length).toBe(1)
 		await page.getByRole('button', { name: 'Add verses' }).first().click()
-		await expect(page.getByRole('radio', { name: 'BSB', exact: true })).toBeChecked()
+		await expect(page.getByLabel('Translation')).toHaveValue('bsb')
 		await page.getByLabel('Reference').fill('John 3:16')
 		await expect(page.locator('.insert-actions .button-primary')).toBeEnabled({ timeout: 15_000 })
 		await page.locator('.insert-actions .button-primary').click()

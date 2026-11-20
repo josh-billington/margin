@@ -281,7 +281,7 @@ test('add verses: dialog JPS choice beats the Old Testament default; qualifier b
 	const insert = async (reference: string, choose?: 'JPS 1917') => {
 		await page.getByRole('button', { name: 'Add verses' }).first().click()
 		await page.getByLabel('Reference').fill(reference)
-		if (choose) await page.getByRole('radio', { name: choose }).click()
+		if (choose) await page.getByLabel('Translation').selectOption({ label: choose })
 		const add = page.locator('.insert-actions .button-primary')
 		await expect(add).toBeEnabled({ timeout: 15_000 })
 		await add.click()

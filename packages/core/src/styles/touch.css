@@ -25,7 +25,7 @@
 	grid-template-columns: minmax(56px, max-content) 1fr;
 }
 
-/* Search results are 44pt rows; the field, translations and scope menu grow with --row-h. */
+/* Search results are 44pt rows; the field and its pop-ups grow with --row-h and --control-h-sm. */
 @media (pointer: coarse) {
 	.search-hit {
 		min-height: var(--touch-target);
