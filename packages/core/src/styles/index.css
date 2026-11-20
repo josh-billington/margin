@@ -1,14 +1,10 @@
 @import './fonts.css';
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
 @import 'tldraw/tldraw.css';
 @import './tokens.css';
 @import './shell.css';
 
-@source not '../canvas/ink';
-@source not '../intro';
-/* The glass toolbar experiment names SVG filters and rounded shapes; none are utilities. */
-@source not '../app/toolbarGlass.tsx';
-@source not '../app/lensField*';
+@source inline('sr-only');
 
 @theme inline {
 	--font-sans: var(--font-ui);

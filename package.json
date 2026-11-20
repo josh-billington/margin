@@ -4,7 +4,7 @@
 	"packageManager": "pnpm@11.5.2",
 	"scripts": {
 		"typecheck": "nx run-many -t typecheck",
-		"test": "nx run-many -t test",
+		"test": "nx run-many -t test && pnpm --filter @margin/desktop test:css",
 		"lint": "nx run-many -t lint",
 		"format": "prettier --write .",
 		"dev": "pnpm --filter @margin/desktop dev",
