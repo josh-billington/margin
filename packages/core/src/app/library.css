@@ -27,14 +27,6 @@
 	width: 100%;
 	font-size: var(--text-md);
 }
-@media (hover: hover) and (pointer: fine) {
-	.library-study-row:hover {
-		background: var(--hover);
-	}
-	.library-study-row:hover .row-button[aria-current='page'] {
-		background: var(--selected);
-	}
-}
 /* Leave room for the revealed actions so a long title ellipsizes before them. */
 .library-study-row:is(:hover, :focus-within) .row-button {
 	padding-right: calc(2 * var(--control-h-sm) + var(--space-1) + var(--space-3));

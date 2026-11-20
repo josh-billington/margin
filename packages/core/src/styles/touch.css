@@ -187,7 +187,6 @@
 	.verse-number-focusable:hover {
 		color: var(--text-muted);
 	}
-	.row-button:not(:disabled):active,
 	.row-icon-button:not(:disabled):active,
 	.icon-button:not(:disabled):active,
 	.menu-button:not(:disabled):active,
@@ -199,9 +198,6 @@
 	.insert-candidates button:active,
 	[cmdk-item]:active {
 		background: var(--pressed);
-	}
-	.text-button:not(:disabled):active {
-		opacity: 0.6;
 	}
 }
 :root[data-platform='ipad'] {

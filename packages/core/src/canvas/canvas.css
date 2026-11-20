@@ -501,12 +501,15 @@
 	color: var(--accent);
 	font-weight: 500;
 }
-@media (hover: hover) and (pointer: fine) {
-	.margin-popover .translation-control > .translation-change:not(:disabled):hover {
-		background: none;
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
+/* Text links (Change to, Show more, a Strong's number) take no fill from the popover's bare-button
+   base; a press dims them instead, like .text-button. */
+.margin-popover
+	:is(.translation-change, .text-button, .lookup-ref):not(:disabled):is(:hover, :active) {
+	background: none;
+	transform: none;
+}
+.margin-popover :is(.translation-change, .lookup-ref):not(:disabled):active {
+	opacity: 0.6;
 }
 /* The one action in the panel reads as a button, aligned with the controls above it. */
 .margin-popover .popover-action {
@@ -668,16 +671,6 @@
 	unicode-bidi: isolate;
 	font-size: 1.15em;
 	line-height: 1;
-}
-@media (hover: hover) and (pointer: fine) {
-	.margin-popover .lookup-ref:hover {
-		background: none;
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
-}
-.margin-popover .lookup-ref:active {
-	transform: none;
 }
 .lookup-muted {
 	color: var(--text-muted);

@@ -131,6 +131,20 @@ kbd {
 .row-icon-button:not(:disabled):active {
 	transform: scale(0.96);
 }
+/* Push buttons, sidebar rows and links answer the press, not the hover, as macOS controls do. */
+.button:not(:disabled):active,
+.row-button:not(:disabled, [aria-current='page']):active {
+	background: var(--pressed);
+}
+.button-primary:not(:disabled):active {
+	background: color-mix(in srgb, var(--accent), var(--ink) 15%);
+}
+.button-danger:not(:disabled):active {
+	background: color-mix(in srgb, var(--coral-tint), var(--coral) 12%);
+}
+.text-button:not(:disabled):active {
+	opacity: 0.6;
+}
 /* Segmented controls: a recessed track with the chosen segment raised, like NSSegmentedControl. */
 .segmented {
 	display: flex;
@@ -163,14 +177,7 @@ kbd {
 		background-color var(--duration-fast) ease,
 		color var(--duration-fast) ease;
 }
-@media (hover: hover) and (pointer: fine) {
-	.segmented > button:hover {
-		color: var(--ink);
-		background: var(--hover);
-	}
-}
-.segmented > :is([aria-checked='true'], [data-state='on']),
-.segmented > :is([aria-checked='true'], [data-state='on']):hover {
+.segmented > :is([aria-checked='true'], [data-state='on']) {
 	color: var(--ink);
 	background: var(--segment-selected-bg);
 	box-shadow: var(--shadow-segment);
@@ -205,23 +212,9 @@ kbd {
 		background: var(--hover);
 		color: var(--ink);
 	}
-	.button:not(:disabled):hover {
-		background: var(--pressed);
-	}
-	.row-button:not(:disabled):hover,
 	.row-icon-button:not(:disabled):hover,
 	.menu-button:not(:disabled):hover {
 		background: var(--hover);
-	}
-	.button-primary:not(:disabled):hover {
-		background: color-mix(in srgb, var(--accent), var(--ink) 15%);
-	}
-	.button-danger:not(:disabled):hover {
-		background: color-mix(in srgb, var(--coral-tint), var(--coral) 12%);
-	}
-	.text-button:not(:disabled):hover {
-		text-decoration: underline;
-		text-underline-offset: 2px;
 	}
 }
 .icon-button[aria-pressed='true'] {
