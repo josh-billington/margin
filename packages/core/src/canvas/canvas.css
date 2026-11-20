@@ -13,6 +13,15 @@
 	/* Inner gutter so the title and scripture never touch the selection outline. */
 	padding: var(--space-5) 18px var(--space-6);
 }
+/* A block just added stays unseen until it has measured and been placed by its real height, then
+   fades in where it landed while the view moves to it (tools/commands.ts). A plain fade, so Reduce
+   Motion keeps it. */
+.passage-block[data-arrival='pending'] {
+	opacity: 0;
+}
+.passage-block[data-arrival='in'] {
+	animation: fade-in 200ms var(--ease-out);
+}
 .passage-header {
 	display: flex;
 	justify-content: space-between;

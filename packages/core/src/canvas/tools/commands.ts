@@ -3,7 +3,8 @@ import type { Editor, TLShapeId } from 'tldraw'
 import type { PassageText } from '@shared/bible/types'
 import { shortcutsSuppressed } from '../shortcutContext'
 import { moveCamera } from '../focus/actions'
-import { centerOn } from '../focus/camera'
+import { fitZoom, minReadableZoom } from '../focus/camera'
+import { setArrival } from '../shapes/passage/arrival'
 import { installShortcuts, shortcutContext } from './shortcuts'
 import { noteFromSelection } from './noteFromSelection'
 import { chooseDiagramTool, diagramToolForKey, isDiagramShape } from '../diagrams/tools'
@@ -13,57 +14,150 @@ const INSERT_W = 720
 const INSERT_H = 320
 const INSERT_GAP = 48
 
-/** Viewport centre, or just below whatever already sits there so a new block never covers another. */
-function insertionPoint(editor: Editor) {
-	const center = editor.getViewportPageBounds().center
-	const spot = new Box(center.x - INSERT_W / 2, center.y - INSERT_H / 2, INSERT_W, INSERT_H)
-	const occupied = editor
-		.getCurrentPageShapes()
-		.map((shape) => editor.getShapePageBounds(shape))
-		.filter((bounds): bounds is Box => !!bounds)
+/** Pushes `spot` down below anything it would cover, so a new block never lands on another. */
+function clearOf(spot: Box, occupied: readonly Box[]) {
 	for (let tries = 0; tries < 50; tries++) {
 		const hits = occupied.filter((bounds) => bounds.collides(spot))
 		if (!hits.length) break
 		spot.y = Math.max(...hits.map((bounds) => bounds.maxY)) + INSERT_GAP
 	}
-	return { x: spot.x, y: spot.y, moved: spot.y !== center.y - INSERT_H / 2 }
+	return spot
+}
+
+const pageBounds = (editor: Editor, except: ReadonlySet<TLShapeId> = new Set()) =>
+	editor
+		.getCurrentPageShapes()
+		.filter((shape) => !except.has(shape.id))
+		.map((shape) => editor.getShapePageBounds(shape))
+		.filter((bounds): bounds is Box => !!bounds)
+
+/** Viewport centre, or just below whatever already sits there. */
+function insertionPoint(editor: Editor) {
+	const center = editor.getViewportPageBounds().center
+	const spot = new Box(center.x - INSERT_W / 2, center.y - INSERT_H / 2, INSERT_W, INSERT_H)
+	return clearOf(spot, pageBounds(editor))
 }
 
 export function insertPassage(editor: Editor, text: PassageText) {
-	const id = createShapeId(),
-		{ x, y, moved } = insertionPoint(editor)
-	editor.markHistoryStoppingPoint('insert passage')
-	editor.createShape({ id, type: 'passage', x, y, props: { text } }).select(id)
-	revealWhenMeasured(editor, id, moved)
+	const id = createShapeId()
+	addBlocks(editor, [{ id, text }])
 	return id
+}
+
+/**
+ * Adds verse blocks as one undoable step, in a column under the view's centre (or below whatever
+ * already sits there), then frames them so the reader sees what landed and where.
+ *
+ * Each block's height is only known once it has rendered, so the blocks start unseen, stacked on
+ * the view (where they aren't culled and so do render), and are placed by their real heights
+ * once measured. Then they are selected, the view moves to them, and they fade in where they are.
+ */
+export function insertPassages(editor: Editor, texts: readonly PassageText[]) {
+	const blocks = texts.map((text) => ({ id: createShapeId(), text }))
+	addBlocks(editor, blocks)
+	return blocks.map(({ id }) => id)
+}
+
+function addBlocks(editor: Editor, blocks: readonly { id: TLShapeId; text: PassageText }[]) {
+	if (!blocks.length) return
+	const ids = blocks.map(({ id }) => id)
+	const start = insertionPoint(editor)
+	const view = editor.getViewportPageBounds()
+	editor.markHistoryStoppingPoint('insert passage')
+	setArrival(ids, 'pending')
+	editor.createShapes(
+		blocks.map(({ id, text }) => ({
+			id,
+			type: 'passage',
+			x: start.x,
+			y: view.center.y - INSERT_H / 2,
+			props: { text },
+		})),
+	)
+	placeWhenMeasured(editor, ids, start)
+}
+
+/** Frames to wait for a block to measure before placing it by its estimated height. */
+const MEASURE_FRAMES = 12
+/** Long enough for the arrival fade (canvas.css) to finish. */
+const ARRIVAL_MS = 400
+
+function measured(editor: Editor, id: TLShapeId) {
+	const shape = editor.getShape(id)
+	const element = editor
+		.getContainer()
+		.querySelector<HTMLElement>(`.tl-shape[data-shape-id="${id}"] .passage-block`)
+	return (
+		shape?.type === 'passage' && !!element?.offsetHeight && element.offsetHeight === shape.props.h
+	)
+}
+
+function placeWhenMeasured(editor: Editor, ids: readonly TLShapeId[], start: Box) {
+	let frames = 0
+	const check = () => {
+		const live = ids.filter((id) => editor.getShape(id))
+		// Undone before it arrived.
+		if (!live.length) return setArrival(ids, null)
+		if (!live.every((id) => measured(editor, id)) && frames++ < MEASURE_FRAMES)
+			return void requestAnimationFrame(check)
+		const union = stack(editor, live, start)
+		editor.select(...live)
+		if (union) frame(editor, union)
+		setArrival(live, 'in')
+		setTimeout(() => setArrival(ids, null), ARRIVAL_MS)
+	}
+	requestAnimationFrame(check)
+}
+
+/** One block under another, INSERT_GAP apart, each clear of what was already there. */
+function stack(editor: Editor, ids: readonly TLShapeId[], start: Box) {
+	const occupied = pageBounds(editor, new Set(ids))
+	let y = start.y
+	let union: Box | undefined
+	const moves = ids.flatMap((id) => {
+		const shape = editor.getShape(id)
+		if (shape?.type !== 'passage') return []
+		const spot = clearOf(new Box(start.x, y, shape.props.width, shape.props.h), occupied)
+		y = spot.maxY + INSERT_GAP
+		union = union ? union.union(spot) : spot.clone()
+		return [{ id, type: 'passage' as const, x: spot.x, y: spot.y }]
+	})
+	editor.updateShapes(moves)
+	return union
+}
+
+/**
+ * Leaves the view alone when everything added is already in it. Otherwise it centres them, zooming
+ * out only as far as keeps scripture readable; blocks that still don't fit start at the top, so the
+ * reader starts at the first of them instead of scrolling.
+ */
+function frame(editor: Editor, union: Box) {
+	const zoom = editor.getZoomLevel()
+	const view = editor.getViewportPageBounds()
+	if (
+		union.minX >= view.minX &&
+		union.maxX <= view.maxX &&
+		union.minY >= view.minY &&
+		union.maxY <= view.maxY - TOOLBAR_CLEARANCE / zoom
+	)
+		return
+	const { w, h } = editor.getViewportScreenBounds()
+	const area = { w, h: h - TOOLBAR_CLEARANCE }
+	const fit = fitZoom(area, union, INSERT_GAP)
+	const readable = minReadableZoom(1)
+	// A zoom out lands on a whole 5% step, so the zoom readout says 95% rather than 98%.
+	const z =
+		fit >= zoom ? zoom : fit >= readable ? Math.max(readable, Math.floor(fit * 20) / 20) : zoom
+	moveCamera(editor, {
+		x: w / 2 / z - union.midX,
+		y: z === zoom && fit < zoom ? INSERT_GAP / z - union.minY : area.h / 2 / z - union.midY,
+		z,
+	})
 }
 
 /** Screen space kept clear above the floating toolbar when deciding whether a block fits. */
 const TOOLBAR_CLEARANCE = 72
 
-/**
- * The block's real height is only known once it has rendered. When it was pushed below other
- * blocks, or a long chapter runs off the bottom of the view, bring its first verse up near the
- * top so the reader starts reading instead of scrolling.
- */
-function revealWhenMeasured(editor: Editor, id: TLShapeId, moved: boolean) {
-	const initial = editor.getShape(id)?.props as { h?: number } | undefined
-	let frames = 0
-	const check = () => {
-		const shape = editor.getShape(id)
-		if (!shape || shape.type !== 'passage') return
-		if (shape.props.h === initial?.h && frames++ < 12) return void requestAnimationFrame(check)
-		const bounds = editor.getShapePageBounds(id)
-		if (!bounds) return
-		const zoom = editor.getZoomLevel()
-		const view = editor.getViewportPageBounds()
-		if (!moved && bounds.maxY <= view.maxY - TOOLBAR_CLEARANCE / zoom) return
-		const { w, h } = editor.getViewportScreenBounds()
-		const top = { x: bounds.midX, y: bounds.minY + h / 2 / zoom - INSERT_GAP / zoom }
-		moveCamera(editor, centerOn({ w, h }, top, zoom))
-	}
-	requestAnimationFrame(check)
-}
 export function installCanvasCommands(editor: Editor) {
 	let preview: HTMLElement | undefined
 	const clearPreview = () => {

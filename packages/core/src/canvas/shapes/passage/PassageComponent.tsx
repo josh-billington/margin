@@ -5,6 +5,7 @@ import { PassageOptions } from './PassageOptions'
 import { PassageActions } from './PassageActions'
 import { focusPassage, focusVerse } from '../../focus/actions'
 import { passageLayout, useFocus } from '../../focus/store'
+import { arrivals } from './arrival'
 import { HTMLContainer, useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
 import type { WordTarget } from '@shared/study/types'
@@ -45,6 +46,7 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 		edge: 'left' | 'right'
 	} | null>(null)
 	const tags = useValue('page tags', () => pageTags(editor), [editor])
+	const arrival = useValue('arrival', () => arrivals.get().get(shape.id), [shape.id])
 	const request = useTagging((state) =>
 		state.request?.passageId === shape.id ? state.request : null,
 	)
@@ -173,7 +175,12 @@ export function PassageComponent({ shape, editor }: { shape: PassageShape; edito
 	}
 	return (
 		<HTMLContainer style={{ width: props.width, height: props.h, pointerEvents: 'all' }}>
-			<div ref={root} className="passage-block" style={{ width: props.width }}>
+			<div
+				ref={root}
+				className="passage-block"
+				data-arrival={arrival}
+				style={{ width: props.width }}
+			>
 				{selectedShape &&
 					(['left', 'right'] as const).map((edge) => (
 						<div

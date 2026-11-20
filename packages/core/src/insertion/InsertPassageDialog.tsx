@@ -10,7 +10,7 @@ import { looksLikeReference } from '@shared/bible/reference'
 import { BIBLE_SEARCH_QUERY_LENGTH } from '@shared/bible/search'
 import type { BibleSearchHit } from '@shared/bible/search'
 import type { PassageRange, TranslationId } from '@shared/bible/types'
-import { insertPassage } from '../canvas/tools/commands'
+import { insertPassages } from '../canvas/tools/commands'
 import { Spinner } from '../canvas/lookup/Spinner'
 import { iconSm } from '../lib/icons'
 import { BibleSearchResults } from './BibleSearchResults'
@@ -378,7 +378,10 @@ export function InsertPassageDialog({
 			const passages = await Promise.all(requests.map((r) => window.margin.bible.getPassage(r)))
 			if (request !== generation.current) return
 			for (const result of passages) if (!result.ok) return void toast.error(result.error.message)
-			for (const result of passages) if (result.ok) insertPassage(editor, result.data)
+			insertPassages(
+				editor,
+				passages.flatMap((result) => (result.ok ? [result.data] : [])),
+			)
 			changeOpen(false)
 		} catch {
 			if (request === generation.current) toast.error('Margin couldn’t load the verses. Try again.')

@@ -155,6 +155,8 @@ export async function addAmos(page: Page) {
 	await page.keyboard.press('Enter')
 	await expect(page.getByRole('dialog', { name: 'Add verses' })).toBeHidden()
 	await page.waitForSelector('[data-word]')
+	// A new block is unseen until it has measured and been placed; after that it stays put.
+	await expect(page.locator('.passage-block[data-arrival="pending"]')).toHaveCount(0)
 }
 
 /** Selects words by keyboard (first ArrowRight lands on a word), then opens the tag popover. */

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { ReactElement } from 'react'
 import type { Editor } from 'tldraw'
 import { InsertPassageDialog } from './InsertPassageDialog'
-import { insertPassage } from '../canvas/tools/commands'
+import { insertPassages } from '../canvas/tools/commands'
 
 const hooks = vi.hoisted(() => ({ cleanups: [] as (() => void)[] }))
 vi.mock('react', async (original) => ({
@@ -23,7 +23,7 @@ vi.mock('./usePreview', () => ({
 		preview: { translation: 'kjv', ranges: [], label: 'Amos 1:3' },
 	}),
 }))
-vi.mock('../canvas/tools/commands', () => ({ insertPassage: vi.fn() }))
+vi.mock('../canvas/tools/commands', () => ({ insertPassages: vi.fn() }))
 type NodeProps = {
 	children?: unknown
 	onClick: () => void
@@ -78,7 +78,7 @@ it.each(['Cancel', 'dismiss', 'unmount'])('discards pending insertion after %s',
 	else for (const cleanup of hooks.cleanups) cleanup()
 	response.resolve({ ok: true, data: 'delayed passage' })
 	await settle()
-	expect(insertPassage).not.toHaveBeenCalled()
+	expect(insertPassages).not.toHaveBeenCalled()
 	expect(close).toHaveBeenCalledTimes(action === 'unmount' ? 0 : 1)
 })
 
@@ -94,5 +94,5 @@ it('reports a rejected insertion request and allows another attempt', async () =
 	expect(toast.error).toHaveBeenCalledWith('Margin couldn’t load the verses. Try again.')
 	submit()
 	await settle()
-	expect(insertPassage).toHaveBeenCalledTimes(1)
+	expect(insertPassages).toHaveBeenCalledTimes(1)
 })
