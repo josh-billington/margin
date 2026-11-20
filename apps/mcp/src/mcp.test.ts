@@ -75,6 +75,49 @@ it('orders the outline by page position and describes scripture, highlights, not
 	})
 })
 
+it('describes a Pencil ink arrow like a regular arrow', () => {
+	const study = fixtureStudy()
+	const store = Object.fromEntries(
+		Object.entries(study.document.store).map(([id, record]) => {
+			if (id === 'shape:arrow')
+				return [
+					id,
+					{
+						...record,
+						type: 'margin-ink',
+						props: { kind: 'arrow', points: [{ x: 0, y: 0, z: 0.5 }], size: 2 },
+					},
+				]
+			if (id === 'binding:start' || id === 'binding:end') {
+				const { meta, ...rest } = record
+				const target = 'target' in meta ? meta.target : undefined
+				const point = { x: 0, y: 0 }
+				return [
+					id,
+					{
+						...rest,
+						type: 'margin-ink',
+						meta: {},
+						props: {
+							terminal: id === 'binding:start' ? 'start' : 'end',
+							anchor: target
+								? { kind: 'word', point, target, direction: point }
+								: { kind: 'block', point },
+						},
+					},
+				]
+			}
+			return [id, record]
+		}),
+	)
+	const outline = outlineStudy({
+		study: parseStudy({ ...study, schemaVersion: 2, document: { ...study.document, store } }),
+		includeItalics: true,
+	})
+	expect(outline.arrows[0]?.description).toBe(
+		'From note “What does justice look like here?” to “Judgment,” (Amos 5:24)',
+	)
+})
 it('searches titles, typed notes, and references without matching verse text or treating input as a regex', () => {
 	const study = parseStudy(fixtureStudy())
 	expect(searchStudy({ study, query: 'jUsTiCe' })?.matches).toEqual([

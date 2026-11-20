@@ -22,6 +22,23 @@ const arrowBinding = z.object({
 	props: z.object({ terminal: z.enum(['start', 'end']), target: wordTargetSchema.optional() }),
 	meta: z.object({ target: wordTargetSchema.optional() }),
 })
+const inkArrow = z.object({ kind: z.enum(['ink', 'arrow']) })
+// Pencil ink bindings keep their word target under `anchor`; read them in the arrow binding's shape.
+const inkBinding = z
+	.object({
+		fromId: z.string(),
+		toId: z.string(),
+		props: z.object({
+			terminal: z.enum(['start', 'end']),
+			anchor: z.object({ target: wordTargetSchema.optional() }),
+		}),
+	})
+	.transform(({ fromId, toId, props }) => ({
+		fromId,
+		toId,
+		props: { terminal: props.terminal, target: props.anchor.target },
+		meta: {},
+	}))
 const recordHeader = z.object({ typeName: z.string(), type: z.string().optional() })
 
 export function parseStudy(input: unknown) {
@@ -45,9 +62,13 @@ export function parseStudy(input: unknown) {
 				notes.push({ id: parsed.id, props: noteProps.parse(parsed.props) })
 			} else if (type === 'arrow') {
 				arrows.push(parsed.id)
+			} else if (type === 'margin-ink' && inkArrow.parse(parsed.props).kind === 'arrow') {
+				arrows.push(parsed.id)
 			}
 		} else if (typeName === 'binding' && type === 'arrow') {
 			bindings.push(arrowBinding.parse(record))
+		} else if (typeName === 'binding' && type === 'margin-ink') {
+			bindings.push(inkBinding.parse(record))
 		}
 	}
 	return { id, title, updatedAt, positions, passages, notes, arrows, bindings, tags }

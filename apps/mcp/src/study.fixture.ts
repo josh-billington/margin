@@ -132,7 +132,7 @@ export function fixtureStudy() {
 				font: 'plain',
 				w: 180,
 				h: 40,
-				strokes: [{ opaque: true }],
+				strokes: [[{ x: 0, y: 0, z: 0.5 }]],
 			},
 		}),
 		shape({
@@ -210,7 +210,7 @@ export function fixtureStudy() {
 	]
 	return {
 		format: 'margin-study',
-		schemaVersion: 1,
+		schemaVersion: 2,
 		id: fixtureId,
 		title: 'Worship and Justice',
 		revision: 0,
