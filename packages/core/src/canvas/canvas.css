@@ -56,9 +56,6 @@
 .passage-header button:active {
 	transform: scale(0.96);
 }
-.passage-header button:focus-visible {
-	outline-offset: 0;
-}
 @media (hover: hover) and (pointer: fine) {
 	.passage-header button:hover {
 		background: var(--hover);
@@ -146,9 +143,6 @@
 	border-radius: var(--radius-sm);
 	height: var(--control-h);
 	padding: 0 var(--space-4);
-}
-.margin-popover input:focus-visible {
-	outline-offset: -1px;
 }
 /* Zero specificity: a base for bare buttons that never overrides a component class (swatches, .button-primary). */
 :where(.margin-popover button) {
@@ -391,9 +385,6 @@
 .note-options-trigger[data-state='open'] {
 	background: var(--pressed);
 	color: var(--ink);
-}
-.note-options-trigger:focus-visible {
-	outline-offset: 0;
 }
 .margin-popover strong {
 	font-size: var(--text-md);
@@ -745,10 +736,6 @@
 }
 .lookup-manual .popover-action {
 	margin-top: 0;
-}
-.lookup-popover button:focus-visible {
-	outline: 2px solid var(--accent);
-	outline-offset: 2px;
 }
 /* The word being looked up stays marked while its popover is open. */
 .lookup-target {

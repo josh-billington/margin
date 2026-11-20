@@ -87,8 +87,10 @@ select:focus-visible,
 textarea:focus-visible,
 [role='slider']:focus-visible,
 [tabindex]:focus-visible {
-	outline: 2px solid var(--accent);
-	outline-offset: 2px;
+	/* The macOS keyboard focus ring: a soft accent halo that hugs the control's own edge and corners,
+	   for buttons and fields alike. */
+	outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+	outline-offset: 0;
 }
 button:disabled,
 select:disabled,
@@ -334,10 +336,6 @@ select {
 :root[data-appearance='light'] select {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231c191d' stroke-opacity='.8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5M7 9l5-5 5 5'/%3E%3C/svg%3E");
 }
-.field:focus-visible,
-select:focus-visible {
-	outline-offset: -1px;
-}
 .check-row {
 	display: flex;
 	align-items: flex-start;
@@ -425,8 +423,7 @@ select:focus-visible {
 }
 .title-input:focus {
 	background: var(--hover);
-	outline: 2px solid var(--accent);
-	outline-offset: -1px;
+	outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
 	text-align: left;
 }
 .title-input:disabled {
@@ -879,7 +876,6 @@ select:focus-visible {
 	}
 }
 input[type='checkbox']:focus-visible {
-	outline-offset: 1px;
 	border-radius: var(--radius-xs);
 }
 

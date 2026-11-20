@@ -35,9 +35,6 @@
 		background: var(--hover);
 	}
 }
-.insert-row input:focus-visible {
-	outline-offset: calc(-1 * var(--stroke-hairline));
-}
 .insert-feedback {
 	min-width: 0;
 	min-height: calc(var(--row-h) + var(--space-5));

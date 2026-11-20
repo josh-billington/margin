@@ -116,10 +116,6 @@
 	border: var(--stroke-hairline) solid var(--border);
 	box-shadow: var(--shadow-segment);
 }
-.slider-thumb:focus-visible {
-	outline: 2px solid var(--accent);
-	outline-offset: 2px;
-}
 /* Edit appears on hover or focus, like study row actions, so the tag list stays quiet. */
 .tag-row > .row-icon-button {
 	opacity: 0;
