@@ -47,6 +47,31 @@ const created = (page: Page) =>
 		.first()
 const lookup = (page: Page) => page.getByRole('dialog', { name: 'Word lookup', exact: true })
 
+test('Hebrew word opens Strong’s first and shows BDB glosses offline', async () => {
+	const dirs = await makeDirs()
+	const { app, page } = await launch(dirs, {}, { args: ['--proxy-server=http://127.0.0.1:9'] })
+	try {
+		await activateLookupMenu(app)
+		await addVerse(page, 'Genesis 1:1')
+		await created(page).click({ button: 'right' })
+		const dialog = lookup(page)
+		const tabs = dialog.locator('.lookup-dictionaries button')
+		await expect(tabs).toHaveText(['Strong’s', 'BDB'])
+		await expect(dialog.getByText('Strong’s Hebrew Dictionary', { exact: true })).toBeVisible()
+		await tabs.filter({ hasText: 'BDB' }).click()
+		await expect(dialog.getByRole('heading', { name: /^shape\s*verb/ })).toBeVisible()
+		await expect(dialog.getByRole('heading', { name: /^be fat\s*verb/ })).toBeAttached()
+		await expect(dialog.getByText('Brown-Driver-Briggs', { exact: true })).toBeVisible()
+		await dialog.getByRole('button', { name: 'Copy definition' }).click()
+		await expect
+			.poll(() => app.evaluate(({ clipboard }) => clipboard.readText()))
+			.toContain('Brown-Driver-Briggs · H1254')
+	} finally {
+		await closeApp(app)
+		await removeDirs(dirs)
+	}
+})
+
 test('right-click in every tool, transient lookup, dark/light popover, note + bound arrow saves and undoes together', async () => {
 	const dirs = await makeDirs()
 	const { app, page } = await launch(dirs)
@@ -207,11 +232,14 @@ test('selection shortcut and palette, phrase chooser, supplied words, manual IDs
 				.locator('[data-word][data-book="AMO"]')
 				.filter({ hasText: new RegExp(`^${text}`) })
 				.first()
-		await amos('transgressions').evaluate((from, to) => {
-			const selection = window.getSelection()
-			selection?.setBaseAndExtent(from, 0, to as Node, (to as Node).childNodes.length)
-			from.closest<HTMLElement>('.passage-text')?.focus()
-		}, await amos('Damascus').elementHandle())
+		await amos('transgressions').evaluate(
+			(from, to) => {
+				const selection = window.getSelection()
+				selection?.setBaseAndExtent(from, 0, to as Node, (to as Node).childNodes.length)
+				from.closest<HTMLElement>('.passage-text')?.focus()
+			},
+			await amos('Damascus').elementHandle(),
+		)
 		await page.keyboard.press('Meta+Shift+H')
 		await createTagFromPopover(page, 'Judgement')
 		await page.evaluate(() => window.getSelection()?.removeAllRanges())

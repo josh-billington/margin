@@ -5,7 +5,7 @@ import type { Token, VerseRef } from '@margin/contract/bible/types'
 import { strongIdSchema } from '@margin/contract/lexicon/types'
 import type { SourceSpan } from '@margin/contract/lexicon/types'
 
-export const LEXICON_STORAGE_VERSION = 2
+export const LEXICON_STORAGE_VERSION = 3
 
 // Hash the complete token structure, including indices, punctuation, whitespace and italics.
 export function tokenFingerprint(tokens: readonly Token[], hash: Hasher = hasher): string {

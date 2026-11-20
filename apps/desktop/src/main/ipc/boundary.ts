@@ -126,6 +126,7 @@ export function registerServiceHandlers({
 	handleOperation(getWindow, ipcContract.lexicon.copyEntry, api.lexicon.copyEntry)
 	handleOperation(getWindow, ipcContract.lexicon.lookupSelection, api.lexicon.lookupSelection)
 	handleOperation(getWindow, ipcContract.lexicon.getEntry, api.lexicon.getEntry)
+	handleOperation(getWindow, ipcContract.lexicon.getBdbEntries, api.lexicon.getBdbEntries)
 	handleOperation(getWindow, ipcContract.lexicon.contextMenu, api.lexicon.contextMenu)
 	handleOperation(getWindow, ipcContract.prefs.get, api.prefs.get)
 	handleOperation(getWindow, ipcContract.prefs.set, api.prefs.set)

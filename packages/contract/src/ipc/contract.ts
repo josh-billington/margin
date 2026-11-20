@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { bdbEntriesSchema } from '../lexicon/bdb'
 import {
 	strongIdSchema,
 	lexiconEntrySchema,
@@ -181,12 +182,21 @@ export const ipcContract = {
 		),
 	},
 	lexicon: {
-		copyEntry: operation('margin:lexicon:copy-entry', z.object({ id: strongIdSchema }), z.null()),
+		copyEntry: operation(
+			'margin:lexicon:copy-entry',
+			z.object({ id: strongIdSchema, dictionary: z.enum(['strongs', 'bdb']).optional() }),
+			z.null(),
+		),
 		lookupSelection: operation('margin:lexicon:selection', lookupRequestSchema, lookupResultSchema),
 		getEntry: operation(
 			'margin:lexicon:entry',
 			z.object({ id: strongIdSchema }),
 			lexiconEntrySchema.nullable(),
+		),
+		getBdbEntries: operation(
+			'margin:lexicon:bdb-entries',
+			z.object({ id: strongIdSchema }),
+			bdbEntriesSchema,
 		),
 		contextMenu: operation(
 			'margin:lexicon:context-menu',

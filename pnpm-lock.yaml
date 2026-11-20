@@ -99,6 +99,9 @@ importers:
       '@types/node':
         specifier: 25.9.9
         version: 25.9.9
+      '@xmldom/xmldom':
+        specifier: 0.9.12
+        version: 0.9.12
       electron:
         specifier: 45.2.1
         version: 45.2.1

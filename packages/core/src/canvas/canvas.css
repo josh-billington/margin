@@ -544,7 +544,7 @@
 	max-width: none;
 	min-width: 0;
 	overflow: hidden;
-	max-height: 60vh;
+	max-height: min(60vh, var(--radix-popover-content-available-height, 60vh));
 	padding: 0;
 	gap: 0;
 	display: flex;
@@ -769,4 +769,69 @@
 }
 .lookup-headword > .spinner {
 	align-self: center;
+}
+.lookup-senses {
+	display: grid;
+	gap: var(--space-4);
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	font-size: var(--text-md);
+}
+.lookup-senses li {
+	display: grid;
+	grid-template-columns: minmax(var(--space-6), max-content) minmax(0, 1fr);
+	gap: var(--space-3);
+	overflow-wrap: anywhere;
+}
+.lookup-senses .lookup-senses {
+	margin-top: var(--space-2);
+	gap: var(--space-2);
+}
+.lookup-senses li.lookup-sense-stem {
+	grid-template-columns: minmax(0, 1fr);
+}
+.lookup-sense-number,
+.lookup-bdb-text,
+.lookup-bdb-ref {
+	color: var(--text-muted);
+}
+.lookup-sense-number {
+	font-variant-numeric: tabular-nums;
+}
+.lookup-sense-label {
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--ink);
+	margin-bottom: var(--space-2);
+}
+.lookup-bdb-def,
+.lookup-bdb-hebrew {
+	color: var(--ink);
+	font-weight: 400;
+}
+.lookup-bdb-ref,
+.lookup-bdb-meta {
+	font-size: var(--text-sm);
+}
+.lookup-bdb-meta {
+	margin-inline-start: var(--space-3);
+	color: var(--text-muted);
+	font-weight: 400;
+}
+.lookup-bdb-section + .lookup-bdb-section {
+	margin-top: var(--space-6);
+	padding-top: var(--space-5);
+	border-top: calc(var(--space-1) / 2) solid var(--hairline);
+}
+.lookup-bdb-heading {
+	margin: 0 0 var(--space-4);
+	font-size: var(--text-md);
+	font-weight: 600;
+}
+.lookup-sense-inline > .lookup-sense-number {
+	font-size: var(--text-sm);
+}
+.lookup-senses li > div > .lookup-senses:first-child {
+	margin-top: 0;
 }

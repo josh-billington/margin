@@ -1,6 +1,7 @@
 import type { z } from 'zod'
 import { ipcContract } from '@margin/contract/ipc/contract'
-import { entryCitation } from '@margin/contract/lexicon/types'
+import { entryCitation, strongIdSchema } from '@margin/contract/lexicon/types'
+import { bdbCitation } from '@margin/contract/lexicon/bdb'
 import { BibleService, checkBibleStorage } from './bible/provider'
 import { searchBible } from './bible/search'
 import { LexiconService } from './lexicon/service'
@@ -139,6 +140,11 @@ export async function createServices(ports: Ports) {
 			dictionary: true,
 			action: async ({ id }) => (await getLexicon()).getEntry(id),
 		}),
+		[ipcContract.lexicon.getBdbEntries.channel]: respond({
+			operation: ipcContract.lexicon.getBdbEntries,
+			dictionary: true,
+			action: async ({ id }) => (await getLexicon()).getBdbEntries({ id }),
+		}),
 		[ipcContract.lexicon.lookupSelection.channel]: respond({
 			operation: ipcContract.lexicon.lookupSelection,
 			dictionary: true,
@@ -147,8 +153,15 @@ export async function createServices(ports: Ports) {
 		[ipcContract.lexicon.copyEntry.channel]: respond({
 			operation: ipcContract.lexicon.copyEntry,
 			dictionary: true,
-			action: async ({ id }) => {
-				const entry = await (await getLexicon()).getEntry(id)
+			action: async ({ id, dictionary }) => {
+				const lexicon = await getLexicon()
+				if (dictionary === 'bdb') {
+					const entries = await lexicon.getBdbEntries({ id })
+					if (!entries.length) throw new Error('Entry absent')
+					ports.ui.copyText(bdbCitation({ id: strongIdSchema.parse(id), entries }))
+					return null
+				}
+				const entry = await lexicon.getEntry(id)
 				if (!entry) throw new Error('Entry absent')
 				ports.ui.copyText(entryCitation(entry))
 				return null

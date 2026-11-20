@@ -567,5 +567,39 @@
 			"rights": "CC BY-SA 3.0 (Open Scriptures project statement: all content is licensed Creative Commons Attribution-Share Alike 3.0; the file header says CC-BY-SA)",
 			"attribution": "Copyright 2009, Open Scriptures. Strong’s Greek Dictionary by James Strong; digital transcription and corrections as credited in the source header."
 		}
+	],
+	"bdbSources": [
+		{
+			"filename": "BrownDriverBriggs.xml",
+			"url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/BrownDriverBriggs.xml",
+			"revision": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+			"sha256": "2b52658a4323d91674cda4090ab8b3ebddfff640f4f18143c28300e80b2c38f8",
+			"rights": "CC BY 4.0 (XML files); underlying BDB and Strong’s text public domain",
+			"attribution": "Open Scriptures Hebrew Bible Project. Brown, Driver, Briggs, A Hebrew and English Lexicon of the Old Testament (1906)."
+		},
+		{
+			"filename": "LexicalIndex.xml",
+			"url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/LexicalIndex.xml",
+			"revision": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+			"sha256": "8f7a605c58899d2f44430149c143c00903976e1e91232476677972a69e5bc85f",
+			"rights": "CC BY 4.0 (XML files); underlying BDB and Strong’s text public domain",
+			"attribution": "Open Scriptures Hebrew Bible Project. Brown, Driver, Briggs, A Hebrew and English Lexicon of the Old Testament (1906)."
+		},
+		{
+			"filename": "AugIndex.xml",
+			"url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/AugIndex.xml",
+			"revision": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+			"sha256": "e7217ca8ff8ff3f21f9cf1bbe87411adf55f6aa88bcf5ed9ddc886cc6b160c5d",
+			"rights": "CC BY 4.0 (XML files); underlying BDB and Strong’s text public domain",
+			"attribution": "Open Scriptures Hebrew Bible Project. Brown, Driver, Briggs, A Hebrew and English Lexicon of the Old Testament (1906)."
+		},
+		{
+			"filename": "readme.md",
+			"url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/readme.md",
+			"revision": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+			"sha256": "9a129c25674387c494571c3828aa3a8eb78459c165e275c313ae26994ce8ff22",
+			"rights": "CC BY 4.0 (XML files); underlying BDB and Strong’s text public domain",
+			"attribution": "Open Scriptures Hebrew Bible Project. Brown, Driver, Briggs, A Hebrew and English Lexicon of the Old Testament (1906)."
+		}
 	]
 }

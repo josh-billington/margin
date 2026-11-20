@@ -1,7 +1,8 @@
 import type { Database, Hasher, Codec } from '../ports'
 import { hasher, codec } from '../codecs'
 import { z } from 'zod'
-import { lexiconEntrySchema } from '@margin/contract/lexicon/types'
+import { lexiconEntrySchema, strongIdSchema } from '@margin/contract/lexicon/types'
+import { bdbEntriesSchema } from '@margin/contract/lexicon/bdb'
 import { textEditionSchema, verseRefSchema } from '@margin/contract/bible/types'
 import type { TextEdition } from '@margin/contract/bible/types'
 import { decodeSpans, tokenFingerprint, LEXICON_STORAGE_VERSION } from './storage'
@@ -26,7 +27,7 @@ export class LexiconService {
 		try {
 			if ((await db.userVersion()) !== LEXICON_STORAGE_VERSION)
 				throw new Error(
-					`Unsupported lexicon schema version; regenerate with yarn import:lexicon (expected ${LEXICON_STORAGE_VERSION})`,
+					`Unsupported lexicon schema version; regenerate with pnpm import:lexicon (expected ${LEXICON_STORAGE_VERSION})`,
 				)
 			const row = z
 				.object({ edition: z.string() })
@@ -48,6 +49,12 @@ export class LexiconService {
 	async getEntry(id: string) {
 		const row = await this.ports.db.get('SELECT data FROM entries WHERE id=?', [id])
 		return row ? lexiconEntrySchema.parse(JSON.parse(rowSchema.parse(row).data)) : null
+	}
+	async getBdbEntries({ id }: { id: string }) {
+		const strongId = strongIdSchema.parse(id)
+		if (!strongId.startsWith('H')) return []
+		const row = await this.ports.db.get('SELECT data FROM bdb_entries WHERE id=?', [strongId])
+		return row ? bdbEntriesSchema.parse(JSON.parse(rowSchema.parse(row).data)) : []
 	}
 
 	async lookupSelection({ text, start, end }: LookupRequest): Promise<LookupResult> {

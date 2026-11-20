@@ -48,6 +48,8 @@ test('packaged app: scripture loads offline, native glass, no network requests',
 			chapter: 23,
 			verse: 4,
 		})
+		const bdb = await page.evaluate(() => window.margin.lexicon.getBdbEntries({ id: 'H1254' }))
+		expect(bdb.ok && bdb.data.map(({ gloss }) => gloss)).toEqual(['shape', 'be fat'])
 		await expect(page.locator('html')).toHaveAttribute('data-glass', 'native')
 		// An unlicensed production tldraw blanks the canvas ~5 s after mount; licensed, the passage stays.
 		await page.waitForTimeout(6500)

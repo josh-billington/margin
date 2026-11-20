@@ -7,11 +7,16 @@ import { useEditor, useValue } from 'tldraw'
 import type { Editor } from 'tldraw'
 import { toast } from 'sonner'
 import type { LexiconEntry, LookupResult, SourceSpan } from '@shared/lexicon/types'
+import { dictionaryName, entryCitation } from '@shared/lexicon/types'
+import { bdbCitation, bdbName } from '@shared/lexicon/bdb'
 import type { WordTarget } from '@shared/study/types'
 import { useLookup } from './store'
 import { ManualLookup } from './ManualLookup'
 import { addLookupNote } from './addNote'
-import { dictionaries } from './dictionaries'
+import { dictionaries, strongsTab } from './dictionaries'
+import { StrongsEntry } from './StrongsEntry'
+import { BdbDefinition } from './BdbEntry'
+import { useBdb } from './useBdb'
 import { Spinner } from './Spinner'
 import type { TagRequest } from '../highlights/tagging'
 import type { PassageShape } from '../shapes/types'
@@ -62,7 +67,8 @@ function LookupPopover({
 	const [selected, setSelected] = useState<SourceSpan | null>(null)
 	const [error, setError] = useState('')
 	const [busy, setBusy] = useState(true)
-	const [dictionaryId, setDictionaryId] = useState(dictionaries[0]?.id ?? '')
+	const [dictionaryId, setDictionaryId] = useState(strongsTab.id)
+	const body = useRef<HTMLDivElement>(null)
 	/** Entries left by following a cross-reference, newest last. */
 	const [trail, setTrail] = useState<LexiconEntry[]>([])
 	const sequence = useRef(0)
@@ -205,10 +211,19 @@ function LookupPopover({
 		setEntry(null)
 		setSelected(null)
 	}
-	const available = entry ? dictionaries.filter((dictionary) => dictionary.appliesTo(entry)) : []
-	const dictionary =
-		available.find((dictionary) => dictionary.id === dictionaryId) ?? available[0] ?? null
 	const hebrew = entry?.id.startsWith('H')
+	const dictionary = hebrew && dictionaryId === 'bdb' ? 'bdb' : 'strongs'
+	const { result: bdb, retry } = useBdb(dictionary === 'bdb' ? entry?.id : undefined)
+	const entries = bdb?.kind === 'loaded' ? bdb.entries : []
+	const canCite = !busy && (dictionary === 'strongs' || entries.length > 0)
+	const copy = async ({ id }: { id: string }) => {
+		try {
+			const response = await window.margin.lexicon.copyEntry({ id, dictionary })
+			if (!response.ok) toast.error(response.error.message)
+		} catch {
+			toast.error('Margin couldn’t copy the definition. Try again.')
+		}
+	}
 	const message =
 		result?.status === 'unsupported-translation'
 			? 'Margin can look up words in KJV only. Enter a Strong’s number to use the dictionary.'
@@ -287,22 +302,30 @@ function LookupPopover({
 							<strong>Look up {english ? `“${english}”` : 'a word'}</strong>
 						)}
 					</header>
-					{dictionary && available.length > 1 && (
+					{hebrew && (
 						<ToggleGroup.Root
 							type="single"
 							className="segmented lookup-dictionaries"
 							aria-label="Dictionary"
-							value={dictionary.id}
-							onValueChange={(id) => id && setDictionaryId(id)}
+							value={dictionary}
+							onValueChange={(id) => {
+								if (id !== 'strongs' && id !== 'bdb') return
+								setDictionaryId(id)
+								if (body.current) body.current.scrollTop = 0
+							}}
 						>
-							{available.map(({ id, label }) => (
+							{dictionaries.map(({ id, label }) => (
 								<ToggleGroup.Item key={id} value={id}>
 									{label}
 								</ToggleGroup.Item>
 							))}
 						</ToggleGroup.Root>
 					)}
-					<div className="lookup-body" aria-busy={busy}>
+					<div
+						ref={body}
+						className="lookup-body"
+						aria-busy={busy || (dictionary === 'bdb' && !bdb)}
+					>
 						{busy && !entry && (
 							<div className="lookup-loading">
 								<Spinner label="Looking up word" />
@@ -310,7 +333,24 @@ function LookupPopover({
 						)}
 						{error && <p role="alert">{error}</p>}
 						{entry ? (
-							<>{dictionary && <dictionary.Body key={entry.id} entry={entry} follow={follow} />}</>
+							dictionary === 'strongs' ? (
+								<StrongsEntry key={entry.id} entry={entry} follow={follow} />
+							) : !bdb ? (
+								<div className="lookup-loading">
+									<Spinner label="Loading BDB" />
+								</div>
+							) : bdb.kind === 'error' ? (
+								<p role="alert">
+									Couldn’t read BDB.{' '}
+									<button className="text-button" onClick={retry}>
+										Retry
+									</button>
+								</p>
+							) : bdb.entries.length ? (
+								<BdbDefinition entries={bdb.entries} follow={follow} />
+							) : (
+								<p>No BDB entry for {entry.id}.</p>
+							)
 						) : (
 							!busy && (
 								<>
@@ -344,33 +384,29 @@ function LookupPopover({
 					</div>
 					{entry && (
 						<footer className="lookup-actions">
-							<span className="lookup-source">{dictionary?.name(entry)}</span>
+							<span className="lookup-source">
+								{dictionary === 'bdb' ? bdbName : dictionaryName(entry)}
+							</span>
 							<button
 								className="icon-button"
 								aria-label="Copy definition"
 								title="Copy definition"
-								disabled={!dictionary}
-								onClick={() =>
-									dictionary
-										?.copy(entry)
-										.catch((error: unknown) =>
-											toast.error(
-												error instanceof Error
-													? error.message
-													: 'Margin couldn’t copy the definition. Try again.',
-											),
-										)
-								}
+								disabled={!canCite}
+								onClick={() => void copy({ id: entry.id })}
 							>
 								<Copy {...iconSm} />
 							</button>
 							<button
 								className="button"
-								disabled={busy || !dictionary}
+								disabled={!canCite}
 								onClick={() => {
 									const element = wordElement(editor, shape.id, target)
-									if (element && dictionary) {
-										addLookupNote(editor, shape, target, element, dictionary.noteText(entry))
+									if (element) {
+										const citation =
+											dictionary === 'bdb'
+												? bdbCitation({ id: entry.id, entries })
+												: entryCitation(entry)
+										addLookupNote(editor, shape, target, element, citation)
 										close()
 									}
 								}}

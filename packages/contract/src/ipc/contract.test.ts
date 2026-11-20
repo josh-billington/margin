@@ -27,6 +27,6 @@ describe('IPC contract', () => {
 				).toBe(true)
 			}
 		}
-		expect(channels.size).toBe(25)
+		expect(channels.size).toBe(26)
 	})
 })

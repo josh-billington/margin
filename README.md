@@ -12,7 +12,7 @@ Margin works offline and saves each study as a plain JSON file on your Mac.
 - Highlights, tags and arrows that stay on their words when the text rewraps
 - Freeform ink and small diagrams with rectangles, ellipses, lines and text labels
 - Focus on one block of verses or a single verse
-- Offline Strong's lookup for words in the KJV
+- Offline Strong's and Brown-Driver-Briggs lookup for words in the KJV
 - Saves as you go, with recovery copies, and keeps your edits in a conflict copy
   if a study changes outside Margin
 
@@ -49,7 +49,7 @@ Requirements: macOS, Node 25, pnpm 11.
 ```sh
 pnpm install          # also rebuilds native modules for Electron
 pnpm import:bible     # downloads pinned KJV, BSB, WEB, ASV, and JPS 1917 sources, builds apps/desktop/resources/bible/margin-bible.sqlite
-pnpm import:lexicon   # downloads pinned Open Scriptures Strong's data, builds apps/desktop/resources/lexicon/margin-lexicon.sqlite
+pnpm import:lexicon   # downloads pinned Strong's and BDB sources, builds apps/desktop/resources/lexicon/margin-lexicon.sqlite
 pnpm dev              # run the app
 ```
 
@@ -95,6 +95,12 @@ which take precedence for that content:
 - **Strong's dictionaries**: [Open Scriptures](https://github.com/openscriptures/strongs),
   CC BY-SA 3.0. The generated lexicon data is an adaptation under the same licence;
   attribution and checksums are in `apps/desktop/resources/lexicon/lexicon.manifest.json`
+- **Brown-Driver-Briggs (1906)**: Digital edition and lexical indexes by the
+  [Open Scriptures Hebrew Bible Project](https://github.com/openscriptures/HebrewLexicon/tree/21c9add13bc727d3a951361778e97e3ff7afd1ce),
+  under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The original text
+  is public domain. Margin converts the XML to structured definitions, expands
+  grammatical abbreviations, and links entries to Strong's numbers using the supplied indexes.
+  Attribution, checksums, and coverage are in the bundled lexicon manifest.
 - **Versification data**: see `apps/desktop/resources/bible/versification-license.txt`
 - **Fonts**: Gochi Hand, IBM Plex, and Shantell Sans under the SIL Open Font
   Licence (`apps/desktop/resources/fonts/`)

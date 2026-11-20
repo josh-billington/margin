@@ -35,6 +35,10 @@ export default defineConfig({
 						resolve(workspace, `apps/desktop/resources/${corpus}/margin-${corpus}.sqlite`),
 						resolve(target, `margin-${corpus}SQLite.db`),
 					)
+				await copyFile(
+					resolve(workspace, 'apps/desktop/resources/lexicon/lexicon.manifest.json'),
+					resolve(app, 'www/assets/lexicon.manifest.json'),
+				)
 			},
 		},
 		react(),

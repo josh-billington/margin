@@ -11,6 +11,7 @@ import { readSource, sha256, sourcePinSchema } from '../import-bible/sources'
 import { readZip } from '../import-bible/zip'
 import { annotatedTokens, assertTokenEquality } from './spans'
 import { parseDictionary } from './dictionaries'
+import { mapBdb, parseBdb } from './bdb'
 import {
 	decodeSpans,
 	encodeSpans,
@@ -19,9 +20,19 @@ import {
 } from '../../src/main/adapters/lexiconStorage'
 
 const dictionaryPin = sourcePinSchema.omit({ translationId: true, book: true, retrievedAt: true })
+const bdbFiles = z.enum(['BrownDriverBriggs.xml', 'LexicalIndex.xml', 'AugIndex.xml', 'readme.md'])
+const coverage = ({ ids, mapped }: { ids: Set<string>; mapped: ReadonlySet<string> }) => ({
+	total: ids.size,
+	matched: [...ids].filter((id) => mapped.has(id)).length,
+})
+
 export async function buildLexicon(root: string) {
 	const pins = z
-		.object({ sources: z.array(sourcePinSchema), lexiconSources: z.array(dictionaryPin).length(2) })
+		.object({
+			sources: z.array(sourcePinSchema),
+			lexiconSources: z.array(dictionaryPin).length(2),
+			bdbSources: z.array(dictionaryPin.extend({ filename: bdbFiles })).length(4),
+		})
 		.parse(JSON.parse(await readFile(join(root, 'data/sources.json'), 'utf8')))
 	const kjv = pins.sources.find((pin) => pin.translationId === 'kjv')
 	if (!kjv) throw new Error('Missing KJV source pin')
@@ -32,6 +43,29 @@ export async function buildLexicon(root: string) {
 			raw: (await readSource(pin, join(root, 'data/raw'))).toString('utf8'),
 		})),
 	)
+	const bdbSources = new Map(
+		await Promise.all(
+			pins.bdbSources.map(async (pin): Promise<[z.infer<typeof bdbFiles>, string]> => [
+				pin.filename,
+				(await readSource(pin, join(root, 'data/raw'))).toString('utf8'),
+			]),
+		),
+	)
+	const bdbSource = (filename: z.infer<typeof bdbFiles>) => {
+		const source = bdbSources.get(filename)
+		if (!source) throw new Error(`Missing BDB source: ${filename}`)
+		return source
+	}
+	const bdb = parseBdb(bdbSource('BrownDriverBriggs.xml'))
+	if (bdb.size !== 11845) throw new Error(`BDB inventory mismatch: ${bdb.size}`)
+	const { byStrong, missingBdb, augmentedMismatches } = mapBdb({
+		entries: bdb,
+		lexicalXml: bdbSource('LexicalIndex.xml'),
+		augmentedXml: bdbSource('AugIndex.xml'),
+	})
+	const bdbNotice = bdbSource('readme.md')
+	const otHebrewIds = new Set<string>()
+	const dictionaryHebrewIds = new Set<string>()
 	const out = join(root, 'resources/lexicon')
 	await mkdir(out, { recursive: true })
 	const temporary = join(root, 'data/raw/margin-lexicon.build.sqlite')
@@ -51,10 +85,12 @@ export async function buildLexicon(root: string) {
 		db.exec(`CREATE TABLE metadata (edition TEXT NOT NULL);
 			CREATE TABLE verses (book TEXT, chapter INTEGER, verse INTEGER, fingerprint TEXT NOT NULL, spans BLOB NOT NULL, PRIMARY KEY(book,chapter,verse)) WITHOUT ROWID;
 			CREATE TABLE entries (id TEXT PRIMARY KEY, data TEXT NOT NULL) WITHOUT ROWID;
+			CREATE TABLE bdb_entries (id TEXT PRIMARY KEY, data TEXT NOT NULL) WITHOUT ROWID;
 			PRAGMA user_version = ${LEXICON_STORAGE_VERSION};`)
 		db.prepare('INSERT INTO metadata VALUES (?)').run(JSON.stringify(edition))
 		const insertVerse = db.prepare('INSERT INTO verses VALUES (?,?,?,?,?)')
 		const insertEntry = db.prepare('INSERT INTO entries VALUES (?,?)')
+		const insertBdb = db.prepare('INSERT INTO bdb_entries VALUES (?,?)')
 		const corpusVerse = bible.prepare(
 			"SELECT content FROM verses WHERE translationId='kjv' AND book=? AND chapter=? AND verse=?",
 		)
@@ -94,6 +130,11 @@ export async function buildLexicon(root: string) {
 					insertVerse.run(book.id, chapter, verseNumber, tokenFingerprint(verse.tokens), compact)
 					verseCount++
 					spanCount += annotated.spans.length
+					if (book.testament === 'old') {
+						for (const span of annotated.spans) {
+							for (const id of span.ids) if (id.startsWith('H')) otHebrewIds.add(id)
+						}
+					}
 				}
 			}
 			if (
@@ -108,16 +149,23 @@ export async function buildLexicon(root: string) {
 				const language = pin.filename.includes('hebrew') ? 'Hebrew' : 'Greek'
 				for (const entry of parseDictionary(raw, language)) {
 					insertEntry.run(entry.id, JSON.stringify(entry))
+					if (language === 'Hebrew') dictionaryHebrewIds.add(entry.id)
 					entryCount++
 				}
 			}
+			for (const [id, entries] of byStrong) insertBdb.run(id, JSON.stringify(entries))
 		})()
 		db.exec('VACUUM')
 		if (db.pragma('integrity_check', { simple: true }) !== 'ok')
 			throw new Error('Lexicon integrity check failed')
+		const mapped = new Set(byStrong.keys())
+		const bdbCoverage = {
+			kjvOldTestamentHebrewIds: coverage({ ids: otHebrewIds, mapped }),
+			strongsHebrewDictionaryIds: coverage({ ids: dictionaryHebrewIds, mapped }),
+		}
 		const manifest = {
 			schemaVersion: LEXICON_STORAGE_VERSION,
-			importerVersion: 2,
+			importerVersion: 3,
 			edition,
 			verseCount,
 			spanCount,
@@ -125,16 +173,31 @@ export async function buildLexicon(root: string) {
 			bibleSource: kjv,
 			dictionarySources: pins.lexiconSources,
 			license:
-				'Original Strong dictionaries are public domain. The Open Scriptures digital editions are licensed CC BY-SA 3.0 (project statement: "All code in the Open Scriptures project is released under the GPL 3.0 license, and all content is licensed Creative Commons Attribution-Share Alike 3.0."). Margin bundles content only, no Open Scriptures code. The generated lexicon data is an adaptation and is shared under CC BY-SA 3.0 with attribution.',
+				'Original Strong dictionaries are public domain. Their Open Scriptures digital editions and Margin’s adapted Strong data are CC BY-SA 3.0. The separate BDB data and indexes are CC BY 4.0; see the BDB notice and attribution. Margin bundles content only, no Open Scriptures code.',
 			normalization:
 				'JSON data parsed without evaluation. Fields renamed, whitespace trimmed. USFM source spans mapped to unchanged display tokens; every KJV verse compared with the read-only bundled Bible DB. No inferred tags.',
 			sourceNotices: dictionaries.map(({ pin, raw }) => ({
 				filename: pin.filename,
 				notice: raw.slice(0, raw.indexOf('*/') + 2),
 			})),
+			bdb: {
+				sources: pins.bdbSources,
+				license: 'Creative Commons Attribution 4.0 International',
+				licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+				attribution: 'Open Scriptures Hebrew Bible Project',
+				notice: bdbNotice,
+				normalization:
+					'XML converted to typed, plain-text sense trees with expanded grammar; Strong’s links come from LexicalIndex, ordered by AugIndex where consistent. No spelling-based matches.',
+				entryCount: bdb.size,
+				mappedStrongIds: byStrong.size,
+				coverage: bdbCoverage,
+				missingBdb,
+				augmentedMismatches,
+			},
 			checksum: sha256(await readFile(temporary)),
 		}
 		await writeFile(join(out, 'lexicon.manifest.json'), JSON.stringify(manifest, null, '\t') + '\n')
+		console.info('BDB Strong’s coverage:', bdbCoverage)
 	} finally {
 		db.close()
 		bible.close()

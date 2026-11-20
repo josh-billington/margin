@@ -110,6 +110,7 @@ const api = {
 		copyEntry: bind(ipcContract.lexicon.copyEntry),
 		lookupSelection: bind(ipcContract.lexicon.lookupSelection),
 		getEntry: bind(ipcContract.lexicon.getEntry),
+		getBdbEntries: bind(ipcContract.lexicon.getBdbEntries),
 		contextMenu: bind(ipcContract.lexicon.contextMenu),
 	},
 	prefs: { get: bind(ipcContract.prefs.get), set: bind(ipcContract.prefs.set) },

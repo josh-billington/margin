@@ -28,6 +28,7 @@ export function createServiceApi({ handlers }: { handlers: MarginHandlers }) {
 			copyEntry: handlers[ipcContract.lexicon.copyEntry.channel],
 			lookupSelection: handlers[ipcContract.lexicon.lookupSelection.channel],
 			getEntry: handlers[ipcContract.lexicon.getEntry.channel],
+			getBdbEntries: handlers[ipcContract.lexicon.getBdbEntries.channel],
 			contextMenu: handlers[ipcContract.lexicon.contextMenu.channel],
 		},
 		prefs: {

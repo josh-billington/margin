@@ -41,7 +41,8 @@
 					{
 						"fileset": "{workspaceRoot}/apps/desktop/resources/**/*.sqlite",
 						"includeIgnored": true
-					}
+					},
+					"{workspaceRoot}/apps/desktop/resources/lexicon/lexicon.manifest.json"
 				],
 				"outputs": [
 					"{projectRoot}/www"

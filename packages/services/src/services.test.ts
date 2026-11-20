@@ -80,6 +80,20 @@ class MemoryCorpus implements Database {
 	async get(sql: string, params: readonly unknown[] = []): Promise<unknown> {
 		if (sql.includes('FROM editions')) return edition(translationIdSchema.parse(params[0]))
 		if (sql.includes('FROM metadata')) return { edition: JSON.stringify(edition('kjv')) }
+		if (sql.includes('FROM bdb_entries')) {
+			if (params[0] !== 'H1254') return undefined
+			return {
+				data: JSON.stringify([
+					{
+						id: 'b.cw.aa',
+						lemma: 'בָּרָא',
+						gloss: 'shape',
+						pos: 'verb',
+						senses: [{ label: 'Qal', text: [{ kind: 'def', text: 'create' }], senses: [] }],
+					},
+				]),
+			}
+		}
 		if (sql.includes('FROM entries'))
 			return {
 				data: JSON.stringify({
@@ -125,6 +139,7 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 	const library = new MemoryFiles()
 	const appData = new MemoryFiles()
 	const databases: MemoryCorpus[] = []
+	const clipboard: string[] = []
 	const ports: Ports = {
 		openDatabase: async (corpus) => {
 			const db = new MemoryCorpus(corpus)
@@ -148,7 +163,9 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 			emit: () => {},
 			describeFolder: (path) => ({ name: path, location: '' }),
 			appearanceChanged: () => {},
-			copyText: () => {},
+			copyText: (text) => {
+				clipboard.push(text)
+			},
 			showLookupMenu: async () => {},
 		},
 		configuration: { defaultLibraryPath: 'library', setupComplete: true },
@@ -180,6 +197,23 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 			ok: true,
 			data: { definition: 'create' },
 		})
+		expect(await services.handlers['margin:lexicon:bdb-entries']({ id: 'H01254' })).toMatchObject({
+			ok: true,
+			data: [{ gloss: 'shape', senses: [{ text: [{ kind: 'def', text: 'create' }] }] }],
+		})
+		for (const id of ['H9999', 'G3056']) {
+			expect(await services.handlers['margin:lexicon:bdb-entries']({ id })).toEqual({
+				ok: true,
+				data: [],
+			})
+		}
+		expect(
+			await services.handlers['margin:lexicon:copy-entry']({ id: 'H1254', dictionary: 'bdb' }),
+		).toEqual({
+			ok: true,
+			data: null,
+		})
+		expect(clipboard).toEqual(['shape\nverb\nQal: create\nBrown-Driver-Briggs · H1254'])
 		const created = await services.handlers['margin:library:create-study']({
 			title: 'Original',
 			document: {
