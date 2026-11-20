@@ -74,7 +74,9 @@ export function springEasing(spring = ENTER_SPRING, { stepMs = 8, rest = 0.001 }
 	}
 }
 
-const ENTER = springEasing()
+let enterCurve: ReturnType<typeof springEasing> | undefined
+/** Sampled on first use, so a window with the switch off never computes it. */
+const enterSpring = () => (enterCurve ??= springEasing())
 
 type Side = 'top' | 'bottom' | 'left' | 'right'
 const sideOf = (el: HTMLElement): Side => (el.dataset.side as Side | undefined) ?? 'bottom'
@@ -171,13 +173,15 @@ export function usePopoverMotion({
 			const nudge = towardAnchor(sideOf(el), reduce ? 0 : TOWARD_ANCHOR_PX)
 			const start = from ?? { scale: FROM_SCALE, ...nudge, opacity: 0 }
 			const next: Animation[] = []
-			if (!reduce && (start.scale !== 1 || start.x !== 0 || start.y !== 0))
+			if (!reduce && (start.scale !== 1 || start.x !== 0 || start.y !== 0)) {
+				const { durationMs, easing } = enterSpring()
 				next.push(
 					el.animate(
 						[{ transform: transformOf(start.scale, start.x, start.y) }, { transform: 'none' }],
-						{ duration: ENTER.durationMs, easing: ENTER.easing },
+						{ duration: durationMs, easing },
 					),
 				)
+			}
 			if (start.opacity < 1)
 				next.push(
 					el.animate([{ opacity: start.opacity }, { opacity: 1 }], {

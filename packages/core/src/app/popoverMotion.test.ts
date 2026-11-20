@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ENTER_SPRING, springAt, springEasing } from './popoverMotion'
 
 describe('popover enter spring', () => {
@@ -30,4 +30,15 @@ describe('popover enter spring', () => {
 	it('samples often enough that no step is visible', () => {
 		expect(curve.durationMs / (points.length - 1)).toBeLessThanOrEqual(8)
 	})
+})
+
+it('does not sample the spring just by being imported', async () => {
+	vi.resetModules()
+	const exp = vi.spyOn(Math, 'exp')
+	try {
+		await import('./popoverMotion')
+		expect(exp).not.toHaveBeenCalled()
+	} finally {
+		exp.mockRestore()
+	}
 })
