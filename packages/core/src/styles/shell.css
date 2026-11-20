@@ -349,12 +349,23 @@ select {
 	flex-direction: column;
 	height: 100%;
 }
+/* Chrome text is not document text: a drag or double-click over a label selects nothing, as in a
+   native window. Fields stay editable (WebKit won't place a caret inside an unselectable
+   ancestor), and the dictionary text in a lookup stays selectable to copy from. */
 .title-bar,
 .canvas-toolbar,
 .sidebar,
-.tooltip {
+.tooltip,
+.dialog-panel,
+.command-dialog,
+.margin-popover:not(.lookup-popover),
+.margin-menu {
 	user-select: none;
 	-webkit-user-select: none;
+}
+:is(.dialog-panel, .command-dialog, .margin-popover) :is(input, textarea) {
+	user-select: text;
+	-webkit-user-select: text;
 }
 .title-bar {
 	height: var(--titlebar-h);
