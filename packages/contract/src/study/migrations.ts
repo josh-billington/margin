@@ -40,10 +40,13 @@ export function migrateStudy(input: unknown) {
 	const legacy = legacyVersion.safeParse(input)
 	const version = legacy.success ? legacy.data.schemaVersion : STUDY_SCHEMA_VERSION
 	const study = studyFileEnvelopeSchema.parse(migrateVersioned(input, version, envelopeMigrations))
+	validateStudyDocument(study)
+	return study
+}
+export function validateStudyDocument(study: z.infer<typeof studyFileEnvelopeSchema>) {
 	validateDocument(study.document)
 	const required = documentVersion(study.document)
 	if (study.schemaVersion < required)
 		throw new Error(`Study content requires study format version ${required}.`)
-	return study
 }
 export type PersistedStudy = ReturnType<typeof migrateStudy>

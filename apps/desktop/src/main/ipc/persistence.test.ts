@@ -66,6 +66,13 @@ it('defers the default folder and creates no study when switching during setup',
 	}
 	await expect(access(join(root, 'default'))).rejects.toThrow()
 	await expect(invoke(ipcContract.library.listStudies)).resolves.toEqual({ ok: true, data: [] })
+	await expect(
+		invoke(ipcContract.library.openStudy, { studyId: '../outside' }),
+	).resolves.toMatchObject({ ok: false, error: { code: 'INVALID_REQUEST' } })
+	await expect(invoke(ipcContract.library.stageStudy, {})).resolves.toMatchObject({
+		ok: false,
+		error: { code: 'INVALID_REQUEST' },
+	})
 	await invoke(ipcContract.library.chooseLibraryFolder)
 	await expect(access(join(root, 'chosen'))).rejects.toThrow()
 	await invoke(ipcContract.library.completeSetup)

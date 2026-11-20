@@ -8,14 +8,13 @@ import { LexiconService } from './lexicon/service'
 import { Library } from './library/library'
 import { AppDataStore } from './appData/store'
 import { createPersistence } from './persistence'
+import { validated } from './request'
 import type { Database, Ports } from './ports'
 
 type Contract = typeof ipcContract
 type Operations = { [G in keyof Contract]: Contract[G][keyof Contract[G]] }[keyof Contract]
 export type MarginHandlers = {
-	[O in Operations as O['channel']]: (
-		request: z.output<O['request']>,
-	) => Promise<z.output<O['response']>>
+	[O in Operations as O['channel']]: (request?: unknown) => Promise<z.output<O['response']>>
 }
 
 export async function createServices(ports: Ports) {
@@ -88,7 +87,7 @@ export async function createServices(ports: Ports) {
 		action: (request: z.output<I>) => unknown
 		dictionary?: boolean
 	}) {
-		return async (request: z.output<I>): Promise<z.output<O>> => {
+		return validated(operation.request, async (request): Promise<z.output<O>> => {
 			try {
 				return operation.response.parse({ ok: true, data: await action(request) })
 			} catch (error) {
@@ -104,7 +103,7 @@ export async function createServices(ports: Ports) {
 					},
 				})
 			}
-		}
+		})
 	}
 	const handlers = {
 		...persistence.handlers,

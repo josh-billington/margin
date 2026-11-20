@@ -1,7 +1,11 @@
 import { ipcContract, type MarginApi } from '@margin/contract/ipc/contract'
 import type { MarginHandlers } from './services'
 
-export function createServiceApi({ handlers }: { handlers: MarginHandlers }) {
+export function createServiceApi({
+	handlers,
+}: {
+	handlers: MarginHandlers
+}): Pick<MarginApi, 'library' | 'bible' | 'lexicon' | 'prefs' | 'camera'> {
 	return {
 		library: {
 			getLibrary: handlers[ipcContract.library.getLibrary.channel],
@@ -39,5 +43,5 @@ export function createServiceApi({ handlers }: { handlers: MarginHandlers }) {
 			get: handlers[ipcContract.camera.get.channel],
 			set: handlers[ipcContract.camera.set.channel],
 		},
-	} satisfies Pick<MarginApi, 'library' | 'bible' | 'lexicon' | 'prefs' | 'camera'>
+	}
 }

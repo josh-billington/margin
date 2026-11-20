@@ -6,6 +6,7 @@ import type { TranslationId, VerseRef } from '@margin/contract/bible/types'
 import { tokenize } from '@margin/contract/bible/tokenizer'
 import { STORAGE_VERSION, encodeVerseRuns } from '@margin/contract/bible/storage'
 import { createServices } from './services'
+import { createServiceApi } from './api'
 import { FileError, silentDiagnostics } from './ports'
 import type { Database, FileStore, Ports } from './ports'
 import { hasher, codec } from './codecs'
@@ -185,6 +186,47 @@ const document = {
 	},
 	schema: { schemaVersion: 2, sequences: {} },
 }
+
+it('rejects invalid snapshots and path IDs at the iPad binding without changing the original', async () => {
+	const { ports, library } = fixture()
+	const services = await createServices(ports)
+	const api = createServiceApi(services).library
+	const created = await api.createStudy({ title: 'Original', document })
+	if (!created.ok) throw new Error(created.error.message)
+	const study = created.data
+	const diagram = {
+		id: 'shape:diagram',
+		typeName: 'shape',
+		type: 'geo',
+		parentId: 'page:page',
+		x: 0,
+		y: 0,
+		rotation: 0,
+		index: 'a1',
+		isLocked: false,
+		opacity: 1,
+		meta: { marginDiagram: true },
+		props: {},
+	}
+	const path = `studies/${study.id}.study.json`
+	const original = await library.read(path)
+	for (const invalid of [
+		{ ...study, document: { ...document, store: {} } },
+		{ ...study, title: '' },
+		{ ...study, document: { ...document, store: { ...document.store, [diagram.id]: diagram } } },
+	]) {
+		const request = { study: invalid, sequence: 1, base: original }
+		expect(await api.stageStudy(request)).toMatchObject({ ok: false })
+		expect(await api.saveStudy(request)).toMatchObject({ ok: false })
+	}
+	expect(await api.openStudy({ studyId: '../outside' })).toMatchObject({
+		ok: false,
+		error: { code: 'INVALID_REQUEST' },
+	})
+	expect(await api.flush()).toMatchObject({ ok: true })
+	expect(await library.read(path)).toBe(original)
+	await services.close()
+})
 
 it('preserves a newer stage received during an unchanged save', async () => {
 	const { ports, library } = fixture()

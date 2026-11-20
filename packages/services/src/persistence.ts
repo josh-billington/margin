@@ -3,6 +3,8 @@ import type { IpcError } from '@margin/contract/ipc/contract'
 import { ipcContract } from '@margin/contract/ipc/contract'
 import { userMessage } from '@margin/contract/errors'
 import { FileError } from './ports'
+import { validated } from './request'
+import { validateStudyDocument } from '@margin/contract/study/migrations'
 import type { HostIdentity, HostUi, Diagnostics } from './ports'
 import type { AppDataStore } from './appData/store'
 import type { Library } from './library/library'
@@ -86,7 +88,7 @@ export async function createPersistence({
 				: null,
 	})
 	function handle<I extends z.ZodType, O extends z.ZodType>(
-		_operation: { request: I; response: O },
+		operation: { request: I; response: O },
 		action: (
 			request: z.output<I>,
 		) => Promise<Extract<z.output<O>, { ok: true }> extends { data: infer D } ? D : never>,
@@ -94,14 +96,14 @@ export async function createPersistence({
 	) {
 		const success = <T>(data: T): { ok: true; data: T } => ({ ok: true, data })
 		const failure = (error: IpcError): { ok: false; error: IpcError } => ({ ok: false, error })
-		return async (request: z.output<I>) => {
+		return validated(operation.request, async (request) => {
 			try {
 				return success(await action(request))
 			} catch (error) {
 				diagnostics.failure('persistence-operation-failed', error)
 				return failure({ code: 'SAVE_FAILED', message: errorMessage(error, failureMessage) })
 			}
-		}
+		})
 	}
 	const handlers = {
 		[ipcContract.library.getLibrary.channel]: handle(ipcContract.library.getLibrary, async () =>
@@ -170,6 +172,7 @@ export async function createPersistence({
 		[ipcContract.library.saveStudy.channel]: handle(
 			ipcContract.library.saveStudy,
 			({ study, sequence, base }) => {
+				validateStudyDocument(study)
 				return library.save(study, sequence, base)
 			},
 			'Margin couldn’t save your changes. Check that you can save files in the library folder, then try again or save a copy.',
@@ -184,6 +187,7 @@ export async function createPersistence({
 		[ipcContract.library.stageStudy.channel]: handle(
 			ipcContract.library.stageStudy,
 			async ({ study, sequence }) => {
+				validateStudyDocument(study)
 				library.stage(study, sequence)
 				return null
 			},
