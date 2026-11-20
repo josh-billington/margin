@@ -74,7 +74,8 @@ unique `id` and an `operation`, for example:
 
 Results appear as `result-<id>.json` beside the command. Operations: `status`, `add`,
 `lookup` (Genesis 1:1 / created), `note` / `edit` (`text`), `translation` (`target`),
-`fit` (camera zoom-to-fit) and `performance` (ten Psalm 119 adapter fetches).
+`fit` (camera zoom-to-fit), `performance` (ten Psalm 119 adapter fetches), `search`
+(`query`; ten timed full-text searches, then the query shown in Add verses) and `close`.
 `first-paint.json` records the first verse DOM painted across two animation frames;
 compare its epoch with the time immediately before `simctl launch` for end-to-end launch.
 This is a diagnostic probe, not a substitute for touch/Pencil/hardware validation.

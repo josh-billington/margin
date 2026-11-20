@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { translationIdSchema } from '@margin/contract/bible/types'
 import type { PassageText } from '@margin/contract/bible/types'
 import { getActiveEditor } from '../../../packages/core/src/app/editorStore'
+import { useUiStore } from '../../../packages/core/src/app/uiStore'
 import { insertPassage } from '../../../packages/core/src/canvas/tools/commands'
 import { createFileStore } from './files'
 
@@ -19,6 +20,8 @@ const commandSchema = z.object({
 		z.object({ kind: z.literal('edit'), text: z.string() }),
 		z.object({ kind: z.literal('translation'), target: translationIdSchema }),
 		z.object({ kind: z.literal('performance') }),
+		z.object({ kind: z.literal('search'), query: z.string() }),
+		z.object({ kind: z.literal('close') }),
 	]),
 })
 
@@ -163,6 +166,27 @@ async function execute(operation: z.infer<typeof commandSchema>['operation']) {
 			if (lower === undefined || upper === undefined) throw new Error('Missing timings')
 			return { times, median: (lower + upper) / 2 }
 		}
+		case 'search': {
+			// Times the FTS5 query ten times, then shows it in the Add verses dialog for screenshots.
+			const times: number[] = []
+			let total = 0
+			for (let index = 0; index < 10; index++) {
+				const start = performance.now()
+				const result = await window.margin.bible.search({
+					query: operation.query,
+					translation: { kind: 'edition', id: 'kjv' },
+					scope: { kind: 'all' },
+				})
+				if (!result.ok) throw new Error(result.error.message)
+				times.push(performance.now() - start)
+				total = result.data.total
+			}
+			useUiStore.getState().openInsert(operation.query)
+			return { total, times }
+		}
+		case 'close':
+			useUiStore.getState().closeInsert()
+			return null
 		default: {
 			const exhaustive: never = operation
 			return exhaustive
