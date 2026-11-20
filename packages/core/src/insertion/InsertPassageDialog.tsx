@@ -200,6 +200,9 @@ export function InsertPassageDialog({
 		if (open) setQuery(initialQuery)
 	}, [open, initialQuery])
 	useEffect(() => setInsist(false), [query, open])
+	// The dialog widens the first time results show and stays wide until it closes, so editing
+	// the query never flips its width back and forth.
+	const [wide, setWide] = useState(false)
 	// An explicit toggle click outranks the Old Testament default (a qualifier still outranks both).
 	const [chosen, setChosen] = useState<TranslationId | null>(null)
 	// Scope narrows a search; it starts at the whole Bible each time the dialog opens.
@@ -392,6 +395,10 @@ export function InsertPassageDialog({
 			? searchReady && chosenHits.length > 0
 			: !!resolved && !(state.status === 'resolved' && state.stale))
 	const showResults = mode === 'search' && hits.length > 0
+	useEffect(() => {
+		if (!open) setWide(false)
+		else if (showResults) setWide(true)
+	}, [open, showResults])
 
 	return (
 		<Dialog.Root open={open} onOpenChange={changeOpen}>
@@ -400,6 +407,7 @@ export function InsertPassageDialog({
 				<Dialog.Content
 					className="command-dialog insert-dialog"
 					data-motion={motion}
+					data-wide={wide}
 					aria-describedby="insert-description"
 				>
 					<Dialog.Title className="insert-title">Add verses</Dialog.Title>

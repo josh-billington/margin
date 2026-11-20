@@ -3,6 +3,19 @@
 	padding: var(--space-6);
 	font-size: var(--text-md);
 }
+/* On the Mac, results read better wide: verses wrap to two lines instead of four. The width eases
+   out alongside the list's height. iPad sheets keep their size. */
+:root:not([data-platform='ipad']) .insert-dialog {
+	transition: width var(--duration-slow) var(--ease-out);
+}
+:root:not([data-platform='ipad']) .insert-dialog[data-wide='true'] {
+	width: min(680px, calc(100% - var(--sheet-inset) * 2));
+}
+@media (prefers-reduced-motion: reduce) {
+	:root:not([data-platform='ipad']) .insert-dialog {
+		transition: none;
+	}
+}
 .insert-dialog form {
 	display: grid;
 	gap: var(--space-5);

@@ -143,3 +143,42 @@ test('a Shift range across a page boundary adds every verse in it', async () => 
 		await removeDirs(dirs)
 	}
 })
+
+test('the dialog widens on the Mac while results show and its rows re-measure', async () => {
+	const dirs = await makeDirs()
+	try {
+		const { app, page } = await launch(dirs)
+		try {
+			await saved(page)
+			const { dialog, list, status } = await openSearch(page, 'Psalm 23')
+			await expect(dialog.locator('.insert-preview')).toContainText('Psalm 23')
+			const narrow = (await dialog.boundingBox())?.width ?? 0
+			await dialog
+				.getByRole('combobox', { name: 'Reference or words to search' })
+				.fill('the lord said')
+			await expect(status).toHaveText('Showing 200 of 1,067 verses')
+			await expect
+				.poll(async () => (await dialog.boundingBox())?.width)
+				.toBeGreaterThan(narrow + 150)
+			const viewport = page.viewportSize() ?? (await page.evaluate(() => ({ width: innerWidth })))
+			expect((await dialog.boundingBox())?.width).toBeLessThanOrEqual(Math.min(680, viewport.width))
+			// Rows re-measure at the new width: no gaps or overlaps between neighbours.
+			await page.waitForTimeout(400)
+			const gaps = await list.evaluate((element) => {
+				const rows = [...element.querySelectorAll<HTMLElement>('.search-row')]
+					.map((row) => row.getBoundingClientRect())
+					.sort((left, right) => left.top - right.top)
+				return rows.slice(1).map((row, index) => Math.round(row.top - (rows[index]?.bottom ?? 0)))
+			})
+			expect(gaps).toEqual(gaps.map(() => 0))
+			// Editing back to a reference keeps the width, so it never flips while typing.
+			await dialog.getByRole('combobox', { name: 'Reference or words to search' }).fill('Psalm 23')
+			await expect(dialog.locator('.insert-preview')).toContainText('Psalm 23')
+			expect((await dialog.boundingBox())?.width).toBeGreaterThan(narrow + 150)
+		} finally {
+			await closeApp(app)
+		}
+	} finally {
+		await removeDirs(dirs)
+	}
+})
