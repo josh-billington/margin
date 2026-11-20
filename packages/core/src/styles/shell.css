@@ -87,9 +87,10 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [role='slider']:focus-visible,
-[tabindex]:focus-visible {
+[tabindex]:not([tabindex='-1'], [role='listbox']):focus-visible {
 	/* The macOS keyboard focus ring: a soft accent halo that hugs the control's own edge and corners,
-	   for buttons and fields alike. */
+	   for buttons and fields alike. Never on a panel that takes focus only from script, nor on a
+	   list box, whose keyboard row shows focus as in a macOS list. */
 	outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
 	outline-offset: 0;
 }
