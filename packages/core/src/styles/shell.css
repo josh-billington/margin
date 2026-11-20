@@ -756,7 +756,7 @@ select {
 .command-dialog {
 	inset: 20% 0 auto;
 	width: min(520px, calc(100% - 40px));
-	border-radius: var(--radius-xl);
+	border-radius: var(--radius-lg);
 	overflow: hidden;
 }
 .dialog-panel[data-state='open'],
@@ -817,8 +817,9 @@ select {
 [cmdk-input]:focus-visible {
 	outline: 0;
 }
+/* Inset so the rows' corners nest in the panel's: panel radius = row radius + inset + border. */
 [cmdk-list] {
-	padding: var(--space-3);
+	padding: calc(var(--radius-lg) - var(--radius-sm) - var(--stroke-hairline));
 	max-height: 360px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
