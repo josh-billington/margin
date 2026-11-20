@@ -74,6 +74,15 @@ export const commands: AppCommand[] = [
 		run: () => ui().openInsert(''),
 	},
 	{
+		id: 'bible.search',
+		title: 'Search the Bible…',
+		group: 'Study',
+		shortcut: '⇧⌘F',
+		binding: { key: 'f', shift: true },
+		palette: true,
+		run: () => ui().openInsert(''),
+	},
+	{
 		id: 'study.new',
 		title: 'New study',
 		group: 'Study',

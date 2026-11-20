@@ -214,7 +214,9 @@ test('holding ⌘N creates one study, not one per key repeat', async () => {
 	})
 	await expect(page.getByLabel('Library').getByText('Untitled study')).toHaveCount(2)
 	// Numbered like new macOS documents, so the two rows read differently.
-	await expect(page.getByLabel('Library').getByText('Untitled study 2', { exact: true })).toBeVisible()
+	await expect(
+		page.getByLabel('Library').getByText('Untitled study 2', { exact: true }),
+	).toBeVisible()
 	await saved(page)
 	await page.waitForTimeout(500)
 	expect(await studyFiles(dirs)).toHaveLength(2)
@@ -305,7 +307,10 @@ test('add verses: a half-typed reference gets a quiet hint; Enter turns it into 
 	const { app, page } = await launch(dirs)
 	await page.getByRole('button', { name: 'Add verses' }).first().click()
 	const dialog = page.getByRole('dialog', { name: 'Add verses' })
+	// A bare book name searches; finding nothing, it says how to finish the reference.
 	await page.getByLabel('Reference').fill('Joh')
+	await expect(dialog.getByRole('status')).toContainText('Enter a book and chapter.')
+	await page.getByLabel('Reference').fill('John 3:')
 	await expect(dialog.locator('.insert-hint')).toHaveText('Enter a book and chapter.')
 	await expect(dialog.getByRole('alert')).toHaveCount(0)
 	await page.keyboard.press('Enter')

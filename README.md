@@ -6,6 +6,9 @@ Margin works offline and saves each study as a plain JSON file on your Mac.
 
 - KJV, Berean Standard Bible (BSB), World English Bible (WEB), and ASV (1901)
   are bundled in full, alongside JPS 1917 (Tanakh)
+- Add verses by reference, or type words or an exact phrase in the same field to
+  search offline (**⌘⇧F**). Narrow by translation, testament or book, then add
+  one or several matching verses to the canvas.
 - Highlights, tags and arrows that stay on their words when the text rewraps
 - Freeform ink and small diagrams with rectangles, ellipses, lines and text labels
 - Focus on one block of verses or a single verse

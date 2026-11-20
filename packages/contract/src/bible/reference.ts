@@ -29,6 +29,17 @@ export type VerseBoundaries = (
 	chapter: number,
 ) => readonly number[]
 
+const qualifierPattern = /^(KJV|JPS(?:\s*1917)?|BSB|WEB|ASV)\s+/i
+
+/**
+ * Whether input reads as a reference, possibly half-typed: a known book name followed by a
+ * chapter ("John 3", "Amos 1:3–"). Anything else is words to search for.
+ */
+export function looksLikeReference(input: string) {
+	const match = /^(.*?)\s+(\d[\d:\s–-]*)$/.exec(input.trim().replace(qualifierPattern, ''))
+	return !!match && findBooks(match[1] ?? '').length > 0
+}
+
 export function parseReference(
 	reference: string,
 	defaultTranslation: TranslationId,
@@ -40,7 +51,7 @@ export function parseReference(
 		message: string,
 		candidates: string[] = [],
 	): ReferenceError => ({ kind: 'error', code, message, candidates })
-	const qualifier = /^(KJV|JPS(?:\s*1917)?|BSB|WEB|ASV)\s+/i.exec(reference.trim())
+	const qualifier = qualifierPattern.exec(reference.trim())
 	let translation: TranslationId = qualifier
 		? /^jps/i.test(qualifier[1] ?? '')
 			? 'jps1917'

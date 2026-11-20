@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Command, PanelLeft, Settings } from 'lucide-react'
+import { Command, PanelLeft, Search, Settings } from 'lucide-react'
 import { ToolButton } from './ToolButton'
 import { SaveIndicator } from './SaveIndicator'
 import type { SaveState } from './SaveIndicator'
@@ -63,6 +63,13 @@ export function TitleBar({ title, onRename, onRetry, onSaveCopy, saveState }: Ti
 			</h1>
 			<div className="title-actions">
 				{saveState && <SaveIndicator state={saveState} onRetry={onRetry} onSaveCopy={onSaveCopy} />}
+				<ToolButton
+					label={titleFor('bible.search')}
+					shortcut={shortcutFor('bible.search')}
+					onClick={() => runCommand('bible.search')}
+				>
+					<Search {...iconLg} />
+				</ToolButton>
 				<ToolButton
 					label={titleFor('palette.toggle')}
 					shortcut={shortcutFor('palette.toggle')}

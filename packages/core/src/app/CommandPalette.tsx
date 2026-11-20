@@ -29,6 +29,7 @@ interface CommandPaletteProps {
 
 const icons: Partial<Record<CommandId, LucideIcon>> = {
 	'passage.add': BookOpen,
+	'bible.search': Search,
 	'word.lookup': Search,
 	'study.new': Plus,
 	'selection.tag': Tag,

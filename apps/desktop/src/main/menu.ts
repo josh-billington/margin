@@ -64,6 +64,7 @@ export function installAppMenu(
 			submenu: [
 				command('New Study', 'study.new', 'Cmd+N'),
 				command('Add Verses…', 'passage.add'),
+				command('Search the Bible…', 'bible.search', 'Shift+Cmd+F'),
 				{ type: 'separator' },
 				{ role: 'close' },
 			],

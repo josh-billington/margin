@@ -97,3 +97,124 @@
 	justify-content: flex-end;
 	gap: var(--space-4);
 }
+
+/* Search: the same field searches when its text isn't a reference. */
+.search-status {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+	min-height: var(--row-h);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.search-status p {
+	margin: 0;
+	min-width: 0;
+}
+.search-scope {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	color: var(--text-muted);
+}
+.search-scope select {
+	appearance: none;
+	max-width: 180px;
+	min-height: var(--control-h-sm);
+	padding: 0 calc(var(--space-4) + 12px) 0 var(--space-4);
+	color: inherit;
+	font: inherit;
+	text-overflow: ellipsis;
+	background: transparent;
+	border: none;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.search-scope svg {
+	position: absolute;
+	right: var(--space-3);
+	pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+	.search-scope select:hover {
+		color: var(--ink);
+		background: var(--hover);
+	}
+}
+/* Grows only while results are shown; the dialog keeps the Add verses size otherwise. */
+.search-results {
+	max-height: 0;
+	margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-6)) 0;
+	padding: 0 var(--space-4);
+	overflow: hidden auto;
+	overscroll-behavior: contain;
+	transition: max-height var(--duration-slow) var(--ease-out);
+}
+.search-results[data-open='true'] {
+	max-height: min(320px, max(140px, calc(80dvh - 340px)));
+	margin-block-end: calc(-1 * var(--space-2));
+	padding-block-end: var(--space-3);
+	border-block: var(--stroke-hairline) solid var(--hairline);
+}
+.search-results:focus-visible {
+	outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+	.search-results {
+		transition: none;
+	}
+}
+.search-group-heading {
+	position: sticky;
+	top: 0;
+	display: flex;
+	justify-content: space-between;
+	padding: var(--space-4) var(--space-3) var(--space-2);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	background: var(--dialog-bg);
+}
+.search-group-heading span {
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+}
+.search-hit {
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-sm);
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+	cursor: default;
+}
+.search-hit[aria-selected='true'] {
+	background: var(--selected);
+}
+.search-results:focus-visible .search-hit[data-active='true'] {
+	box-shadow: inset 0 0 0 var(--stroke-focus, 2px) var(--accent);
+}
+@media (hover: hover) and (pointer: fine) {
+	.search-hit[aria-selected='false']:hover {
+		background: var(--hover);
+	}
+}
+.search-hit-ref {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.search-hit-ref span {
+	color: var(--text-muted);
+	font-weight: 400;
+}
+.search-hit-text {
+	color: var(--text-scripture);
+}
+/* Matched words get the canvas's ink wash; a phrase is one continuous wash. */
+.search-hit mark {
+	color: inherit;
+	background: var(--ink-wash-strong);
+	border-radius: var(--radius-xs);
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
+}

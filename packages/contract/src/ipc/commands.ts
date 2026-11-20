@@ -5,6 +5,7 @@ export const appCommandSchema = z.enum([
 	'study.new',
 	'word.lookup',
 	'passage.add',
+	'bible.search',
 	'sidebar.toggle',
 	'palette.toggle',
 	'settings.open',

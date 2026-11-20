@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { findBooks } from './books'
-import { parseReference } from './reference'
+import { looksLikeReference, parseReference } from './reference'
 
 describe('reference syntax and aliases', () => {
 	it.each(['Amos', 'Am', 'AMO'])('resolves %s exactly', (alias) =>
@@ -79,4 +79,12 @@ describe('reference labels', () => {
 			label: 'Psalms 23:1–24:6',
 		})
 	})
+	it.each(['John 3', 'KJV Amos 1:3–', '1 John 3:16', 'Psalm 23'])(
+		'reads %s as a reference',
+		(input) => expect(looksLikeReference(input)).toBe(true),
+	)
+	it.each(['tender mercies', 'John', 'Job 1 satan', '"valley of the shadow"', '666'])(
+		'reads %s as a search',
+		(input) => expect(looksLikeReference(input)).toBe(false),
+	)
 })

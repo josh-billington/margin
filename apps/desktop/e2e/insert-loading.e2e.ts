@@ -26,7 +26,9 @@ test('verse lookup uses the shared delayed spinner instead of loading copy', asy
 			const clockTime = new Date('2026-11-09T12:00:00Z')
 			await page.clock.install({ time: clockTime })
 			await page.clock.pauseAt(new Date(clockTime.getTime() + 1000))
-			await dialog.getByRole('textbox', { name: 'Reference' }).fill('Genesis 1:1')
+			await dialog
+				.getByRole('combobox', { name: 'Reference or words to search' })
+				.fill('Genesis 1:1')
 			const loading = dialog.getByRole('status', { name: 'Looking up verses' })
 			await expect(loading).toBeAttached()
 			await expect(dialog.getByText('Looking up…', { exact: true })).toHaveCount(0)

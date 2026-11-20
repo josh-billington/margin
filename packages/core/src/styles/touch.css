@@ -25,6 +25,14 @@
 	grid-template-columns: minmax(56px, max-content) 1fr;
 }
 
+/* Search results are 44pt rows; the field, translations and scope menu grow with --row-h. */
+@media (pointer: coarse) {
+	.search-hit {
+		min-height: var(--touch-target);
+		padding-block: var(--space-3);
+	}
+}
+
 /* Shapes are laid out in canvas units with the Mac's sizes (tokens.css), whatever the text-size
    setting; their controls grow by hit area instead. */
 .tl-shape {
