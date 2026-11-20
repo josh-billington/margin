@@ -131,6 +131,11 @@
 		background-color var(--duration-fast) ease,
 		color var(--duration-fast) ease;
 }
+/* Its own chevron replaces the one every pop-up draws, which the light appearance re-applies with
+   a more specific rule. */
+:root[data-appearance] .search-scope select {
+	background-image: none;
+}
 .search-scope svg {
 	position: absolute;
 	right: var(--space-3);
