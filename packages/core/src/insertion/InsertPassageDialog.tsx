@@ -9,7 +9,7 @@ import { books, normalizeBookAlias } from '@shared/bible/books'
 import { looksLikeReference } from '@shared/bible/reference'
 import { BIBLE_SEARCH_QUERY_LENGTH } from '@shared/bible/search'
 import type { BibleSearchHit } from '@shared/bible/search'
-import type { PassageRange, TranslationId } from '@shared/bible/types'
+import type { PassageRange, PassageText, TranslationId } from '@shared/bible/types'
 import { insertPassages } from '../canvas/tools/commands'
 import { Spinner } from '../canvas/lookup/Spinner'
 import { iconSm } from '../lib/icons'
@@ -35,6 +35,7 @@ interface Props {
 
 /** Shown while the reference is still being typed; the parser's own message waits for Enter. */
 const TYPING_HINT = 'Enter a book and chapter.'
+const PASSAGE_FETCH_BATCH = 8
 
 function PreviewBody({
 	state,
@@ -182,12 +183,14 @@ export function InsertPassageDialog({
 }: Props) {
 	const [query, setQuery] = useState(initialQuery)
 	const [busy, setBusy] = useState(false)
+	const [capacityError, setCapacityError] = useState<string | null>(null)
 	const motion = useDialogMotion({ open, keyboard: 'instant' })
 	const generation = useRef(0)
 	const inFlight = useRef(false)
 	useEffect(() => {
 		inFlight.current = false
 		setBusy(false)
+		setCapacityError(null)
 		return () => {
 			generation.current++
 			inFlight.current = false
@@ -267,6 +270,7 @@ export function InsertPassageDialog({
 		setActive(0)
 		setSelected(new Set([0]))
 		setMarking(false)
+		setCapacityError(null)
 		anchor.current = 0
 		follow.current = null
 	}, [search.key])
@@ -306,6 +310,7 @@ export function InsertPassageDialog({
 
 	function pick({ index, kind }: SearchPick) {
 		if (busy || !hits[index]) return
+		setCapacityError(null)
 		moveTo(index)
 		if (kind === 'add') return void confirm([index])
 		if (kind === 'range') {
@@ -371,17 +376,36 @@ export function InsertPassageDialog({
 					? [{ translationId: resolved.translation, ranges: resolved.ranges }]
 					: []
 		if (!requests.length || !editor || busy || inFlight.current) return
+		const fits = () => {
+			const remaining = editor.options.maxShapesPerPage - editor.getCurrentPageShapeIds().size
+			if (requests.length <= remaining) return true
+			setCapacityError(
+				remaining <= 0
+					? 'This canvas is full. Remove something from it or open another study, then try again.'
+					: 'These verses won’t fit on this canvas. Select fewer verses or open another study.',
+			)
+			return false
+		}
+		if (!fits()) return
+		setCapacityError(null)
 		setBusy(true)
 		inFlight.current = true
 		const request = ++generation.current
 		try {
-			const passages = await Promise.all(requests.map((r) => window.margin.bible.getPassage(r)))
-			if (request !== generation.current) return
-			for (const result of passages) if (!result.ok) return void toast.error(result.error.message)
-			insertPassages(
-				editor,
-				passages.flatMap((result) => (result.ok ? [result.data] : [])),
-			)
+			const passages: PassageText[] = []
+			for (let offset = 0; offset < requests.length; offset += PASSAGE_FETCH_BATCH) {
+				const batch = requests.slice(offset, offset + PASSAGE_FETCH_BATCH)
+				const results = await Promise.all(
+					batch.map((entry) => window.margin.bible.getPassage(entry)),
+				)
+				if (request !== generation.current) return
+				for (const result of results) {
+					if (!result.ok) return void toast.error(result.error.message)
+					passages.push(result.data)
+				}
+			}
+			if (!fits()) return
+			insertPassages(editor, passages)
 			changeOpen(false)
 		} catch {
 			if (request === generation.current) toast.error('Margin couldn’t load the verses. Try again.')
@@ -400,7 +424,7 @@ export function InsertPassageDialog({
 		? 'Adding…'
 		: mode === 'search'
 			? chosenHits.length > 1
-				? `Add ${chosenHits.length} verses`
+				? `Add ${chosenHits.length.toLocaleString()} verses`
 				: 'Add verse'
 			: switched && resolved
 				? `Add verses in ${translationNames[resolved.translation].short}`
@@ -536,6 +560,11 @@ export function InsertPassageDialog({
 							onLoadMore={search.loadMore}
 							onKeyDown={onResultsKey}
 						/>
+						{capacityError && (
+							<p className="insert-error" role="alert">
+								{capacityError}
+							</p>
+						)}
 						<div className="insert-actions">
 							<button type="button" className="button" onClick={() => changeOpen(false)}>
 								Cancel

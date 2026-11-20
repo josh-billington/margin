@@ -144,6 +144,38 @@ test('a Shift range across a page boundary adds every verse in it', async () => 
 	}
 })
 
+test('an oversized Shift-End selection stays open and can be reduced', async () => {
+	test.setTimeout(90_000)
+	const dirs = await makeDirs()
+	try {
+		const { app, page } = await launch(dirs)
+		try {
+			await saved(page)
+			const { dialog, list, status } = await openSearch(page, 'the')
+			await expect(status).toHaveText('Showing 200 of 24,091 verses')
+			await page.keyboard.press('ArrowDown')
+			await expect(list).toBeFocused()
+			await page.keyboard.press('Shift+End')
+			await expect(status).toHaveText('24,091 verses found', { timeout: 60_000 })
+			const add = dialog.getByRole('button', { name: 'Add 24,091 verses' })
+			await add.click()
+			await expect(dialog.getByRole('alert')).toContainText('Select fewer verses')
+			await expect(add).toBeEnabled()
+			await expect(page.locator('.passage-block')).toHaveCount(0)
+			await list.focus()
+			await page.keyboard.press('Home')
+			await list.getByRole('option').first().click()
+			await dialog.getByRole('button', { name: 'Add verse', exact: true }).click()
+			await expect(dialog).toBeHidden()
+			await expect(page.locator('.passage-block')).toHaveCount(1)
+		} finally {
+			await closeApp(app)
+		}
+	} finally {
+		await removeDirs(dirs)
+	}
+})
+
 test('the dialog widens on the Mac while results show and its rows re-measure', async () => {
 	const dirs = await makeDirs()
 	try {
