@@ -31,10 +31,10 @@ test('one dialog adds a reference, or searches and adds several matching verses'
 			await options.filter({ hasText: /^Psalm 40:11/ }).click({ modifiers: ['Meta'] })
 			await dialog.getByRole('button', { name: 'Add 2 verses' }).click()
 			await expect(dialog).toBeHidden()
-			await expect(page.locator('.passage-header')).toHaveCount(2)
-			await expect(
-				page.locator('.passage-header').filter({ hasText: 'Psalm 25:6, Psalm 40:11 · KJV' }),
-			).toHaveCount(1)
+			// Each verse that isn't next to another lands as its own block.
+			await expect(page.locator('.passage-header')).toHaveCount(3)
+			for (const title of ['Psalm 25:6 · KJV', 'Psalm 40:11 · KJV'])
+				await expect(page.locator('.passage-header').filter({ hasText: title })).toHaveCount(1)
 			await saved(page)
 		} finally {
 			await closeApp(app)

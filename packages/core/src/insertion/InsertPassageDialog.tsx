@@ -144,15 +144,25 @@ function describeTotal({ total, shown, query }: { total: number; shown: number; 
 	return shown < total ? `Showing ${shown} of ${count} verses` : `${count} verses found`
 }
 
-/** One passage request per translation, so several verses from one search land as one block. */
+/**
+ * One block per run of consecutive verses (hits arrive in canonical order), so Psalm 25:6 and
+ * Psalm 51:1 land as two blocks rather than reading as one passage.
+ */
 function passageRequests(hits: readonly BibleSearchHit[]) {
-	const byTranslation = new Map<TranslationId, PassageRange[]>()
-	for (const { translationId, ref } of hits)
-		byTranslation.set(translationId, [
-			...(byTranslation.get(translationId) ?? []),
-			{ start: ref, end: ref },
-		])
-	return Array.from(byTranslation, ([translationId, ranges]) => ({ translationId, ranges }))
+	const requests: { translationId: TranslationId; ranges: [PassageRange] }[] = []
+	for (const { translationId, ref } of hits) {
+		const last = requests.at(-1)
+		const end = last?.ranges[0].end
+		if (
+			last?.translationId === translationId &&
+			end?.book === ref.book &&
+			end.chapter === ref.chapter &&
+			end.verse + 1 === ref.verse
+		)
+			last.ranges[0].end = ref
+		else requests.push({ translationId, ranges: [{ start: ref, end: ref }] })
+	}
+	return requests
 }
 
 export function InsertPassageDialog({
