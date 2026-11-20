@@ -167,16 +167,18 @@
 .insert-translation select {
 	height: var(--row-h);
 }
-/* Grows only while results are shown; the dialog keeps the Add verses size otherwise. */
+/* Grows only while results are shown; the dialog keeps the Add verses size otherwise. It opens
+   with the widening and closes faster, as exits do. */
 .search-results {
 	max-height: 0;
 	margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-6)) 0;
 	padding: 0 var(--space-4);
 	overflow: hidden auto;
 	overscroll-behavior: contain;
-	transition: max-height var(--duration-slow) var(--ease-out);
+	transition: max-height var(--duration-fast) var(--ease-out);
 }
 .search-results[data-open='true'] {
+	transition-duration: var(--duration-slow);
 	max-height: min(320px, max(140px, calc(80dvh - 340px)));
 	margin-block-end: calc(-1 * var(--space-2));
 	padding-block-end: var(--space-3);
