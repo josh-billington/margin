@@ -139,6 +139,10 @@
 .margin-popover[data-state='closed'] {
 	animation: pop-out var(--duration-fast) var(--ease-out) forwards;
 }
+/* Prototype fluid motion (app/popoverMotion.ts) runs through the Web Animations API instead. */
+.margin-popover[data-fluid] {
+	animation: none;
+}
 .margin-popover form,
 .margin-popover label {
 	display: grid;

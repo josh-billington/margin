@@ -15,6 +15,7 @@ import { setHighlightColor } from './highlightColor'
 import { ColorChoices } from '../../app/ColorChoices'
 import { NewTagForm } from '../../app/NewTagForm'
 import { iconMd, iconSm } from '../../lib/icons'
+import { usePopoverMotion } from '../../app/popoverMotion'
 
 export function pageTags(editor: Editor) {
 	const result = marginPageMetadataSchema.safeParse(editor.getCurrentPage().meta)
@@ -65,10 +66,18 @@ export function TagPopover({
 	selectionRect: () => DOMRect | null
 	close: () => void
 }) {
-	const tags = useValue('tags', () => pageTags(editor), [editor])
-	const existing = shape.props.highlights.find(
+	const liveTags = useValue('tags', () => pageTags(editor), [editor])
+	const liveExisting = shape.props.highlights.find(
 		(h) => wordKey(h.start) === wordKey(range.start) && wordKey(h.end) === wordKey(range.end),
 	)
+	// While it leaves, it keeps showing what it showed: applying a tag must not reflow it as it goes.
+	const [frozen, setFrozen] = useState<{
+		range: typeof range
+		tags: Tag[]
+		existing: typeof liveExisting
+	} | null>(null)
+	const { tags, existing } =
+		frozen?.range === range ? frozen : { tags: liveTags, existing: liveExisting }
 	const [creating, setCreating] = useState(false)
 	const newId = useMemo(() => ulid(), [])
 	// Opening focuses the current tag (or the first, or New tag…), as a menu does, never a swatch.
@@ -93,6 +102,13 @@ export function TagPopover({
 		[range.x, range.y],
 	)
 	const collisionPadding = useMemo(() => chromePadding(), [])
+	const motion = usePopoverMotion({
+		request: range,
+		target: `${wordKey(range.start)} ${wordKey(range.end)}`,
+		origin: () => ({ anchor: rectOf.current(), point: { x: range.x, y: range.y } }),
+		close,
+		freeze: () => setFrozen({ range, tags, existing }),
+	})
 	const apply = (paint: Paint | null, newTag?: Tag) => {
 		editor.run(() => {
 			if (newTag)
@@ -106,7 +122,7 @@ export function TagPopover({
 				})
 			paintRange(editor, shape, range.start, range.end, paint, 'tag selection')
 		})
-		close()
+		motion.requestClose()
 	}
 	const recolour = (color: PaletteColor) => {
 		setHighlightColor(color)
@@ -116,13 +132,14 @@ export function TagPopover({
 		<Popover.Root
 			open
 			onOpenChange={(open) => {
-				if (!open) close()
+				if (!open) motion.requestClose()
 			}}
 		>
 			{/* A virtual anchor: a fixed element inside the transformed shape would be offset by the camera. */}
 			<Popover.Anchor virtualRef={anchor} />
 			<Popover.Portal>
 				<Popover.Content
+					{...motion.contentProps}
 					className="margin-popover tag-popover"
 					side="bottom"
 					align="start"

@@ -13,6 +13,7 @@ import {
 	Redo2,
 	Scan,
 	Settings,
+	Spline,
 	Search,
 	Sun,
 	SunMoon,
@@ -56,6 +57,7 @@ const icons: Record<Exclude<CommandId, 'palette.toggle'>, LucideIcon> = {
 	'appearance.light': Sun,
 	'appearance.dark': Moon,
 	'intro.show': CirclePlay,
+	'dev.fluidPopoverMotion': Spline,
 }
 const paletteCommands = commands.filter(
 	(command) =>

@@ -119,7 +119,15 @@ export async function launch(
 				? { MARGIN_DEFAULT_LIBRARY_DIR: dirs.library }
 				: { MARGIN_LIBRARY_DIR: dirs.library }),
 			MARGIN_GLASS: '0',
-			...(rendererUrl ? { ELECTRON_RENDERER_URL: rendererUrl } : {}),
+			// MARGIN_E2E_FLUID_POPOVERS=1 runs the suite with the prototype popover motion (popoverMotion.ts).
+			...(rendererUrl
+				? {
+						ELECTRON_RENDERER_URL:
+							(extraEnv.MARGIN_E2E_FLUID_POPOVERS ?? process.env.MARGIN_E2E_FLUID_POPOVERS) === '1'
+								? `${rendererUrl}?fluidPopovers=1`
+								: rendererUrl,
+					}
+				: {}),
 			...extraEnv,
 		},
 	})

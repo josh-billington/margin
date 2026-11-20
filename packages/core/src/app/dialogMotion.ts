@@ -24,7 +24,8 @@ export function handOff(run: () => void) {
 	run()
 }
 
-const motionNow = (keyboard: DialogMotion): DialogMotion =>
+/** How something opening or closing now should move; `keyboard` is the motion when the keyboard did it. */
+export const motionNow = (keyboard: DialogMotion): DialogMotion =>
 	handingOff || (keyboard === 'instant' && lastInput === 'keyboard') ? 'instant' : 'animated'
 
 /**

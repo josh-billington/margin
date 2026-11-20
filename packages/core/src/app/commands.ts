@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import type { AppCommandId } from '@shared/ipc/commands'
 import type { Platform } from '@shared/ipc/contract'
 import { captureLookupSelection, requestWordLookup } from '../canvas/lookup/store'
@@ -15,8 +16,14 @@ import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
 import { isIntroOpen, showIntro } from '../intro/introStore'
+import { toggleFluidPopoverMotion } from './popoverMotion'
 
-export type CommandId = AppCommandId | 'selection.tag' | 'selection.duplicate' | 'selection.delete'
+export type CommandId =
+	| AppCommandId
+	| 'selection.tag'
+	| 'selection.duplicate'
+	| 'selection.delete'
+	| 'dev.fluidPopoverMotion'
 
 export interface AppCommand {
 	id: CommandId
@@ -236,6 +243,15 @@ export const commands: AppCommand[] = [
 		group: 'Workspace',
 		palette: (host) => host.welcomeIntro,
 		run: showIntro,
+	},
+	// Temporary, development builds only: compares the prototype popover motion with the current one.
+	{
+		id: 'dev.fluidPopoverMotion',
+		title: 'Toggle fluid popover motion',
+		group: 'View',
+		palette: import.meta.env.DEV,
+		run: () =>
+			toast(`Fluid popover motion ${toggleFluidPopoverMotion() ? 'on' : 'off'} for new popovers`),
 	},
 ]
 
