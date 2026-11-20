@@ -43,7 +43,7 @@ test('packaged app: scripture loads offline, native glass, no network requests',
 				scope: { kind: 'all' },
 			}),
 		)
-		expect(search.ok && search.data.groups[0]?.hits[0]?.ref).toEqual({
+		expect(search.ok && search.data.hits[0]?.ref).toEqual({
 			book: 'PSA',
 			chapter: 23,
 			verse: 4,

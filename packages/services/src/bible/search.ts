@@ -1,17 +1,22 @@
 import { z } from 'zod'
 import { books } from '@margin/contract/bible/books'
 import { BIBLE_SEARCH_LIMIT } from '@margin/contract/bible/search'
-import type { BibleSearchRequest, BibleSearchResults } from '@margin/contract/bible/search'
+import type {
+	BibleSearchCounts,
+	BibleSearchHit,
+	BibleSearchPage,
+	BibleSearchRequest,
+} from '@margin/contract/bible/search'
 import { decodeVerseText } from '@margin/contract/bible/storage'
 import { verseRefSchema } from '@margin/contract/bible/types'
-import type { BookId, TranslationId } from '@margin/contract/bible/types'
+import type { TranslationId } from '@margin/contract/bible/types'
 import type { Database } from '../ports'
 import { BOOK_STRIDE, CHAPTER_STRIDE, SEARCH_TABLES } from './searchIndex'
 import { findSearchMatches, parseSearchQuery } from './searchText'
 
 const firstNewTestamentBook = books.findIndex(({ testament }) => testament === 'new')
 const countRows = z.array(z.object({ ordinal: z.number().int(), total: z.number().int() }))
-const hitRows = z.array(verseRefSchema.extend({ content: z.string() }))
+const hitRows = z.array(verseRefSchema.extend({ rowid: z.number().int(), content: z.string() }))
 
 function searchWindows({ scope, translation }: BibleSearchRequest) {
 	const windows: { first: number; end: number; id: TranslationId }[] = []
@@ -41,39 +46,59 @@ function searchWindows({ scope, translation }: BibleSearchRequest) {
 	return windows
 }
 
+/**
+ * One page of hits in canonical order. Rowids encode book, chapter and verse, and the windows
+ * cover ascending, disjoint rowid ranges, so the last rowid of a page is a cursor that crosses
+ * windows without counting what came before it.
+ */
 export async function searchBible({
 	db,
 	request,
 }: {
 	db: Database
 	request: BibleSearchRequest
-}): Promise<BibleSearchResults> {
+}): Promise<BibleSearchPage> {
 	const terms = parseSearchQuery(request.query)
-	const groups = new Map<BookId, BibleSearchResults['groups'][number]>()
-	if (!terms.length) return { total: 0, groups: [] }
+	const firstPage = request.after === undefined
+	if (!terms.length)
+		return { hits: [], next: null, counts: firstPage ? { total: 0, books: [] } : null }
 	const match = terms.map((term) => `"${term.join(' ')}"`).join(' AND ')
-	let total = 0
-	let remaining = BIBLE_SEARCH_LIMIT
-	for (const { first, end, id } of searchWindows(request)) {
-		const table = SEARCH_TABLES[id]
-		const filter = `FROM ${table} WHERE ${table} MATCH ? AND rowid >= ? AND rowid < ?`
-		const bindings = [match, first * BOOK_STRIDE, end * BOOK_STRIDE]
-		const counts = countRows.parse(
-			await db.all(
-				`SELECT rowid / ${BOOK_STRIDE} AS ordinal, count(*) AS total ${filter} GROUP BY ordinal`,
-				bindings,
-			),
-		)
-		const byBook = new Map(counts.map(({ ordinal, total }) => [books[ordinal]?.id, total]))
-		total += counts.reduce((sum, row) => sum + row.total, 0)
-		if (remaining === 0 || counts.length === 0) continue
-		const hits = hitRows.parse(
+	const windows = searchWindows(request)
+	const filter = (table: string) =>
+		`FROM ${table} WHERE ${table} MATCH ? AND rowid >= ? AND rowid < ?`
+	let counts: BibleSearchCounts | null = null
+	if (firstPage) {
+		counts = { total: 0, books: [] }
+		for (const window of windows) {
+			const rows = countRows.parse(
+				await db.all(
+					`SELECT rowid / ${BOOK_STRIDE} AS ordinal, count(*) AS total ${filter(SEARCH_TABLES[window.id])} GROUP BY ordinal ORDER BY ordinal`,
+					[match, window.first * BOOK_STRIDE, window.end * BOOK_STRIDE],
+				),
+			)
+			for (const { ordinal, total } of rows) {
+				const book = books[ordinal]?.id
+				if (!book) continue
+				counts.total += total
+				counts.books.push({ book, total })
+			}
+		}
+	}
+	// One row past the page says whether another page follows.
+	const rows: { rowid: number; hit: BibleSearchHit }[] = []
+	for (const { first, end, id } of windows) {
+		const from = Math.max(first * BOOK_STRIDE, (request.after ?? -1) + 1)
+		const to = end * BOOK_STRIDE
+		const wanted = BIBLE_SEARCH_LIMIT + 1 - rows.length
+		if (from >= to) continue
+		if (wanted <= 0) break
+		const found = hitRows.parse(
 			await db.all(
 				`
 			WITH matches AS (
-				SELECT rowid ${filter} ORDER BY rowid LIMIT ?
+				SELECT rowid ${filter(SEARCH_TABLES[id])} ORDER BY rowid LIMIT ?
 			)
-			SELECT verses.book, verses.chapter, verses.verse, verses.content
+			SELECT matches.rowid AS rowid, verses.book, verses.chapter, verses.verse, verses.content
 			FROM matches
 			CROSS JOIN books ON books.translationId = ? AND books.ordinal = matches.rowid / ${BOOK_STRIDE}
 			CROSS JOIN verses ON verses.translationId = books.translationId AND verses.book = books.id
@@ -81,19 +106,21 @@ export async function searchBible({
 				AND verses.verse = matches.rowid % ${CHAPTER_STRIDE}
 			ORDER BY matches.rowid
 		`,
-				[...bindings, remaining, id],
+				[match, from, to, wanted, id],
 			),
 		)
-		for (const { content, ...ref } of hits) {
-			let group = groups.get(ref.book)
-			if (!group) {
-				group = { book: ref.book, total: byBook.get(ref.book) ?? 0, hits: [] }
-				groups.set(ref.book, group)
-			}
+		for (const { rowid, content, ...ref } of found) {
 			const text = decodeVerseText(content)
-			group.hits.push({ ref, translationId: id, text, matches: findSearchMatches({ text, terms }) })
+			rows.push({
+				rowid,
+				hit: { ref, translationId: id, text, matches: findSearchMatches({ text, terms }) },
+			})
 		}
-		remaining -= hits.length
 	}
-	return { total, groups: [...groups.values()] }
+	const page = rows.slice(0, BIBLE_SEARCH_LIMIT)
+	return {
+		hits: page.map(({ hit }) => hit),
+		next: rows.length > BIBLE_SEARCH_LIMIT ? (page.at(-1)?.rowid ?? null) : null,
+		counts,
+	}
 }

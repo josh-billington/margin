@@ -179,7 +179,7 @@ async function execute(operation: z.infer<typeof commandSchema>['operation']) {
 				})
 				if (!result.ok) throw new Error(result.error.message)
 				times.push(performance.now() - start)
-				total = result.data.total
+				total = result.data.counts?.total ?? 0
 			}
 			useUiStore.getState().openInsert(operation.query)
 			return { total, times }
