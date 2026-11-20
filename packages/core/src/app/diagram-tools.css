@@ -17,10 +17,27 @@
 	border-radius: var(--radius-sm);
 	background: transparent;
 	color: inherit;
+	font-size: var(--text-md);
 	white-space: nowrap;
 }
-.diagram-choices button:is(:hover, [aria-pressed='true']) {
-	background: var(--hover);
+/* Menu rows: a wash on hover and press, the selection wash for the keyboard row instead of a ring,
+   and the current tool marked as the toolbar marks it. */
+@media (hover: hover) and (pointer: fine) {
+	.diagram-choices button:hover {
+		background: var(--hover);
+	}
+}
+.diagram-choices button:focus-visible {
+	outline: none;
+	background: var(--selected);
+}
+.diagram-choices button:active {
+	transform: none;
+	background: var(--pressed);
+}
+.diagram-choices button[aria-pressed='true'] {
+	color: var(--accent);
+	background: var(--sky-tint);
 }
 .diagram-choices kbd {
 	margin-inline-start: auto;
