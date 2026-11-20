@@ -272,7 +272,7 @@ export class Library {
 				JSON.stringify(study.document) === JSON.stringify(known.study.document) &&
 				study.title === known.study.title
 			) {
-				this.staged.delete(study.id)
+				if (this.staged.get(study.id)?.sequence === sequence) this.staged.delete(study.id)
 				this.committed.set(study.id, sequence)
 				return { study: known.study, conflict: false }
 			}

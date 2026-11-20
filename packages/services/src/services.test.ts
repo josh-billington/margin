@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { deflateSync } from 'fflate'
 import { translationIdSchema, verseRefSchema } from '@margin/contract/bible/types'
 import type { TranslationId, VerseRef } from '@margin/contract/bible/types'
@@ -172,6 +172,46 @@ function fixture() {
 	}
 	return { library, ports, clipboard, databases }
 }
+
+const document = {
+	store: {
+		'page:page': {
+			id: 'page:page',
+			typeName: 'page',
+			name: 'Page',
+			index: 'a1',
+			meta: { schemaVersion: 1, tags: [] },
+		},
+	},
+	schema: { schemaVersion: 2, sequences: {} },
+}
+
+it('preserves a newer stage received during an unchanged save', async () => {
+	const { ports, library } = fixture()
+	ports.ui.confirmDiscard = async () => 'discard'
+	const services = await createServices(ports)
+	const handlers = services.handlers
+	const created = await handlers['margin:library:create-study']({ title: 'Original', document })
+	if (!created.ok) throw new Error(created.error.message)
+	const study = created.data
+	const read = library.read.bind(library)
+	const hook = vi.spyOn(library, 'read').mockImplementation(async (path) => {
+		if (path.endsWith('.study.json')) {
+			hook.mockRestore()
+			await handlers['margin:library:stage']({ study: { ...study, title: 'Newer' }, sequence: 2 })
+		}
+		return read(path)
+	})
+	await handlers['margin:library:save-study']({ study, sequence: 1, base: JSON.stringify(study) })
+	await services.requestClose({ quit: true })
+	const folder = `recovery/${study.id}`
+	const versions = await ports.appData.list(folder)
+	expect(versions).toHaveLength(1)
+	expect(JSON.parse(await ports.appData.read(`${folder}/${versions[0]}`))).toMatchObject({
+		title: 'Newer',
+	})
+	await services.close()
+})
 
 it('requires explicit loss confirmation when the latest snapshot never reached an empty stage map', async () => {
 	const { ports } = fixture()
