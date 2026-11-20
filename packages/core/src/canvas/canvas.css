@@ -128,7 +128,7 @@
 	animation: pop-in var(--duration-base) var(--ease-out);
 }
 .margin-popover[data-state='closed'] {
-	animation: pop-out 100ms var(--ease-out) forwards;
+	animation: pop-out var(--duration-fast) var(--ease-out) forwards;
 }
 .margin-popover form,
 .margin-popover label {
@@ -295,7 +295,7 @@
 	animation: pop-in var(--duration-base) var(--ease-out);
 }
 .margin-menu[data-state='closed'] {
-	animation: pop-out 100ms var(--ease-out) forwards;
+	animation: pop-out var(--duration-fast) var(--ease-out) forwards;
 }
 .margin-menu-scroll {
 	max-height: 50vh;
