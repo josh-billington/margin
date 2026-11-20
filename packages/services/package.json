@@ -13,7 +13,7 @@
 	"dependencies": {
 		"@margin/contract": "workspace:*",
 		"@noble/hashes": "2.0.1",
-		"fflate": "0.8.2",
+		"fflate": "0.8.3",
 		"ulid": "3.0.2",
 		"zod": "4.6.7"
 	}
