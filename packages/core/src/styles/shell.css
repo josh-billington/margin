@@ -163,7 +163,8 @@ kbd {
 	height: auto;
 	padding: 0 var(--space-3);
 	border: 0;
-	border-radius: var(--radius-xs);
+	/* Concentric with the track: its radius less its inset and border. */
+	border-radius: calc(var(--radius-sm) - var(--space-1) - var(--stroke-hairline));
 	background: transparent;
 	color: var(--text-muted);
 	font-size: var(--text-xs);
@@ -596,8 +597,8 @@ select {
 	padding: var(--space-2);
 	background: var(--surface);
 	border: 1px solid var(--border);
-	/* Concentric with the buttons: outer radius = inner radius + padding. */
-	border-radius: calc(var(--radius-sm) + var(--space-2));
+	/* Concentric with the buttons: outer radius = inner radius + padding + border. */
+	border-radius: calc(var(--radius-sm) + var(--space-2) + var(--stroke-hairline));
 	box-shadow: var(--shadow-toolbar);
 }
 .canvas-toolbar .icon-button {

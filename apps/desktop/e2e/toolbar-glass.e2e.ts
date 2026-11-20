@@ -54,7 +54,7 @@ test('glass toolbar: MARGIN_TOOLBAR_GLASS=1 refracts at the rim; the palette tur
 		await page.locator('[cmdk-input]').fill('glass')
 		await page.getByRole('option', { name: 'Toggle glass toolbar' }).click()
 		await expect(toolbar(page)).not.toHaveAttribute('data-lens')
-		expect(await material(page)).toMatchObject({ backdrop: 'none', filters: 0, radius: '10px' })
+		expect(await material(page)).toMatchObject({ backdrop: 'none', filters: 0, radius: '11px' })
 		expect(await page.evaluate(() => localStorage.getItem('margin.toolbarGlass'))).toBe('0')
 	} finally {
 		await closeApp(app)
@@ -79,7 +79,7 @@ test('glass toolbar: Reduce Transparency and Increase Contrast keep the solid to
 			return results
 		})()
 		for (const state of solid) {
-			expect(state).toMatchObject({ backdrop: 'none', radius: '10px' })
+			expect(state).toMatchObject({ backdrop: 'none', radius: '11px' })
 			expect(state.background).toMatch(/^rgb\(/)
 		}
 		expect(await material(page)).toMatchObject({ radius: '999px' })

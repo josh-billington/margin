@@ -250,7 +250,7 @@
 	padding: var(--space-2);
 	background: var(--surface);
 	border: 1px solid var(--border);
-	border-radius: calc(var(--radius-sm) + var(--space-2));
+	border-radius: calc(var(--radius-sm) + var(--space-2) + var(--stroke-hairline));
 	box-shadow: var(--shadow-toolbar);
 	pointer-events: all;
 	user-select: none;
