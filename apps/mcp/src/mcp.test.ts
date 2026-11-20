@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { afterEach, beforeEach, expect, it } from 'vitest'
-import { resolveLibraryPath } from './library'
+import { openLibrary, resolveLibraryPath } from './library'
 import { outlineMarkdown } from './markdown'
 import { outlineStudy, searchStudy, summarizeStudy } from './outline'
 import { listOutput, outlineOutput, searchOutput } from './schema'
@@ -196,6 +196,53 @@ async function libraryState(path: string) {
 			.map(async (name) => [name, await fileState(join(path, name))]),
 	)
 }
+
+it('accepts a symlink as the selected root but never reads linked study files', async () => {
+	const root = join(home, 'library')
+	const directory = join(root, 'studies')
+	const alias = join(home, 'shortcut')
+	const outside = join(home, 'outside.study.json')
+	await mkdir(directory, { recursive: true })
+	await symlink(root, alias, 'dir')
+	await writeFile(join(directory, `${fixtureId}.study.json`), JSON.stringify(fixtureStudy()))
+	await writeFile(outside, JSON.stringify({ ...fixtureStudy(), id: newerId }))
+	await symlink(outside, join(directory, `${newerId}.study.json`), 'file')
+	await mkdir(join(directory, `${unreadableId}.study.json`))
+	const library = openLibrary(alias)
+	await expect(library.readStudy(fixtureId)).resolves.toMatchObject({ id: fixtureId })
+	await expect(library.readStudy(newerId)).rejects.toThrow('unreadable')
+	await expect(library.readStudy(unreadableId)).rejects.toThrow('unreadable')
+	await expect(library.readStudies()).resolves.toMatchObject({ studies: [{ id: fixtureId }] })
+})
+
+it('rejects a linked studies directory for list, get and search', async () => {
+	const root = join(home, 'library')
+	const outside = join(home, 'outside')
+	await mkdir(root)
+	await mkdir(outside)
+	await writeFile(join(outside, `${fixtureId}.study.json`), JSON.stringify(fixtureStudy()))
+	await symlink(outside, join(root, 'studies'), 'dir')
+	const client = new Client({ name: 'margin-test', version: '1.0.0' })
+	const server = createServer(root)
+	const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
+	try {
+		await server.connect(serverTransport)
+		await client.connect(clientTransport)
+		for (const call of [
+			{ name: 'list_studies' },
+			{ name: 'get_study', arguments: { id: fixtureId } },
+			{ name: 'search_studies', arguments: { query: 'justice' } },
+		]) {
+			expect(await client.callTool(call)).toMatchObject({
+				isError: true,
+				content: [{ type: 'text', text: expect.stringContaining('symbolic link') }],
+			})
+		}
+	} finally {
+		await client.close()
+		await server.close()
+	}
+})
 
 it('serves MCP output schemas and errors without rewriting an index, changing study files or taking a lock', async () => {
 	const directory = join(home, 'studies')
