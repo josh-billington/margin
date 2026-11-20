@@ -289,7 +289,8 @@ function SearchRows({
 	const measurements = virtualizer.measurementsCache
 
 	// Unmeasured rows are estimated from the real type and width. Re-estimate when the width
-	// changes (the dialog widens with results, the window resizes), keeping the top row in place.
+	// changes (the dialog widens with results, the window resizes or zooms), keeping the top row
+	// where it was.
 	const recalibrate = useCallback(() => {
 		const element = scroller.current
 		const next = element && readMetrics(element)
@@ -308,7 +309,15 @@ function SearchRows({
 		// Rebuild positions from the new estimates first: a rendered row is re-measured against them,
 		// and one compared with its stale size would look unchanged and keep the estimate.
 		virtualizer.getVirtualItems()
-		virtualizer.elementsCache.forEach((node) => virtualizer.measureElement(node))
+		// Written directly: measureElement skips rows while the list counts as scrolling, which a
+		// zoom's scroll event makes it, and those rows would settle a frame later, unanchored.
+		virtualizer.elementsCache.forEach((node) => {
+			if (node.isConnected)
+				virtualizer.resizeItem(
+					virtualizer.indexFromElement(node),
+					node.getBoundingClientRect().height,
+				)
+		})
 		if (!anchor || offset === 0) return
 		virtualizer.getVirtualItems()
 		const moved = virtualizer.measurementsCache[anchor.index]
