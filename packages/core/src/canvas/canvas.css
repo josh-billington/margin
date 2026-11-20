@@ -395,34 +395,92 @@
 .note-options-trigger:focus-visible {
 	outline-offset: 0;
 }
-.margin-popover .popover-section-label {
-	color: var(--text-muted);
-	font-size: var(--text-xs);
-}
 .margin-popover strong {
 	font-size: var(--text-md);
 	font-weight: 600;
 	overflow-wrap: anywhere;
 }
-/* Tag choices in the highlight popover: swatch + name, check on the current tag. */
-.margin-popover .popover-tag {
+/* Highlight and tag popover (TagPopover.tsx): a menu's rhythm, with a tight inset, full-width rows
+   and hairline separators. */
+.margin-popover.tag-popover {
+	gap: 0;
+	width: 232px;
+	min-width: 0;
+	padding: var(--space-3);
+}
+/* Beats the labelled-group grid (`.margin-popover > div[role='group']`): one row of dots, and tag
+   rows that meet like menu rows. */
+.margin-popover.tag-popover > div.color-choices {
+	display: flex;
+	gap: var(--space-4);
+	padding: var(--space-3) var(--space-4);
+}
+.margin-popover.tag-popover > div.popover-tags {
+	display: grid;
+	gap: 0;
+	max-height: 40vh;
+	overflow-y: auto;
+}
+.margin-popover.tag-popover > hr {
+	width: auto;
+	margin: var(--space-3) var(--space-4);
+}
+.tag-popover .popover-row {
 	display: flex;
 	align-items: center;
 	gap: var(--space-4);
+	width: 100%;
 	min-width: 0;
+	height: var(--control-h);
+	padding: 0 var(--space-4);
+	cursor: default;
 }
-.margin-popover .popover-tag .tag-name {
+.tag-popover .popover-row .tag-name {
 	flex: 1;
 }
-.margin-popover .popover-tag > svg {
+.tag-popover .popover-row > svg {
+	color: var(--text-muted);
+}
+.tag-popover .popover-row[aria-pressed='true'] > svg {
 	color: var(--accent);
 }
-.margin-popover .popover-tags {
-	display: grid;
-	gap: var(--space-2);
-	max-height: 40vh;
-	overflow-y: auto;
-	margin: 0 calc(-1 * var(--space-2));
+/* Rows answer a press with their wash, as menu rows do, not by shrinking. */
+.tag-popover .popover-row:not(:disabled):active {
+	transform: none;
+	background: var(--pressed);
+}
+/* The keyboard row wears the palette's selection wash instead of a ring. */
+.tag-popover .popover-row:focus-visible {
+	outline: none;
+	background: var(--selected);
+}
+.tag-popover .popover-row-danger {
+	color: var(--coral);
+}
+.tag-popover .popover-row-danger:focus-visible {
+	background: var(--coral-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+	.tag-popover .popover-row-danger:hover {
+		background: var(--coral-tint);
+	}
+}
+/* Both rows of dots (highlight, and a new tag's) share one spacing. */
+.tag-popover .color-choices {
+	gap: var(--space-4);
+}
+/* New tag, opened in place: the field and Add on one line, its colours under them. */
+.tag-popover .new-tag-compact {
+	gap: var(--space-4);
+	padding: var(--space-2) var(--space-4) var(--space-3);
+}
+.new-tag-name {
+	display: flex;
+	gap: var(--space-3);
+}
+.new-tag-name .field {
+	flex: 1;
+	min-width: 0;
 }
 .margin-popover hr {
 	width: 100%;
@@ -481,17 +539,6 @@
 .margin-popover:focus {
 	outline: none;
 }
-.margin-popover .popover-new-tag {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-3);
-	justify-self: start;
-}
-.margin-popover > .menu-button-danger {
-	justify-self: start;
-	padding-inline: 0;
-}
-
 .margin-popover.lookup-popover {
 	width: min(340px, calc(100vw - 32px));
 	max-width: none;

@@ -98,6 +98,19 @@
 		width: 320px;
 		max-width: calc(100vw - 2 * var(--space-6));
 	}
+	/* The tag popover's highlight dots: the same 44pt spacing, on the row's text inset, with room for
+	   all six on one line. Its rows, field and Add button take the 44pt control height. */
+	.margin-popover.tag-popover {
+		width: 320px;
+	}
+	.tag-popover .color-choices {
+		gap: calc(var(--touch-target) - 18px);
+	}
+	.margin-popover.tag-popover > div.color-choices {
+		gap: calc(var(--touch-target) - 18px);
+		padding: calc((var(--touch-target) - 18px) / 2) var(--space-4);
+		margin-inline: 0;
+	}
 	/* The search field fills its bar, not just its line of text. */
 	[cmdk-input] {
 		align-self: stretch;

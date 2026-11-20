@@ -193,6 +193,7 @@ export function TagsSection({ editor }: { editor: Editor | null }) {
 						<Popover.Portal>
 							<Popover.Content className="margin-popover" align="start" aria-label="New tag">
 								<NewTagForm
+									layout="stacked"
 									submitLabel="Create tag"
 									onCreate={(name, color) => {
 										createTag(editor, name, color)

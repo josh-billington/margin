@@ -167,8 +167,9 @@ export async function selectWords(page: Page, extend: number) {
 
 export async function createTagFromPopover(page: Page, name: string) {
 	const dialog = page.getByRole('dialog', { name: 'Tag selected words' })
+	await dialog.getByRole('button', { name: 'New tag…' }).click()
 	await dialog.getByLabel('Name').fill(name)
-	await dialog.getByRole('button', { name: 'Create and apply tag' }).click()
+	await dialog.getByRole('button', { name: 'Add', exact: true }).click()
 	await expect(dialog).toBeHidden()
 }
 

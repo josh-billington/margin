@@ -144,3 +144,48 @@ test('a tagged study keeps its tags and keeps saving after switching away and ba
 		await removeDirs(dirs)
 	}
 })
+
+test('tag popover: New tag… opens in place, Escape folds it, Return creates and applies; rows by keyboard', async () => {
+	const dirs = await makeDirs()
+	try {
+		const { app, page } = await launch(dirs)
+		await addAmos(page)
+		await selectWords(page, 1)
+		await page.keyboard.press('Meta+Shift+H')
+		const dialog = page.getByRole('dialog', { name: 'Tag selected words' })
+		const newTag = dialog.getByRole('button', { name: 'New tag…' })
+		await expect(newTag).toBeFocused()
+		await expect(dialog.getByLabel('Name')).toHaveCount(0)
+
+		await page.keyboard.press('Enter')
+		await expect(dialog.getByLabel('Name')).toBeFocused()
+		await page.keyboard.press('Escape')
+		await expect(dialog.getByLabel('Name')).toHaveCount(0)
+		await expect(newTag).toBeFocused()
+
+		await page.keyboard.press('Enter')
+		await page.keyboard.type('Judgment')
+		await page.keyboard.press('Enter')
+		await expect(dialog).toBeHidden()
+		await expect(page.locator('[data-word][data-tag-name="Judgment"]')).toHaveCount(2)
+
+		// The study's tags are rows: the first has focus, Down reaches New tag…, Up comes back.
+		await page.keyboard.press('Escape')
+		await selectWords(page, 0)
+		await page.keyboard.press('ArrowRight')
+		await page.keyboard.press('ArrowRight')
+		await page.keyboard.press('Shift+ArrowRight')
+		await page.keyboard.press('Meta+Shift+H')
+		const judgment = dialog.getByRole('button', { name: 'Judgment' })
+		await expect(judgment).toBeFocused()
+		await page.keyboard.press('ArrowDown')
+		await expect(newTag).toBeFocused()
+		await page.keyboard.press('ArrowUp')
+		await page.keyboard.press('Enter')
+		await expect(dialog).toBeHidden()
+		await expect(page.locator('[data-word][data-tag-name="Judgment"]')).toHaveCount(4)
+		await closeApp(app)
+	} finally {
+		await removeDirs(dirs)
+	}
+})
