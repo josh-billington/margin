@@ -359,8 +359,10 @@
 .verse-number-focusable {
 	cursor: pointer;
 }
-.verse-number-focusable:hover {
-	color: var(--ink);
+@media (hover: hover) and (pointer: fine) {
+	.verse-number-focusable:hover {
+		color: var(--ink);
+	}
 }
 .passage-header button[data-state='open'] {
 	background: var(--pressed);

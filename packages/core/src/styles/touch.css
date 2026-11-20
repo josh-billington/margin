@@ -184,9 +184,6 @@
 	.library-study-row .row-button {
 		padding-right: calc(2 * var(--control-h-sm) + var(--space-1) + var(--space-3));
 	}
-	.verse-number-focusable:hover {
-		color: var(--text-muted);
-	}
 	.row-icon-button:not(:disabled):active,
 	.icon-button:not(:disabled):active,
 	.menu-button:not(:disabled):active,
