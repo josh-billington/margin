@@ -243,7 +243,7 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('mac'),
 		nativeMenu: z.literal(true),
 		nativeContextMenu: z.literal(true),
-		freehandInk: z.literal(false),
+		freehandInk: z.literal(true),
 		libraryFolderPicker: z.literal(true),
 		/** The renderer's own welcome intro plays on first launch. */
 		welcomeIntro: z.literal(true),

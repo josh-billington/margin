@@ -8,6 +8,7 @@ export class DrawTool extends StateNode {
 	static override id = 'margin-draw'
 	override onEnter() {
 		this.editor.stopCameraAnimation()
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 	override onCancel() {
 		this.editor.setCurrentTool('select')

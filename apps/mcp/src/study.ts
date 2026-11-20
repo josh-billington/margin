@@ -1,4 +1,5 @@
 import { migrateStudy } from '@margin/contract/study/migrations'
+import { isDiagramRecord } from '@margin/contract/study/diagrams'
 import {
 	marginPageMetadataSchema,
 	notePropsSchema,
@@ -15,7 +16,7 @@ const position = z.object({
 	parentId: z.string(),
 })
 const noteProps = notePropsSchema.extend({ strokes: z.array(z.unknown()).optional() })
-const shape = position.extend({ type: z.string(), props: z.unknown() })
+const shape = position.extend({ type: z.string(), props: z.unknown(), meta: z.unknown() })
 const arrowBinding = z.object({
 	fromId: z.string(),
 	toId: z.string(),
@@ -40,6 +41,21 @@ const inkBinding = z
 		meta: {},
 	}))
 const recordHeader = z.object({ typeName: z.string(), type: z.string().optional() })
+const labelProps = z.object({ richText: z.unknown() })
+const richNode = z.object({
+	type: z.string(),
+	text: z.string().optional(),
+	content: z.array(z.unknown()).optional(),
+})
+
+function labelText(input: unknown): string {
+	const node = richNode.safeParse(input)
+	if (!node.success) return ''
+	const { type, text, content } = node.data
+	if (type === 'hardBreak') return '\n'
+	if (typeof text === 'string') return text
+	return (content ?? []).map(labelText).join(type === 'doc' ? '\n' : '')
+}
 
 export function parseStudy(input: unknown) {
 	const { id, title, updatedAt, document } = migrateStudy(input)
@@ -47,6 +63,8 @@ export function parseStudy(input: unknown) {
 	const passages: { id: string; props: z.infer<typeof passagePropsSchema> }[] = []
 	const notes: { id: string; props: z.infer<typeof noteProps> }[] = []
 	const arrows: string[] = []
+	let diagramShapes = 0
+	const diagramLabels: { id: string; text: string }[] = []
 	const bindings: z.infer<typeof arrowBinding>[] = []
 	let tags: z.infer<typeof marginPageMetadataSchema>['tags'] = []
 	for (const record of Object.values(document.store)) {
@@ -64,6 +82,12 @@ export function parseStudy(input: unknown) {
 				arrows.push(parsed.id)
 			} else if (type === 'margin-ink' && inkArrow.parse(parsed.props).kind === 'arrow') {
 				arrows.push(parsed.id)
+			} else if (isDiagramRecord(parsed)) {
+				if (type !== 'text') diagramShapes++
+				if (type === 'line') continue
+				const label = labelProps.safeParse(parsed.props)
+				const text = label.success ? labelText(label.data.richText).trim() : ''
+				if (text) diagramLabels.push({ id: parsed.id, text })
 			}
 		} else if (typeName === 'binding' && type === 'arrow') {
 			bindings.push(arrowBinding.parse(record))
@@ -71,7 +95,19 @@ export function parseStudy(input: unknown) {
 			bindings.push(inkBinding.parse(record))
 		}
 	}
-	return { id, title, updatedAt, positions, passages, notes, arrows, bindings, tags }
+	return {
+		id,
+		title,
+		updatedAt,
+		positions,
+		passages,
+		notes,
+		arrows,
+		bindings,
+		tags,
+		diagramShapes,
+		diagramLabels,
+	}
 }
 
 export type Study = ReturnType<typeof parseStudy>

@@ -118,6 +118,35 @@ it('describes a Pencil ink arrow like a regular arrow', () => {
 		'From note “What does justice look like here?” to “Judgment,” (Amos 5:24)',
 	)
 })
+it('summarizes diagram shapes and reads their labels separately from notes', () => {
+	const study = fixtureStudy()
+	const base = study.document.store['shape:question']
+	const meta = { marginDiagram: true }
+	const richText = {
+		type: 'doc',
+		content: [
+			{ type: 'paragraph', content: [{ type: 'text', text: 'Cause' }] },
+			{ type: 'paragraph', content: [{ type: 'text', text: 'Effect' }] },
+		],
+	}
+	const store = {
+		...study.document.store,
+		'shape:rectangle': { ...base, id: 'shape:rectangle', type: 'geo', meta, props: {} },
+		'shape:line': { ...base, id: 'shape:line', type: 'line', meta, props: {} },
+		'shape:label': { ...base, id: 'shape:label', type: 'text', meta, props: { richText } },
+	}
+	const outline = outlineOutput.parse(
+		outlineStudy({
+			study: parseStudy({ ...study, schemaVersion: 3, document: { ...study.document, store } }),
+			includeItalics: false,
+		}),
+	)
+	expect(outline.diagrams).toEqual({ shapes: 2, labels: ['Cause\nEffect'] })
+	expect(outline.blocks.filter(({ kind }) => kind === 'note')).toHaveLength(2)
+	expect(outlineMarkdown(outline)).toContain(
+		'## Diagrams\n\n2 shapes, 1 text label.\n- Cause Effect',
+	)
+})
 it('searches titles, typed notes, and references without matching verse text or treating input as a regex', () => {
 	const study = parseStudy(fixtureStudy())
 	expect(searchStudy({ study, query: 'jUsTiCe' })?.matches).toEqual([

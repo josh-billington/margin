@@ -47,7 +47,7 @@ export function createServer(path: string) {
 		'get_study',
 		{
 			description:
-				'Read one saved Margin study as a teaching outline. Returns Markdown and structured JSON in canvas reading order, including scripture, quoted highlights, notes, arrows, and tags.',
+				'Read one saved Margin study as a teaching outline. Returns Markdown and structured JSON in canvas reading order, including scripture, quoted highlights, notes, arrows, diagram labels, and tags.',
 			annotations: readOnly,
 			inputSchema: z.object({
 				id: toolIdSchema.describe('Study ID from list_studies or search_studies.'),

@@ -207,7 +207,7 @@ test('iPad infers Pencil and finger ink, undoes one stroke, and reopens it on Ma
 			.toEqual([2, 'word', 'word'])
 		await closeApp(app)
 		;({ app, page } = await launch(dirs, { MARGIN_PLATFORM: 'mac' }))
-		await expect(tool({ page, name: 'Draw' })).toHaveCount(0)
+		await expect(tool({ page, name: 'Draw' })).toBeVisible()
 		await expect(tool({ page, name: 'Arrow' })).toHaveCount(1)
 		await expect(page.locator('[data-margin-ink="arrow"] polygon')).toHaveCount(1)
 		await expect(page.getByRole('img', { name: 'Handwriting' }).locator('path')).toHaveAttribute(

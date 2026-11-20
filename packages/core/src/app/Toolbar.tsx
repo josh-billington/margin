@@ -23,6 +23,7 @@ import { iconLg } from '../lib/icons'
 import { prefersReducedMotion } from '../canvas/focus/camera'
 import { platform } from '../lib/platform'
 import { DrawTool } from '../canvas/ink/tools'
+import { DiagramTools } from './DiagramTools'
 
 // Clicks animate so the reader keeps their place; ⌘+ / ⌘− stay instant.
 const zoomMotion = () =>
@@ -67,15 +68,17 @@ export function Toolbar({ editor }: ToolbarProps) {
 			>
 				<StickyNote {...iconLg} />
 			</ToolButton>
-			{platform.freehandInk ? (
+			{platform.freehandInk && (
 				<ToolButton
 					label="Draw"
+					shortcut="D"
 					aria-pressed={tool === DrawTool.id}
 					onClick={() => editor?.setEditingShape(null).setCurrentTool(DrawTool.id)}
 				>
 					<PencilLine {...iconLg} />
 				</ToolButton>
-			) : (
+			)}
+			{platform.kind === 'mac' && (
 				<ToolButton
 					label="Arrow"
 					shortcut="A"
@@ -85,6 +88,7 @@ export function Toolbar({ editor }: ToolbarProps) {
 					<MoveUpRight {...iconLg} />
 				</ToolButton>
 			)}
+			<DiagramTools editor={editor} />
 			<ToolButton
 				label="Highlight"
 				shortcut="H"

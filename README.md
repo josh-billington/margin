@@ -7,12 +7,17 @@ Margin works offline and saves each study as a plain JSON file on your Mac.
 - KJV, Berean Standard Bible (BSB), World English Bible (WEB), and ASV (1901)
   are bundled in full, alongside JPS 1917 (Tanakh)
 - Highlights, tags and arrows that stay on their words when the text rewraps
+- Freeform ink and small diagrams with rectangles, ellipses, lines and text labels
 - Focus on one block of verses or a single verse
 - Offline Strong's lookup for words in the KJV
 - Saves as you go, with recovery copies, and keeps your edits in a conflict copy
   if a study changes outside Margin
 
 Public beta for Apple silicon Macs, running macOS 13 Ventura or later.
+
+Press **D** to draw freehand; a stroke between two words can become a bound arrow.
+Open **Shapes** or press **R** for rectangle, **O** for ellipse, **L** for line or
+**Y** for text label. To recolour shapes, select them and open **Shapes** again.
 
 Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
 ([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).

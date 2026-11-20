@@ -9,13 +9,24 @@ export function ColorChoices({
 	value,
 	onChange,
 	label = 'Tag colour',
+	ink,
 }: {
 	value: PaletteColor | null
 	onChange: (color: PaletteColor) => void
 	label?: string
+	ink?: { pressed: boolean; onClick: () => void }
 }) {
 	return (
 		<div className="color-choices" role="group" aria-label={label}>
+			{ink && (
+				<button
+					type="button"
+					aria-label="Ink"
+					aria-pressed={ink.pressed}
+					style={{ background: 'var(--pen)' }}
+					onClick={ink.onClick}
+				/>
+			)}
 			{paletteColorSchema.options.map((color) => (
 				<button
 					key={color}

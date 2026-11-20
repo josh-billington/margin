@@ -135,6 +135,9 @@
 	.canvas-toolbar .zoom-step {
 		display: none;
 	}
+	.diagram-choices button {
+		min-height: var(--touch-target);
+	}
 	/* A fingertip needs more than the 14px a cursor does; the visible edge stays where it is. The
 	   handles start below the header so its options button keeps its whole target. */
 	.passage-resize {

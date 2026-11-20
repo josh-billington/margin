@@ -6,6 +6,8 @@ import { moveCamera } from '../focus/actions'
 import { centerOn } from '../focus/camera'
 import { installShortcuts, shortcutContext } from './shortcuts'
 import { noteFromSelection } from './noteFromSelection'
+import { chooseDiagramTool, diagramToolForKey, isDiagramShape } from '../diagrams/tools'
+import { DrawTool } from '../ink/tools'
 
 const INSERT_W = 720
 const INSERT_H = 320
@@ -62,7 +64,7 @@ function revealWhenMeasured(editor: Editor, id: TLShapeId, moved: boolean) {
 	}
 	requestAnimationFrame(check)
 }
-export function installCanvasCommands(editor: Editor, { freehandInk = false } = {}) {
+export function installCanvasCommands(editor: Editor) {
 	let preview: HTMLElement | undefined
 	const clearPreview = () => {
 		preview?.classList.remove('word-anchor-preview')
@@ -84,10 +86,23 @@ export function installCanvasCommands(editor: Editor, { freehandInk = false } = 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (getComputedStyle(editor.getContainer()).visibility === 'hidden') return
 		if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+		const key = event.key.toLowerCase()
 		const context = shortcutContext(editor, event)
+		if (
+			key === 'escape' &&
+			!context.isComposing &&
+			context.keyCode !== 229 &&
+			!context.popoverOpen &&
+			isDiagramShape(editor.getEditingShape() ?? undefined)
+		) {
+			event.preventDefault()
+			event.stopImmediatePropagation()
+			editor.complete()
+			return
+		}
 		// T with scripture words selected: a note already joined to them by an arrow.
 		if (
-			event.key.toLowerCase() === 't' &&
+			key === 't' &&
 			shortcutsSuppressed({ ...context, textSelected: false }) === false &&
 			noteFromSelection(editor)
 		) {
@@ -96,18 +111,26 @@ export function installCanvasCommands(editor: Editor, { freehandInk = false } = 
 			return
 		}
 		if (shortcutsSuppressed(context)) return
+		const diagram = diagramToolForKey(key)
+		if (diagram) {
+			event.preventDefault()
+			event.stopImmediatePropagation()
+			chooseDiagramTool({ editor, tool: diagram })
+			return
+		}
 		const tool = {
 			v: 'select',
 			t: 'margin-note',
-			a: freehandInk ? undefined : 'arrow',
+			a: 'arrow',
+			d: DrawTool.id,
 			h: 'highlight',
-		}[event.key.toLowerCase()]
+		}[key]
 		if (tool) {
 			event.preventDefault()
 			event.stopImmediatePropagation()
 			editor.setCurrentTool(tool)
 		}
-		if (event.key.toLowerCase() === 'x') {
+		if (key === 'x') {
 			const arrows = editor.getSelectedShapes().filter((s) => s.type === 'arrow')
 			if (arrows.length) {
 				event.preventDefault()

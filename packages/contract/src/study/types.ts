@@ -103,10 +103,11 @@ export const notePropsSchema = z.object({
 		.optional(),
 })
 export type NoteProps = z.infer<typeof notePropsSchema>
-export const STUDY_SCHEMA_VERSION = 2
+export const INK_STUDY_VERSION = 2
+export const STUDY_SCHEMA_VERSION = 3
 export const studyMetadataSchema = z.object({
 	format: z.literal('margin-study'),
-	schemaVersion: z.union([z.literal(1), z.literal(STUDY_SCHEMA_VERSION)]),
+	schemaVersion: z.literal([1, INK_STUDY_VERSION, STUDY_SCHEMA_VERSION]),
 	id: ulidSchema,
 	title: z.string().trim().min(1),
 	createdAt: z.iso.datetime(),

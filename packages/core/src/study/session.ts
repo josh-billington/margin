@@ -3,6 +3,7 @@ import { loadSnapshot, type Editor } from 'tldraw'
 import { toast } from 'sonner'
 import { UserFacingError } from '@shared/errors'
 import { documentVersion, type PersistedStudy } from '@shared/study/migrations'
+import { STUDY_SCHEMA_VERSION } from '@shared/study/types'
 import type { LibraryEvent } from '@shared/ipc/contract'
 import { attachEditor, snapshot, studySnapshot } from './editor'
 import { Autosave } from './autosave'
@@ -239,7 +240,9 @@ async function stage(id: string) {
 }
 function withCurrentDocument(study: PersistedStudy, editor: Editor) {
 	const document = snapshot(editor)
-	const schemaVersion = study.schemaVersion === 1 ? documentVersion(document) : study.schemaVersion
+	const required =
+		study.schemaVersion === STUDY_SCHEMA_VERSION ? STUDY_SCHEMA_VERSION : documentVersion(document)
+	const schemaVersion = required > study.schemaVersion ? required : study.schemaVersion
 	return { ...study, schemaVersion, document }
 }
 function changed(id: string) {

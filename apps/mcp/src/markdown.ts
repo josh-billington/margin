@@ -24,7 +24,7 @@ function describeAttachment(attachment: Attachment): string {
 	}
 }
 
-export function outlineMarkdown({ title, blocks, arrows, tags }: Outline) {
+export function outlineMarkdown({ title, blocks, arrows, tags, diagrams }: Outline) {
 	const lines = [`# ${escape(title)}`]
 	for (const block of blocks) {
 		if (block.kind === 'note') {
@@ -58,6 +58,16 @@ export function outlineMarkdown({ title, blocks, arrows, tags }: Outline) {
 	if (!blocks.length) lines.push('', 'No passages or notes.')
 	if (arrows.length)
 		lines.push('', '## Arrows', '', ...arrows.map(({ description }) => `- ${escape(description)}`))
+	if (diagrams) {
+		const { shapes, labels } = diagrams
+		lines.push(
+			'',
+			'## Diagrams',
+			'',
+			`${shapes} ${shapes === 1 ? 'shape' : 'shapes'}, ${labels.length} text ${labels.length === 1 ? 'label' : 'labels'}.`,
+		)
+		for (const label of labels) lines.push(`- ${escape(label.replace(/\s+/g, ' '))}`)
+	}
 	if (tags.length)
 		lines.push('', '## Tags', '', ...tags.map(({ name, color }) => `- ${escape(name)} (${color})`))
 	return lines.join('\n')

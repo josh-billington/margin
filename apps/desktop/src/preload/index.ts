@@ -51,7 +51,7 @@ const api = {
 				kind: 'mac',
 				nativeMenu: true,
 				nativeContextMenu: true,
-				freehandInk: false,
+				freehandInk: true,
 				libraryFolderPicker: true,
 				welcomeIntro: true,
 			},

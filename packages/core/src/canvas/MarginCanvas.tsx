@@ -24,9 +24,16 @@ import { KEYBOARD_ZOOM, installFocusShortcuts } from './focus/shortcuts'
 import { useAppearance } from '../app/glass'
 import { InkBindingUtil, InkShapeUtil } from './ink/InkShapeUtil'
 import { DrawTool, installInkTools } from './ink/tools'
+import { diagramShapeUtils } from './diagrams/shapeUtils'
 import './canvas.css'
 
-const shapeUtils = [PassageShapeUtil, NoteShapeUtil, MarginArrowShapeUtil, InkShapeUtil]
+const shapeUtils = [
+	PassageShapeUtil,
+	NoteShapeUtil,
+	MarginArrowShapeUtil,
+	InkShapeUtil,
+	...diagramShapeUtils,
+]
 const bindingUtils = [InkBindingUtil]
 const tools = [NoteTool, HighlightTool, ...(platform.freehandInk ? [DrawTool] : [])]
 const components = {
@@ -148,7 +155,7 @@ function mountEditor(editor: Editor, onMount: (editor: Editor) => void) {
 	validateLoadedAnnotations(editor)
 	const removeTerminals = installWordTerminals(editor)
 	const removeBehavior = installAnnotationBehavior(editor)
-	const removeCommands = installCanvasCommands(editor, { freehandInk: platform.freehandInk })
+	const removeCommands = installCanvasCommands(editor)
 	const removeFocus = installFocusShortcuts(editor)
 	const removeSpacePan = installSpacePan(editor)
 	const removeLookup = installLookupContextMenu(editor, {

@@ -282,7 +282,17 @@ export function outlineStudy({
 			description: `From ${describeEndpoint(from)} to ${describeEndpoint(to)}`,
 		}
 	})
-	return { id, title, updatedAt, blocks, arrows, tags }
+	const { diagramShapes, diagramLabels } = study
+	const diagrams =
+		diagramShapes || diagramLabels.length
+			? {
+					shapes: diagramShapes,
+					labels: diagramLabels
+						.toSorted((first, second) => compare(first.id, second.id))
+						.map(({ text }) => text),
+				}
+			: undefined
+	return { id, title, updatedAt, blocks, arrows, tags, ...(diagrams && { diagrams }) }
 }
 
 export function summarizeStudy(study: Study): StudyList['studies'][number] {

@@ -69,6 +69,12 @@ export const outlineOutput = studySummary.extend({
 		z.object({ id: z.string(), from: endpoint, to: endpoint, description: z.string() }),
 	),
 	tags: z.array(tag),
+	diagrams: z
+		.object({
+			shapes: z.number().int().nonnegative(),
+			labels: z.array(z.string()),
+		})
+		.optional(),
 })
 
 export const searchOutput = z.object({

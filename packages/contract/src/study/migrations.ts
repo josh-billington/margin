@@ -1,14 +1,16 @@
 import { validateDocument } from './validation'
 import { z } from 'zod'
-import { STUDY_SCHEMA_VERSION, studyFileEnvelopeSchema } from './types'
+import { INK_STUDY_VERSION, STUDY_SCHEMA_VERSION, studyFileEnvelopeSchema } from './types'
+import { isDiagramRecord } from './diagrams'
 import { migrateVersioned, type StudyMigration } from './versioning'
 export { UnsupportedStudyVersion } from './versioning'
 
 const envelopeMigrations = new Map<number, StudyMigration>()
-const legacyVersion = z.object({ schemaVersion: z.literal(1) })
+const legacyVersion = z.object({ schemaVersion: z.literal([1, INK_STUDY_VERSION]) })
 export function documentVersion(document: {
 	store: Readonly<Record<string, unknown>>
 }): PersistedStudy['schemaVersion'] {
+	let version: PersistedStudy['schemaVersion'] = 1
 	for (const record of Object.values(document.store)) {
 		if (
 			!record ||
@@ -18,7 +20,9 @@ export function documentVersion(document: {
 			record.typeName !== 'shape'
 		)
 			continue
-		if (record.type === 'margin-ink') return STUDY_SCHEMA_VERSION
+		if (isDiagramRecord(record)) return STUDY_SCHEMA_VERSION
+		if (version === INK_STUDY_VERSION) continue
+		if (record.type === 'margin-ink') version = INK_STUDY_VERSION
 		if (record.type !== 'margin-note' || !('props' in record)) continue
 		const { props } = record
 		if (
@@ -28,16 +32,18 @@ export function documentVersion(document: {
 			Array.isArray(props.strokes) &&
 			props.strokes.length
 		)
-			return STUDY_SCHEMA_VERSION
+			version = INK_STUDY_VERSION
 	}
-	return 1
+	return version
 }
 export function migrateStudy(input: unknown) {
-	const version = legacyVersion.safeParse(input).success ? 1 : STUDY_SCHEMA_VERSION
+	const legacy = legacyVersion.safeParse(input)
+	const version = legacy.success ? legacy.data.schemaVersion : STUDY_SCHEMA_VERSION
 	const study = studyFileEnvelopeSchema.parse(migrateVersioned(input, version, envelopeMigrations))
 	validateDocument(study.document)
-	if (study.schemaVersion < documentVersion(study.document))
-		throw new Error('Ink requires study format version 2.')
+	const required = documentVersion(study.document)
+	if (study.schemaVersion < required)
+		throw new Error(`Study content requires study format version ${required}.`)
 	return study
 }
 export type PersistedStudy = ReturnType<typeof migrateStudy>
