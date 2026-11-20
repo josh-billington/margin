@@ -229,6 +229,7 @@ type ContractApi<C> = {
 	}
 }
 export const libraryEventSchema = z.discriminatedUnion('kind', [
+	z.object({ kind: z.literal('keep-open') }),
 	z.object({ kind: z.literal('reload'), study: studyFileEnvelopeSchema }),
 	z.object({ kind: z.literal('conflict'), study: studyFileEnvelopeSchema, originalId: ulidSchema }),
 	z.object({ kind: z.literal('recovery'), study: studyFileEnvelopeSchema }),
@@ -237,6 +238,13 @@ export const libraryEventSchema = z.discriminatedUnion('kind', [
 	z.object({ kind: z.literal('list') }),
 ])
 export type LibraryEvent = z.infer<typeof libraryEventSchema>
+export const flushReportSchema = z.union([
+	z.boolean(),
+	z.object({
+		dirty: z.array(z.object({ studyId: ulidSchema, sequence: z.number().int().nonnegative() })),
+	}),
+])
+export type FlushReport = z.infer<typeof flushReportSchema>
 export type StudySummary = z.infer<typeof studySummarySchema>
 export const glassModeSchema = z.enum(['native', 'vibrancy', 'none'])
 export type GlassMode = z.infer<typeof glassModeSchema>
@@ -290,7 +298,7 @@ export type MarginApi = ContractApi<typeof ipcContract> & {
 	menu: { setSidebarShown: (shown: boolean) => void }
 	events: {
 		onLibrary: (listener: (event: LibraryEvent) => void) => () => void
-		onFlush: (listener: (reason: 'checkpoint' | 'close') => Promise<boolean>) => () => void
+		onFlush: (listener: (reason: 'checkpoint' | 'close') => Promise<FlushReport>) => () => void
 		onCommand: (listener: (id: AppCommandId) => void) => () => void
 	}
 }

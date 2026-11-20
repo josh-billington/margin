@@ -233,9 +233,18 @@ export async function createPersistence({
 	}
 
 	async function requestClose({ quit }: { quit: boolean }): Promise<boolean> {
+		const keepOpen = () => {
+			ui.emit({ kind: 'keep-open' })
+			return false
+		}
+		let snapshotsKnown = false
 		try {
-			if (!(await ui.requestRendererFlush()))
-				throw new Error('The latest changes could not be saved.')
+			const report = await ui.requestRendererFlush()
+			snapshotsKnown =
+				report === true ||
+				(typeof report === 'object' &&
+					report.dirty.every(({ studyId, sequence }) => library.hasSnapshot(studyId, sequence)))
+			if (report !== true) throw new Error('The latest changes could not be saved.')
 			await library.flush()
 			return true
 		} catch (error) {
@@ -245,14 +254,16 @@ export async function createPersistence({
 				message: 'Margin couldn’t save your latest changes',
 				detail: [
 					cause === SAVE_FALLBACK ? null : cause,
-					`Keep Margin open to try again or save a copy. If you ${quit ? 'quit' : 'close'} now, Margin keeps your changes in a recovery copy and offers it the next time you open the study.`,
+					snapshotsKnown
+						? 'Keep Margin open to try again or save a copy. If you continue, Margin will try to keep a recovery copy.'
+						: 'Margin couldn’t confirm it received your latest changes. Keep Margin open to try again. If you continue, you may lose those changes.',
 				]
 					.filter(Boolean)
 					.join('\n\n'),
 				quit,
-				loseChanges: false,
+				loseChanges: !snapshotsKnown,
 			})
-			if (choice === 'keep') return false
+			if (choice === 'keep') return keepOpen()
 			const { preserved, failed } = await library.preserveUnsaved()
 			diagnostics.event('quit-with-unsaved', { preserved: preserved.length, failed: failed.length })
 			if (failed.length) {
@@ -262,7 +273,7 @@ export async function createPersistence({
 					quit,
 					loseChanges: true,
 				})
-				if (choice === 'keep') return false
+				if (choice === 'keep') return keepOpen()
 				for (const { id } of failed) library.abandon(id)
 			}
 			for (const id of preserved) library.abandon(id)

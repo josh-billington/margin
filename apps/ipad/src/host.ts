@@ -75,7 +75,7 @@ export async function installHost() {
 			const results = await Promise.all(
 				[...flushEvents.values].map((listener) => listener('checkpoint')),
 			)
-			return results.every(Boolean)
+			return results.every((result) => result === true)
 		} catch {
 			return false
 		}

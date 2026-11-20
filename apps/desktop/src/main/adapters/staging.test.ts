@@ -160,7 +160,9 @@ it('can resume, edit and switch while a background checkpoint is still running',
 it('stages recent edits for recovery even when the disk save fails', async () => {
 	window.margin.library.saveStudy = vi.fn().mockRejectedValue(new Error('Disk full'))
 	edit('Recovery edit')
-	expect(await flushBeforeClose()).toBe(false)
+	expect(await flushBeforeClose()).toEqual({
+		dirty: [{ studyId: id, sequence: useStudySession.getState().sessions[id]?.sequence }],
+	})
 	expect(pageName(staged.at(-1))).toMatchObject({ name: 'Recovery edit' })
 })
 it('keeps the final edit when another stage is still in flight', async () => {

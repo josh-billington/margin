@@ -137,7 +137,7 @@ const api = {
 				ipcRenderer.removeListener(COMMAND_CHANNEL, handler)
 			}
 		},
-		onFlush: (listener: (reason: 'checkpoint' | 'close') => Promise<boolean>) => {
+		onFlush: (listener: Parameters<MarginApi['events']['onFlush']>[0]) => {
 			const handler = (_event: Electron.IpcRendererEvent, token: unknown) => {
 				if (typeof token === 'string')
 					void listener('close')

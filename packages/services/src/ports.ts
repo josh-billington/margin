@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import type { LibraryEvent, LibraryFolder, Preferences } from '@margin/contract/ipc/contract'
+import type {
+	FlushReport,
+	LibraryEvent,
+	LibraryFolder,
+	Preferences,
+} from '@margin/contract/ipc/contract'
 
 export interface Database {
 	get(sql: string, params?: readonly unknown[]): Promise<unknown>
@@ -68,7 +73,7 @@ export interface HostUi {
 		quit: boolean
 		loseChanges: boolean
 	}): Promise<'keep' | 'discard'>
-	requestRendererFlush(): Promise<boolean>
+	requestRendererFlush(): Promise<FlushReport>
 	emit(event: LibraryEvent): void
 	describeFolder(path: string): LibraryFolder
 	appearanceChanged(preferences: Preferences): void

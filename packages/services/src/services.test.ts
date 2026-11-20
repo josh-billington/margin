@@ -135,7 +135,7 @@ class MemoryCorpus implements Database {
 	}
 }
 
-it('runs corpus lookups and a library save/conflict/reopen round trip through portable ports', async () => {
+function fixture() {
 	const library = new MemoryFiles()
 	const appData = new MemoryFiles()
 	const databases: MemoryCorpus[] = []
@@ -170,6 +170,23 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 		},
 		configuration: { defaultLibraryPath: 'library', setupComplete: true },
 	}
+	return { library, ports, clipboard, databases }
+}
+
+it('requires explicit loss confirmation when the latest snapshot never reached an empty stage map', async () => {
+	const { ports } = fixture()
+	ports.ui.requestRendererFlush = async () => false
+	ports.ui.confirmDiscard = async ({ loseChanges }) => (loseChanges ? 'keep' : 'discard')
+	const services = await createServices(ports)
+	try {
+		expect(await services.requestClose({ quit: true })).toBe(false)
+	} finally {
+		await services.close()
+	}
+})
+
+it('runs corpus lookups and a library save/conflict/reopen round trip through portable ports', async () => {
+	const { ports, library, clipboard, databases } = fixture()
 	const services = await createServices(ports)
 	try {
 		const passage = await services.handlers['margin:bible:get-passage']({

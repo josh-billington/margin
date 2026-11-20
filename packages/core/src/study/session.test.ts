@@ -103,6 +103,21 @@ afterEach(() => {
 })
 
 describe('study session boundaries', () => {
+	it('releases a timed-out close when keep open precedes the late flush', async () => {
+		let finish!: () => void
+		api.library.flush.mockImplementationOnce(async () => {
+			await new Promise<void>((resolve) => {
+				finish = resolve
+			})
+			return { ok: true, data: null }
+		})
+		const closing = flushBeforeClose()
+		await vi.waitFor(() => expect(finish).toBeDefined())
+		await handleLibraryEvent({ kind: 'keep-open' })
+		finish()
+		await closing
+		expect(useStudySession.getState().closing).toBe(false)
+	})
 	it('waits for pending autosave before acknowledging normal close', async () => {
 		let finish = () => {}
 		const saving = new Promise<void>((resolve) => {
@@ -117,7 +132,7 @@ describe('study session boundaries', () => {
 		autosave.schedule()
 		let closed = false
 		const closing = flushBeforeClose().then((ok) => {
-			closed = ok
+			closed = ok === true
 		})
 		await Promise.resolve()
 		expect(closed).toBe(false)
@@ -128,7 +143,8 @@ describe('study session boundaries', () => {
 	})
 	it('keeps the current study open and editable when close flush fails', async () => {
 		update(id, { state: 'error' })
-		expect(await flushBeforeClose()).toBe(false)
+		expect(await flushBeforeClose()).toHaveProperty('dirty')
+		await handleLibraryEvent({ kind: 'keep-open' })
 		expect(useStudySession.getState().currentId).toBe(id)
 		expect(useStudySession.getState().closing).toBe(false)
 		await openStudy(copyId)

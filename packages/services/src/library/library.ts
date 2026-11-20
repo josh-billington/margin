@@ -424,6 +424,9 @@ export class Library {
 	stagedIds() {
 		return this.staged.keys()
 	}
+	hasSnapshot(id: string, sequence: number) {
+		return this.staged.get(id)?.sequence === sequence || this.committed.get(id) === sequence
+	}
 	closeStudy(id: string) {
 		return this.enqueue(id, async () => this.abandon(id))
 	}

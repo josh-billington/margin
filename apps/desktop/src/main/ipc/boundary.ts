@@ -1,4 +1,4 @@
-import { ipcContract } from '@shared/ipc/contract'
+import { flushReportSchema, ipcContract } from '@shared/ipc/contract'
 import { validateDocument } from '@shared/study/validation'
 import { errorMessage } from '@margin/services/persistence'
 import { createServiceApi } from '@margin/services/api'
@@ -43,7 +43,7 @@ export function handleOperation<I extends z.ZodType, O extends z.ZodType>(
 	})
 }
 
-const flushedSchema = z.object({ token: z.string(), ok: z.boolean() })
+const flushedSchema = z.object({ token: z.string(), ok: flushReportSchema })
 export function onRendererFlushed({
 	getWindow,
 	flushed,

@@ -3,7 +3,7 @@ import type { BrowserWindow } from 'electron'
 import { basename, dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { COMMAND_CHANNEL } from '@shared/ipc/commands'
-import type { LibraryFolder, Preferences } from '@shared/ipc/contract'
+import type { FlushReport, LibraryFolder, Preferences } from '@shared/ipc/contract'
 import type { HostUi } from '@margin/services/ports'
 import { onRendererFlushed } from '../ipc/boundary'
 
@@ -28,7 +28,7 @@ export function createHostUi({
 	getWindow: () => BrowserWindow | null
 	onAppearanceChange: (preferences: Preferences) => void
 }): HostUi {
-	const pending = new Map<string, (ok: boolean) => void>()
+	const pending = new Map<string, (result: FlushReport) => void>()
 	onRendererFlushed({ getWindow, flushed: ({ token, ok }) => pending.get(token)?.(ok) })
 	return {
 		describeFolder,
@@ -67,9 +67,10 @@ export function createHostUi({
 		},
 		requestRendererFlush: async () => {
 			const window = getWindow()
-			if (!window || window.webContents.isDestroyed()) return true
+			if (!window) return true
+			if (window.webContents.isDestroyed()) return false
 			const token = crypto.randomUUID()
-			return new Promise<boolean>((resolve) => {
+			return new Promise<FlushReport>((resolve) => {
 				const timeout = setTimeout(() => {
 					pending.delete(token)
 					resolve(false)

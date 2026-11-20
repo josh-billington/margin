@@ -113,12 +113,11 @@ export async function flushBeforeClose(reason: 'checkpoint' | 'close' = 'close')
 	useStudySession.setState({ closing: true })
 	for (const editor of editors.values()) editor.updateInstanceState({ isReadonly: true })
 	const ok = await flushStudies()
-	if (!ok) {
-		useStudySession.setState({ closing: false })
-		for (const editor of editors.values())
-			editor.updateInstanceState({ isReadonly: useStudySession.getState().readOnly })
-	}
-	return ok
+	if (pendingDocumentChanges.size) return false
+	const dirty = Object.values(useStudySession.getState().sessions)
+		.filter((session) => session.state !== 'saved')
+		.map(({ study, sequence }) => ({ studyId: study.id, sequence }))
+	return ok && !dirty.length ? true : { dirty }
 }
 let navigation = 0
 const openTasks = new Map<string, Promise<PersistedStudy>>()
@@ -506,6 +505,11 @@ async function applyConflict(copy: PersistedStudy, originalId: string) {
 export function handleLibraryEvent(event: LibraryEvent) {
 	return (async () => {
 		switch (event.kind) {
+			case 'keep-open':
+				useStudySession.setState({ closing: false })
+				for (const editor of editors.values())
+					editor.updateInstanceState({ isReadonly: useStudySession.getState().readOnly })
+				break
 			case 'list':
 				await refreshStudies()
 				break
