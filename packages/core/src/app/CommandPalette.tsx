@@ -2,17 +2,25 @@ import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Command } from 'cmdk'
 import {
+	BookA,
 	BookOpen,
+	CirclePlay,
 	Copy,
 	Maximize,
+	Moon,
 	PanelLeft,
 	Plus,
 	Redo2,
+	Scan,
 	Settings,
 	Search,
+	Sun,
+	SunMoon,
 	Tag,
 	Trash2,
 	Undo2,
+	ZoomIn,
+	ZoomOut,
 	type LucideIcon,
 } from 'lucide-react'
 import { commands, labelFor, runCommand } from './commands'
@@ -27,10 +35,11 @@ interface CommandPaletteProps {
 	onOpenChange: (open: boolean) => void
 }
 
-const icons: Partial<Record<CommandId, LucideIcon>> = {
+/** Every listed command has a glyph, so titles line up in one column. */
+const icons: Record<Exclude<CommandId, 'palette.toggle'>, LucideIcon> = {
 	'passage.add': BookOpen,
 	'bible.search': Search,
-	'word.lookup': Search,
+	'word.lookup': BookA,
 	'study.new': Plus,
 	'selection.tag': Tag,
 	'selection.duplicate': Copy,
@@ -40,6 +49,13 @@ const icons: Partial<Record<CommandId, LucideIcon>> = {
 	'edit.undo': Undo2,
 	'edit.redo': Redo2,
 	'view.fit': Maximize,
+	'view.actualSize': Scan,
+	'view.zoomIn': ZoomIn,
+	'view.zoomOut': ZoomOut,
+	'appearance.system': SunMoon,
+	'appearance.light': Sun,
+	'appearance.dark': Moon,
+	'intro.show': CirclePlay,
 }
 const paletteCommands = commands.filter(
 	(command) =>
@@ -116,7 +132,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 									{paletteCommands
 										.filter((command) => command.group === group)
 										.map((command) => {
-											const Icon = icons[command.id]
+											const Icon = command.id === 'palette.toggle' ? undefined : icons[command.id]
 											const title = labelFor(command)
 											return (
 												<Command.Item
