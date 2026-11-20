@@ -228,6 +228,46 @@ it('rejects invalid snapshots and path IDs at the iPad binding without changing 
 	await services.close()
 })
 
+it.each(['rename', 'delete', 'create'] as const)(
+	'demotes the first owner before %s after a second owner takes over',
+	async (operation) => {
+		const { ports, library } = fixture()
+		const notify = vi.fn()
+		ports.ui.emit = notify
+		const first = await createServices(ports)
+		const api = createServiceApi(first).library
+		const created = await api.createStudy({ title: 'Original', document })
+		if (!created.ok) throw new Error(created.error.message)
+		const study = created.data
+		const second = await createServices({
+			...ports,
+			appData: new MemoryFiles(),
+			host: { current: () => ({ hostname: 'second' }), isAlive: () => true },
+		})
+		const other = createServiceApi(second).library
+		expect(await other.takeOver()).toMatchObject({ ok: true, data: { readOnly: false } })
+		const action =
+			operation === 'rename'
+				? api.saveStudy({
+						study: { ...study, title: 'Renamed' },
+						sequence: 2,
+						base: JSON.stringify(study),
+					})
+				: operation === 'delete'
+					? api.deleteStudy({ studyId: study.id })
+					: api.createStudy({ title: 'New', document })
+		expect(await action).toMatchObject({ ok: false })
+		expect(await api.getLibrary()).toMatchObject({ data: { readOnly: true } })
+		expect(notify).toHaveBeenCalledWith({ kind: 'lock-lost' })
+		expect(await library.list('studies')).toEqual([`${study.id}.study.json`])
+		expect(JSON.parse(await library.read(`studies/${study.id}.study.json`))).toEqual(study)
+		await api.closeStudy({ studyId: study.id })
+		await first.close()
+		expect(await other.createStudy({ title: 'Allowed', document })).toMatchObject({ ok: true })
+		await second.close()
+	},
+)
+
 it('preserves a newer stage received during an unchanged save', async () => {
 	const { ports, library } = fixture()
 	ports.ui.confirmDiscard = async () => 'discard'

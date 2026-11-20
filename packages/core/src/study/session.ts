@@ -225,7 +225,7 @@ async function stage(id: string) {
 	if (!pendingDocumentChanges.has(id)) return
 	const session = useStudySession.getState().sessions[id]
 	const editor = editors.get(id)
-	if (!session || !editor || useStudySession.getState().readOnly) return
+	if (!session || !editor) return
 	const study = withCurrentDocument(session.study, editor)
 	pendingDocumentChanges.delete(id)
 	update(id, { study })
@@ -505,6 +505,11 @@ async function applyConflict(copy: PersistedStudy, originalId: string) {
 export function handleLibraryEvent(event: LibraryEvent) {
 	return (async () => {
 		switch (event.kind) {
+			case 'lock-lost':
+				useStudySession.setState({ readOnly: true, lock: null })
+				for (const editor of editors.values()) editor.updateInstanceState({ isReadonly: true })
+				toast.warning('This library is now read-only. Another copy of Margin may have taken over.')
+				break
 			case 'keep-open':
 				useStudySession.setState({ closing: false })
 				for (const editor of editors.values())

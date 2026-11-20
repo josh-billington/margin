@@ -6,6 +6,7 @@ export interface LibraryLock {
 	readOnly: boolean
 	/** The owner of a lock that made the library read-only; null when acquired or unreadable. */
 	owner: LibraryLockOwner | null
+	isOwner(): Promise<boolean>
 	release: () => Promise<void>
 	/** Replaces a lock held by another host. Same-host owners are never displaced. */
 	takeOver: () => Promise<LibraryLock['release'] | null>
@@ -36,6 +37,16 @@ export async function acquireLibraryLock({
 	const path = '.margin-lock'
 	const run = <T>(action: () => Promise<T>) => serial(scope, action)
 	const content = () => JSON.stringify(host.current())
+	let acquired: string | null = null
+	const isOwner = async () => {
+		if (acquired === null) return false
+		try {
+			return (await files.read(path)) === acquired
+		} catch (error) {
+			if (error instanceof FileError && error.kind === 'missing') return false
+			throw error
+		}
+	}
 	const releaser = (owned: string) => () =>
 		run(async () => {
 			if ((await files.read(path).catch(() => '')) === owned)
@@ -51,14 +62,17 @@ export async function acquireLibraryLock({
 			if (JSON.stringify(current) !== JSON.stringify(owner)) return null
 			const owned = content()
 			await files.writeAtomic({ path, content: owned })
+			acquired = owned
 			owner = null
 			return releaser(owned)
 		})
 	return run(async () => {
 		for (let attempt = 0; attempt < 2; attempt++) {
 			const owned = content()
-			if (await files.createExclusive({ path, content: owned }))
-				return { readOnly: false, owner: null, release: releaser(owned), takeOver }
+			if (await files.createExclusive({ path, content: owned })) {
+				acquired = owned
+				return { readOnly: false, owner: null, release: releaser(owned), takeOver, isOwner }
+			}
 			let lock: LibraryLockOwner
 			try {
 				lock = lockSchema.parse(JSON.parse(await files.read(path)))
@@ -72,6 +86,6 @@ export async function acquireLibraryLock({
 			if (lock.hostname !== host.current().hostname || host.isAlive(lock)) break
 			await files.remove(path)
 		}
-		return { readOnly: true, owner, release: async () => {}, takeOver }
+		return { readOnly: true, owner, release: async () => {}, takeOver, isOwner }
 	})
 }

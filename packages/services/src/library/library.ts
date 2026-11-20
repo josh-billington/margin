@@ -53,7 +53,14 @@ export class Library {
 		return this.ports.hasher.sha256Hex(content)
 	}
 	private write(path: string, content: string, beforeReplace?: () => Promise<void>) {
-		return this.ports.files.writeAtomic({ path, content, beforeReplace })
+		return this.ports.files.writeAtomic({
+			path,
+			content,
+			beforeReplace: async () => {
+				await this.writable()
+				await beforeReplace?.()
+			},
+		})
 	}
 
 	async initialize(watching = true) {
@@ -119,7 +126,11 @@ export class Library {
 		})
 	}
 
-	private writable() {
+	private async writable() {
+		if (!this.readOnly && !(await this.lock?.isOwner())) {
+			this.readOnly = true
+			this.onEvent({ kind: 'lock-lost' })
+		}
 		if (this.readOnly)
 			throw new UserFacingError(
 				'Another copy of Margin has this library open. Close it to save changes here.',
@@ -209,7 +220,7 @@ export class Library {
 		return disk.study
 	}
 	async create(title: string, document: PersistedStudy['document']) {
-		this.writable()
+		await this.writable()
 		const now = new Date(this.ports.clock.now()).toISOString()
 		const study = migrateStudy({
 			format: 'margin-study',
@@ -244,7 +255,7 @@ export class Library {
 	save(study: PersistedStudy, sequence: number, base?: string) {
 		this.stage(study, sequence)
 		return this.enqueue(study.id, async () => {
-			this.writable()
+			await this.writable()
 			const known = this.known.get(study.id)
 			if (!known)
 				throw new UserFacingError(
@@ -368,9 +379,10 @@ export class Library {
 	}
 	async delete(id: string) {
 		return this.enqueue(id, async () => {
-			this.writable()
+			await this.writable()
 			const disk = await this.read(id)
 			await this.recover(disk.study)
+			await this.writable()
 			await this.ports.files.remove(this.studyPath(id))
 			this.known.delete(id)
 			this.baselines.delete(id)

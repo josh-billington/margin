@@ -230,6 +230,7 @@ type ContractApi<C> = {
 }
 export const libraryEventSchema = z.discriminatedUnion('kind', [
 	z.object({ kind: z.literal('keep-open') }),
+	z.object({ kind: z.literal('lock-lost') }),
 	z.object({ kind: z.literal('reload'), study: studyFileEnvelopeSchema }),
 	z.object({ kind: z.literal('conflict'), study: studyFileEnvelopeSchema, originalId: ulidSchema }),
 	z.object({ kind: z.literal('recovery'), study: studyFileEnvelopeSchema }),
