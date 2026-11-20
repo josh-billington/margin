@@ -141,6 +141,7 @@ function fixture() {
 	const appData = new MemoryFiles()
 	const databases: MemoryCorpus[] = []
 	const clipboard: string[] = []
+	let clipboardFails = false
 	const ports: Ports = {
 		openDatabase: async (corpus) => {
 			const db = new MemoryCorpus(corpus)
@@ -164,7 +165,8 @@ function fixture() {
 			emit: () => {},
 			describeFolder: (path) => ({ name: path, location: '' }),
 			appearanceChanged: () => {},
-			copyText: (text) => {
+			copyText: async (text) => {
+				if (clipboardFails) throw new Error('Pasteboard unavailable')
 				clipboard.push(text)
 			},
 			showLookupMenu: async () => {},
@@ -353,6 +355,12 @@ it('runs corpus lookups and a library save/conflict/reopen round trip through po
 			data: null,
 		})
 		expect(clipboard).toEqual(['shape\nverb\nQal: create\nBrown-Driver-Briggs · H1254'])
+		clipboardFails = true
+		expect(await services.handlers['margin:lexicon:copy-entry']({ id: 'H1254' })).toEqual({
+			ok: false,
+			error: { code: 'INTERNAL_ERROR', message: 'Margin couldn’t copy the definition. Try again.' },
+		})
+		expect(clipboard).toHaveLength(1)
 		const created = await services.handlers['margin:library:create-study']({
 			title: 'Original',
 			document: {

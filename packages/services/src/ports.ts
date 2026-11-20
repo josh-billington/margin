@@ -77,7 +77,7 @@ export interface HostUi {
 	emit(event: LibraryEvent): void
 	describeFolder(path: string): LibraryFolder
 	appearanceChanged(preferences: Preferences): void
-	copyText(text: string): void
+	copyText(text: string): void | Promise<void>
 	showLookupMenu(args: { word: string; multiple: boolean }): Promise<void>
 }
 export interface Ports {

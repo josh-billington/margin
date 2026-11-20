@@ -11,6 +11,8 @@ import { createPersistence } from './persistence'
 import { validated } from './request'
 import type { Database, Ports } from './ports'
 
+class ClipboardError extends Error {}
+
 type Contract = typeof ipcContract
 type Operations = { [G in keyof Contract]: Contract[G][keyof Contract[G]] }[keyof Contract]
 export type MarginHandlers = {
@@ -78,6 +80,14 @@ export async function createServices(ports: Ports) {
 				lexicon = undefined
 				throw error
 			}))
+	/** The host may write asynchronously (iPad); a failed write must not report a copy. */
+	const copy = async (text: string) => {
+		try {
+			await ports.ui.copyText(text)
+		} catch (cause) {
+			throw new ClipboardError('Clipboard write failed', { cause })
+		}
+	}
 	function respond<I extends z.ZodType, O extends z.ZodType>({
 		operation,
 		action,
@@ -95,11 +105,14 @@ export async function createServices(ports: Ports) {
 					ok: false,
 					error: {
 						code: !dictionary && error instanceof RangeError ? 'INVALID_REQUEST' : 'INTERNAL_ERROR',
-						message: dictionary
-							? 'Margin couldn’t read the dictionary. Reinstall Margin and try again.'
-							: error instanceof RangeError
-								? error.message
-								: 'Margin couldn’t load the Bible text. Reinstall Margin and try again.',
+						message:
+							error instanceof ClipboardError
+								? 'Margin couldn’t copy the definition. Try again.'
+								: dictionary
+									? 'Margin couldn’t read the dictionary. Reinstall Margin and try again.'
+									: error instanceof RangeError
+										? error.message
+										: 'Margin couldn’t load the Bible text. Reinstall Margin and try again.',
 					},
 				})
 			}
@@ -157,12 +170,12 @@ export async function createServices(ports: Ports) {
 				if (dictionary === 'bdb') {
 					const entries = await lexicon.getBdbEntries({ id })
 					if (!entries.length) throw new Error('Entry absent')
-					ports.ui.copyText(bdbCitation({ id: strongIdSchema.parse(id), entries }))
+					await copy(bdbCitation({ id: strongIdSchema.parse(id), entries }))
 					return null
 				}
 				const entry = await lexicon.getEntry(id)
 				if (!entry) throw new Error('Entry absent')
-				ports.ui.copyText(entryCitation(entry))
+				await copy(entryCitation(entry))
 				return null
 			},
 		}),

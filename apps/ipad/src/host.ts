@@ -106,11 +106,11 @@ export async function installHost() {
 				preference = prefs.appearance
 				publishAppearance()
 			},
-			copyText: (text) => {
-				void Clipboard.write({ string: text }).catch((error: unknown) =>
-					console.error('[margin-ipad]', 'clipboard-write-failed', error),
-				)
-			},
+			copyText: (text) =>
+				Clipboard.write({ string: text }).catch((error: unknown) => {
+					console.error('[margin-ipad]', 'clipboard-write-failed', error)
+					throw error
+				}),
 			showLookupMenu: async () => {},
 		},
 	})
