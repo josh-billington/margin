@@ -12,9 +12,9 @@ pnpm --filter @margin/ipad ios:sync
 pnpm --filter @margin/ipad ios:run
 ```
 
-`ios:run` targets the review machine's iPad Pro 11-inch (M5) simulator. For a different
-device, run `pnpm --filter @margin/ipad exec cap run ios --no-sync --target <simulator-uuid>`
-after `ios:sync`. These scripts are Nx-inferred targets; native sync/run are not cached.
+`ios:run` asks Capacitor which simulator or device to launch. To skip the prompt, pass one:
+`pnpm --filter @margin/ipad ios:run --target <device-id>` (`pnpm exec cap run ios --list`
+shows the IDs). These scripts are Nx-inferred targets; native sync/run are not cached.
 
 The Vite config reuses the prototype's HTML-entry interception, but has its own plain
 React/Tailwind configuration, without Electron. Build copies the ignored corpora into

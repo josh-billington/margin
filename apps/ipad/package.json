@@ -8,7 +8,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run src/files.test.ts",
 		"ios:sync": "pnpm build && cap sync ios && sh capacitor/vendor-spm.sh",
-		"ios:run": "pnpm ios:sync && cap run ios --no-sync --target D8895B3E-6B30-400A-B9E8-22E146F0A578"
+		"ios:run": "pnpm ios:sync && cap run ios --no-sync"
 	},
 	"dependencies": {
 		"@capacitor-community/sqlite": "8.1.1",
