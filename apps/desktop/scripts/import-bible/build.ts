@@ -194,6 +194,7 @@ export async function buildBible(root: string) {
 			)
 		}
 		buildSearchIndex(db)
+		db.exec('VACUUM')
 		if (db.pragma('integrity_check', { simple: true }) !== 'ok')
 			throw new Error('SQLite integrity check failed')
 	} finally {
