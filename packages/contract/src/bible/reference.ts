@@ -51,7 +51,7 @@ export function parseReference(
 	if (!match)
 		return fail(
 			'INVALID_SYNTAX',
-			'Enter a book and chapter, such as Amos 1 or Amos 1:3–5. Choose verses from one book at a time.',
+			'Enter a book and chapter. Choose verses from one book at a time.',
 		)
 	const candidates = findBooks(match[1] ?? '')
 	if (!candidates.length)

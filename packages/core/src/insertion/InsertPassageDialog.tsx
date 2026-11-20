@@ -22,7 +22,7 @@ interface Props {
 }
 
 /** Shown while the reference is still being typed; the parser's own message waits for Enter. */
-const TYPING_HINT = 'Enter a book and chapter, such as John 3 or Amos 1:3–5.'
+const TYPING_HINT = 'Enter a book and chapter.'
 
 function PreviewBody({
 	state,

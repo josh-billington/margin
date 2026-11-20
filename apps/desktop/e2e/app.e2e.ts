@@ -306,9 +306,7 @@ test('add verses: a half-typed reference gets a quiet hint; Enter turns it into 
 	await page.getByRole('button', { name: 'Add verses' }).first().click()
 	const dialog = page.getByRole('dialog', { name: 'Add verses' })
 	await page.getByLabel('Reference').fill('Joh')
-	await expect(dialog.locator('.insert-hint')).toContainText(
-		'Enter a book and chapter, such as John 3',
-	)
+	await expect(dialog.locator('.insert-hint')).toHaveText('Enter a book and chapter.')
 	await expect(dialog.getByRole('alert')).toHaveCount(0)
 	await page.keyboard.press('Enter')
 	await expect(dialog.getByRole('alert')).toContainText('Enter a book and chapter')
