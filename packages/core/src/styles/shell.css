@@ -34,8 +34,9 @@ body {
 :root [data-sonner-toaster] [data-sonner-toast] {
 	--normal-bg: var(--dialog-bg);
 	--normal-bg-hover: var(--dialog-bg);
-	--normal-border: var(--border);
-	--normal-border-hover: var(--border);
+	/* The popovers' edge: a hairline under the shadow, with the faint top highlight. */
+	--normal-border: var(--hairline);
+	--normal-border-hover: var(--hairline);
 	--normal-text: var(--ink);
 	--border-radius: var(--radius-float);
 	--width: 440px;
@@ -45,7 +46,7 @@ body {
 	line-height: 1.4;
 	padding: var(--space-5) var(--space-6);
 	gap: var(--space-5);
-	box-shadow: var(--shadow-popover);
+	box-shadow: var(--shadow-popover), var(--edge-highlight);
 }
 :root [data-sonner-toaster][data-sonner-theme] [data-sonner-toast][data-type='error'] [data-icon] {
 	color: var(--coral);
