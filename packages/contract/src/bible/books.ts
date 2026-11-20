@@ -399,6 +399,12 @@ export const books = [
 ] as const
 
 export type CanonicalBookId = (typeof books)[number]['id']
+
+/** The book's name before a chapter: "Psalm 23:1" for one psalm, "Psalms 23–24" for several. */
+export function referenceBookName({ id, oneChapter }: { id: string; oneChapter: boolean }) {
+	if (id === 'PSA' && oneChapter) return 'Psalm'
+	return books.find((book) => book.id === id)?.name ?? id
+}
 export function normalizeBookAlias(alias: string): string {
 	return alias.toLowerCase().replace(/[.\s]/g, '')
 }

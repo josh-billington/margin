@@ -70,3 +70,13 @@ it.each(['BSB', 'WEB', 'ASV'])('resolves the %s qualifier ahead of the stored OT
 	const parsed = parseReference(`${id.toLowerCase()} Genesis 1:1`, 'kjv', () => [1], 'jps1917')
 	expect(parsed).toMatchObject({ kind: 'resolved', translation: id.toLowerCase(), notice: null })
 })
+
+describe('reference labels', () => {
+	const verses = () => [1, 2, 3, 4, 5, 6]
+	it('names a single psalm in the singular and several in the plural', () => {
+		expect(parseReference('Psalms 23', 'kjv', verses)).toMatchObject({ label: 'Psalm 23:1–6' })
+		expect(parseReference('Ps 23:1-24:6', 'kjv', verses)).toMatchObject({
+			label: 'Psalms 23:1–24:6',
+		})
+	})
+})

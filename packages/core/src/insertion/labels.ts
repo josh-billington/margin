@@ -1,4 +1,4 @@
-import { books } from '@shared/bible/books'
+import { referenceBookName } from '@shared/bible/books'
 import { chapterLastVerses } from '@shared/bible/chapterVerses'
 import { translationNames } from '@shared/bible/translationNames'
 import type { PassageRange, TranslationId, VerseRef } from '@shared/bible/types'
@@ -20,13 +20,12 @@ export const translationOrder = [
 /** Translations that cover the whole Bible, for a default that has to work for any reference. */
 export const wholeBibleTranslations = translationOrder.filter((id) => id !== 'jps1917')
 
-const bookName = (id: string) => books.find((book) => book.id === id)?.name ?? id
 const verseLabel = (ref: VerseRef) => `${ref.chapter}:${ref.verse}`
 
 export function formatRange({ start, end }: PassageRange): string {
 	const same = start.chapter === end.chapter
 	const tail = same ? (start.verse === end.verse ? '' : `–${end.verse}`) : `–${verseLabel(end)}`
-	return `${bookName(start.book)} ${verseLabel(start)}${tail}`
+	return `${referenceBookName({ id: start.book, oneChapter: same })} ${verseLabel(start)}${tail}`
 }
 
 export const formatRanges = (ranges: readonly PassageRange[]) => ranges.map(formatRange).join(', ')
@@ -58,7 +57,8 @@ export function blockNoun(ranges: readonly PassageRange[], translation: Translat
 export function formatBlockRange(range: PassageRange, translation: TranslationId): string {
 	if (!coversWholeChapters(range, translation)) return formatRange(range)
 	const { start, end } = range
-	return `${bookName(start.book)} ${start.chapter}${end.chapter === start.chapter ? '' : `–${end.chapter}`}`
+	const oneChapter = end.chapter === start.chapter
+	return `${referenceBookName({ id: start.book, oneChapter })} ${start.chapter}${oneChapter ? '' : `–${end.chapter}`}`
 }
 
 export const formatBlockRanges = (ranges: readonly PassageRange[], translation: TranslationId) =>

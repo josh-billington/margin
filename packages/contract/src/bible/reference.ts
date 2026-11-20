@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { books, findBooks } from './books'
+import { books, findBooks, referenceBookName } from './books'
 import { passageRangeSchema, textEditionSchema, translationIdSchema } from './types'
 import type { BookId, TranslationId } from './types'
 
@@ -112,6 +112,7 @@ export function parseReference(
 		start: { book: book.id, chapter: startChapter, verse: startVerse },
 		end: { book: book.id, chapter: endChapter, verse: endVerse },
 	}
-	const label = `${book.name} ${startChapter}:${startVerse}${startChapter !== endChapter ? `–${endChapter}:${endVerse}` : startVerse !== endVerse ? `–${endVerse}` : ''}`
+	const name = referenceBookName({ id: book.id, oneChapter: startChapter === endChapter })
+	const label = `${name} ${startChapter}:${startVerse}${startChapter !== endChapter ? `–${endChapter}:${endVerse}` : startVerse !== endVerse ? `–${endVerse}` : ''}`
 	return { kind: 'resolved' as const, ranges: [range], label, translation, notice }
 }

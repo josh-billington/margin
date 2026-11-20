@@ -136,7 +136,7 @@ async function verify() {
 			['KJV Joel 2:28', 'jps1917', 'Joel 2:28'],
 			['JPS Joel 3', 'kjv', 'Joel 3:1–5'],
 			['JPS Malachi 3', 'kjv', 'Malachi 3:1–24'],
-			['Ps 3', 'jps1917', 'Psalms 3:1–9'],
+			['Ps 3', 'jps1917', 'Psalm 3:1–9'],
 		] satisfies [string, TranslationId, string][]) {
 			const preview = bible.resolveReference(reference, translation)
 			if (preview.kind !== 'resolved') throw new Error(preview.message)
