@@ -300,13 +300,12 @@ describe('library persistence', () => {
 		async (copyFails) => {
 			await library.close()
 			let replace: (() => Promise<void>) | undefined
-			let replaceDuringCopy: (() => Promise<void>) | undefined
 			library = await new Library(
 				join(root, 'library'),
 				join(root, 'private'),
 				async (path, content, beforeReplace) => {
 					if (JSON.parse(content).title?.endsWith('(conflict copy)')) {
-						await replaceDuringCopy?.()
+						await replaceDuringCopy()
 						if (copyFails) throw Object.assign(new Error('Disk full'), { code: 'ENOSPC' })
 					}
 					if (path.endsWith('.study.json') && replace) {
@@ -332,8 +331,7 @@ describe('library persistence', () => {
 						revision: 8,
 					}),
 				)
-			const saving = library.save({ ...study, title: 'Local edit' }, 1)
-			replaceDuringCopy = () =>
+			const replaceDuringCopy = () =>
 				atomicWrite(
 					library.file(study.id),
 					JSON.stringify({
@@ -343,6 +341,7 @@ describe('library persistence', () => {
 						revision: 9,
 					}),
 				)
+			const saving = library.save({ ...study, title: 'Local edit' }, 1)
 			if (copyFails) {
 				await expect(saving).rejects.toMatchObject({ code: 'ENOSPC' })
 				expect(await disk(study.id)).toMatchObject({
