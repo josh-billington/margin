@@ -268,8 +268,8 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		nativeContextMenu: z.literal(true),
 		freehandInk: z.literal(true),
 		libraryFolderPicker: z.literal(true),
-		/** The renderer's own welcome intro plays on first launch. */
-		welcomeIntro: z.literal(true),
+		/** Whether the renderer's welcome intro plays on first launch (off until the new branding). */
+		welcomeIntro: z.boolean(),
 	}),
 	z.object({
 		kind: z.literal('ipad'),

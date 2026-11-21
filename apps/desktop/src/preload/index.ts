@@ -54,7 +54,8 @@ const api = {
 				nativeContextMenu: true,
 				freehandInk: true,
 				libraryFolderPicker: true,
-				welcomeIntro: true,
+				// Off until the new icon and branding: the app opens straight to setup or the study.
+				welcomeIntro: false,
 			},
 	introAtLaunch: process.argv.includes(INTRO_ARGUMENT),
 	toolbarGlass: process.argv

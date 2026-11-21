@@ -11,7 +11,8 @@ const stylesheets = (page: Page) =>
 		})),
 	)
 
-test('the welcome plays once on first launch before setup, and Help › Show Welcome replays it', async () => {
+// The welcome is switched off until the new branding (preload's welcomeIntro).
+test.skip('the welcome plays once on first launch before setup, and Help › Show Welcome replays it', async () => {
 	test.setTimeout(90_000)
 	const dirs = await makeDirs()
 	let running: Awaited<ReturnType<typeof launch>> | undefined
