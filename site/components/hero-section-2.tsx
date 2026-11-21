@@ -1,5 +1,5 @@
 import { HeroHeader } from '@/components/header'
-import { DownloadButton, FollowLink } from '@/components/download-button'
+import { DownloadButton, FollowLink, IntelLink } from '@/components/download-button'
 import { HillsShader } from '@/components/hills-shader'
 
 const assistants = [
@@ -51,6 +51,11 @@ export default function HeroSection() {
 						<DownloadButton size="lg" />
 						<FollowLink />
 					</div>
+					<IntelLink
+						data-reveal
+						style={{ '--d': '200ms' } as React.CSSProperties}
+						className="mt-4"
+					/>
 					<p
 						data-reveal
 						style={{ '--d': '230ms' } as React.CSSProperties}

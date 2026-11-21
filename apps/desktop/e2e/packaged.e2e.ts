@@ -5,7 +5,14 @@ import { addAmos, closeApp, launch, makeDirs, removeDirs, saved } from './harnes
 
 // Public builds turn enableNodeCliInspectArguments off. `pnpm dist:test` builds a separate ad-hoc .app
 // with it on so Playwright can attach with --inspect=0 (skipped when it has not been built).
-const executable = resolve(__dirname, '../release/test/mac-arm64/Margin.app/Contents/MacOS/Margin')
+// MARGIN_PACKAGED_APP points it at another build, such as the Intel one (`pnpm dist:test --x64`,
+// release/test/mac/Margin.app), which Rosetta runs on Apple silicon.
+const executable = resolve(
+	__dirname,
+	'..',
+	process.env.MARGIN_PACKAGED_APP ?? 'release/test/mac-arm64/Margin.app',
+	'Contents/MacOS/Margin',
+)
 
 test.skip(
 	!existsSync(executable),

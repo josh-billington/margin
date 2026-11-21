@@ -4,10 +4,10 @@ Margin is a visual canvas for studying the Bible. It bundles 5 translations (KJV
 
 <img width="2462" height="1385" alt="mockup-1795225615125" src="https://github.com/user-attachments/assets/1c1b2bb8-963d-4dc7-a39a-63661c0e824d" />
 
-Margin is availabe as a public beta for macOS 13 and later, on Apple Silicon.
+Margin is availabe as a public beta for macOS 13 and later, on Apple Silicon (Intel from the next release).
 
-Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
-([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
+Download from the [latest release](https://github.com/josh-billington/margin/releases):
+`Margin-arm64.dmg` for Apple Silicon, `Margin-x64.dmg` for Intel (ZIPs alongside).
 More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
 
 The beta is unsigned and not notarized by Apple (it will be once Margin is out of beta). The first time you open it, macOS will say
