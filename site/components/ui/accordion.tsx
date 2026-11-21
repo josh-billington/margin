@@ -42,7 +42,7 @@ function AccordionTrigger({
 				{children}
 				<span aria-hidden className="relative size-4 shrink-0">
 					<span className="bg-muted-foreground absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 rounded-full" />
-					<span className="bg-muted-foreground absolute inset-y-0 left-1/2 w-[2px] -translate-x-1/2 rounded-full group-data-[state=open]:rotate-90" />
+					<span className="faq-plus-bar bg-muted-foreground absolute inset-y-0 left-1/2 w-[2px] -translate-x-1/2 rounded-full group-data-[state=open]:rotate-90" />
 				</span>
 			</AccordionPrimitive.Trigger>
 		</AccordionPrimitive.Header>

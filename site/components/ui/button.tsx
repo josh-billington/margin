@@ -3,20 +3,20 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-// Tailark Mist button, restyled: one shape (pill), flat fills, press feedback.
+// One shape (a softly rounded rectangle) with press feedback. The primary is a bevelled keycap.
 const buttonVariants = cva(
-	'pressable cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium disabled:pointer-events-none aria-disabled:cursor-default [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+	'pressable cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] font-medium disabled:pointer-events-none aria-disabled:cursor-default [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
 	{
 		variants: {
 			variant: {
-				default: 'bg-sky text-primary-foreground hover:bg-sky-hover',
+				default: 'keycap',
 				soft: 'bg-surface text-ink hover:bg-surface-2',
 				pending: 'bg-surface text-ink',
 				ghost: 'text-ink/80 hover:text-ink hover:bg-surface',
 				link: 'text-ink underline-offset-4 hover:underline',
 			},
 			size: {
-				sm: 'h-11 px-4 md:h-9 text-[15px]',
+				sm: 'h-11 px-4 md:h-9 md:px-3.5 text-[15px]',
 				default: 'h-11 px-5 text-[15px]',
 				lg: 'h-12 px-4 text-[15px] sm:px-6 sm:text-[17px]',
 			},
