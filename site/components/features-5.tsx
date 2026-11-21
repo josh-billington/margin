@@ -130,7 +130,7 @@ export default function Features() {
 						</div>
 					</div>
 					<div className="md:col-span-5 md:pl-6">
-						<Statement title="Your favourite verses and important words stand out">
+						<Statement title="Tag your favourite verses and important words">
 							Tag words and phrases in a colour and see every tag in the sidebar. Choose one to mark
 							each place it appears and step through them in order.
 						</Statement>

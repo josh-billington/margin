@@ -1,33 +1,33 @@
 const principles = [
 	{
 		title: 'Works offline',
-		body: 'Scripture, fonts and everything else ship inside the app. Margin never needs the network to open a study.',
-	},
-	{
-		title: 'Your studies are files',
-		body: 'Each study is a plain JSON file in a Margin folder in your Documents. Back it up, sync it, or open it with the other tools you already use.',
+		body: 'The Bible translations, dictionary and fonts come with the app.',
 	},
 	{
 		title: 'No account',
-		body: 'There is nothing to sign up for, and nothing reports back. No analytics, no tracking.',
+		body: 'There is nothing to sign up for, and nothing reports back.',
 	},
 	{
+		title: 'If you don\'t like something, fork it',
+		body: 'Steal our code (legally ). Change anything and everything to make it perfect for you.',
+  },
+ 	/* {
+		title: 'Your studies are files',
+		body: 'Each study is a JSON file in a folder in your documents. Back it up, sync it with iCloud, or open it with the other tools you already use.',
+	}, */
+  /* {
 		title: 'Made for the keyboard',
 		body: 'V, T, A and H switch tools. F focuses. ⌃⌘D looks up a word. ⌘K finds verses and commands.',
-	},
-	{
-		title: 'Handwritten, or plain',
-		body: 'Notes are written in a marker-style hand by default, with a plain font for longer thoughts.',
-	},
-	{
+	}, */
+	/* {
 		title: 'Saves as you go',
 		body: 'Every change is saved. If a save fails, or another program changes the file, Margin keeps your work and tells you.',
-	},
+	}, */
 ]
 
 export default function Principles() {
 	return (
-		<section aria-labelledby="principles-title" className="py-28 md:py-40">
+		<section aria-labelledby="principles-title" className="py-28 md:py-28">
 			<div className="mx-auto max-w-6xl px-6">
 				<h2
 					id="principles-title"

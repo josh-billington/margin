@@ -2,8 +2,6 @@ import { HeroHeader } from '@/components/header'
 import { HeroFrames } from '@/components/hero-frames'
 import { DownloadButton, FollowLink } from '@/components/download-button'
 
-// Tailark Mist hero section 2, restyled: left-aligned, one headline, one sentence, one action,
-// the product shot below on a Chrome stage. A handwritten note sits in the hero's margin.
 export default function HeroSection() {
 	return (
 		<>
@@ -17,14 +15,14 @@ export default function HeroSection() {
 									data-reveal
 									className="text-ink max-w-[15ch] text-[clamp(44px,6.6vw,92px)] font-semibold leading-[0.98] tracking-[-0.035em]"
 								>
-									Make it your own
+								  Make scripture your own
 								</h1>
 								<p
 									data-reveal
 									style={{ '--d': '80ms' } as React.CSSProperties}
 									className="text-ink/85 mt-7 max-w-[34rem] text-xl leading-relaxed"
 								>
-									Map out your study, find connections between verses, notes, and ideas.
+								  Map out your study, find connections between verses, notes, and ideas
 								</p>
 								<div
 									data-reveal
@@ -34,31 +32,6 @@ export default function HeroSection() {
 									<DownloadButton size="lg" />
 									<FollowLink />
 								</div>
-							</div>
-							<div
-								aria-hidden
-								data-reveal
-								style={{ '--d': '320ms' } as React.CSSProperties}
-								className="relative hidden h-40 lg:col-span-4 lg:block"
-							>
-								<p className="font-hand text-pen absolute right-6 top-2 -rotate-3 text-[24px] leading-tight">
-									your notes stay
-									<br />
-									on the word
-								</p>
-								<svg
-									className="absolute bottom-[-56px] right-36 h-36 w-28"
-									viewBox="0 0 112 144"
-									fill="none"
-								>
-									<path
-										d="M98 6C60 18 26 50 22 128"
-										stroke="var(--pen)"
-										strokeWidth="2.6"
-										strokeLinecap="round"
-									/>
-									<path d="M22 140 12 117l21 3z" fill="var(--pen)" />
-								</svg>
 							</div>
 						</div>
 					</div>

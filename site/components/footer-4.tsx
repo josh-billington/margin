@@ -6,7 +6,6 @@ import { site } from '@/lib/site'
 const links = [
 	{ title: 'Privacy', href: '/privacy/' },
 	...(site.githubUrl ? [{ title: 'GitHub', href: site.githubUrl }] : []),
-	{ title: 'Questions', href: '/#faq' },
 ]
 
 export default function Footer() {
@@ -35,13 +34,19 @@ export default function Footer() {
 							>
 								{link.title}
 							</Link>
-						))}
+            ))}
+            <a
+            	href="https://margin-bible-study.canny.io/feature-requests"
+            	className="text-ink/75 hover:text-ink transition-colors duration-150"
+            >
+            	Request a feature
+            </a>
 						<a
 							href="https://tldraw.dev"
 							className="text-ink/75 hover:text-ink transition-colors duration-150"
 						>
 							built with tldraw
-						</a>
+            </a>
 					</nav>
 				</div>
 			</div>

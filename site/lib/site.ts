@@ -11,7 +11,7 @@ export const site = {
 	/** Direct link to the signed .dmg once there is one. */
 	downloadUrl: null as string | null,
 	/** Public repository or project page, for "Follow along". */
-	githubUrl: null as string | null,
+	githubUrl: 'https://github.com/josh-billington/margin',
 	/** Contact address for privacy questions. */
 	contactEmail: null as string | null,
 }

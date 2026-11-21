@@ -11,8 +11,8 @@ export default function Home() {
 		<>
 			<HeroSection />
 			<main id="main">
-				<AnchorsSection />
-				<Features />
+        {/* <AnchorsSection /> */}
+        <Features />
 				<FAQs />
 				<Principles />
 				<CallToAction />

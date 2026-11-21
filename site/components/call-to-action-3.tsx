@@ -13,7 +13,7 @@ export default function CallToAction() {
 							data-reveal
 							className="text-ink text-[clamp(44px,6vw,84px)] font-semibold leading-[0.98] tracking-[-0.035em]"
 						>
-							Coming to the Mac
+							Get it on macOS
 						</h2>
 						<p
 							data-reveal
