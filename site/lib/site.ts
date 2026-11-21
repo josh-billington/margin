@@ -12,8 +12,10 @@ export const site = {
 	 * tag: update it with each release. */
 	downloadUrl:
 		'https://github.com/josh-billington/margin/releases/download/v0.9.0-beta.1/margin-arm64.dmg' as
-			| string
-			| null,
+			string | null,
+	/** The Intel build of the same release (margin-x64.dmg). Null until a release includes one: the
+	 * site then offers Apple silicon only. */
+	intelDownloadUrl: null as string | null,
 	/** Public repository, for "Follow along". */
 	githubUrl: 'https://github.com/josh-billington/margin' as string | null,
 	/** Where testers report problems. */

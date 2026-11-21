@@ -55,7 +55,7 @@
 			"**/*.node"
 		],
 		"mac": {
-			"artifactName": "Margin-arm64-mac.zip",
+			"artifactName": "Margin-${arch}-mac.zip",
 			"minimumSystemVersion": "13.0",
 			"category": "public.app-category.productivity",
 			"icon": "resources/icon/margin-dark.icns",
@@ -64,13 +64,15 @@
 				{
 					"target": "dmg",
 					"arch": [
-						"arm64"
+						"arm64",
+						"x64"
 					]
 				},
 				{
 					"target": "zip",
 					"arch": [
-						"arm64"
+						"arm64",
+						"x64"
 					]
 				}
 			],
@@ -80,7 +82,7 @@
 			"type": "distribution"
 		},
 		"dmg": {
-			"artifactName": "Margin-arm64.dmg"
+			"artifactName": "Margin-${arch}.dmg"
 		},
 		"electronFuses": {
 			"runAsNode": false,

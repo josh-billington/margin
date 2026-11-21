@@ -1,4 +1,4 @@
-import { DownloadButton, FollowLink } from '@/components/download-button'
+import { DownloadButton, FollowLink, IntelLink } from '@/components/download-button'
 
 // Closing call to action: one line and the same two actions as the hero.
 export default function CallToAction() {
@@ -20,6 +20,7 @@ export default function CallToAction() {
 					<DownloadButton size="lg" />
 					<FollowLink />
 				</div>
+				<IntelLink data-reveal style={{ '--d': '200ms' } as React.CSSProperties} className="mt-5" />
 			</div>
 		</section>
 	)
