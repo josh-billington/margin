@@ -1,8 +1,6 @@
 # Margin
 
-A Bible study canvas for macOS. Lay out verses on an open canvas, tag words in
-colour, write notes and draw arrows from a note to the exact word it's about.
-Margin works offline and saves each study as a plain JSON file on your Mac.
+Margin is a visual canvas for studying the Bible. It bundles 5 translations (KJV, BSB, WEB, ASV and JPS 1917). It supports searching words and phrases. It also supports offline lookups of Hebrew and Greek words in Strong, as well as Hebrew in BDB (Brown-Driver-Briggs).
 
 <img width="2462" height="1385" alt="mockup-1795225615125" src="https://github.com/user-attachments/assets/1c1b2bb8-963d-4dc7-a39a-63661c0e824d" />
 
@@ -12,9 +10,9 @@ Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/
 ([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
 More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
 
-The beta is unsigned and not notarized by Apple (it will be once Margin is out of beta). The first time you open it, macOS says
+The beta is unsigned and not notarized by Apple (it will be once Margin is out of beta). The first time you open it, macOS will say
 it can't verify Margin. Open System Settings → Privacy & Security, click **Open Anyway**
-next to the message about Margin, then confirm. You only need to do this once.
+next to the message about Margin, then confirm.
 
 Choose **Margin → Check for Updates…** to look for a new beta. Margin never checks
 on its own. Download the new version and drag it into Applications to replace the old
@@ -63,13 +61,12 @@ work there. It needs hosts `*` or tldraw's native-app option.
 ## Licences and credits
 
 Margin's own code, website, and artwork are under the
-[PolyForm Noncommercial License 1.0.0](LICENSE). You may use, modify, and share them
-for free for any noncommercial purpose, including personal study, religious
-observance, and use by churches, schools, and charities. Commercial use is not
-permitted; contact me if you want a commercial licence.
+[PolyForm Noncommercial License 1.0.0](LICENSE). 
 
-That licence covers only Margin's own work. Bundled content keeps its own terms,
-which take precedence for that content:
+You may use, modify, and share them for free for any noncommercial purpose, including personal study, religious
+observance, and use by churches, schools, and charities. Commercial use is not permitted; contact me if you want a commercial licence.
+
+Credits
 
 - **KJV**: from [eBible.org](https://ebible.org); see `apps/desktop/resources/bible/kjv-rights.html`
 - **BSB, WEB, and ASV 1901**: public-domain texts from [eBible.org](https://ebible.org);
