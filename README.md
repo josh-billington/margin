@@ -1,21 +1,40 @@
 # Margin
 
-A Bible study canvas for macOS. Place passages on an infinite canvas, highlight and
-tag words, write notes, and draw arrows from a note to the exact word it is about.
-Everything works offline, and studies are saved as plain JSON files on your Mac.
+A Bible study canvas for macOS. Lay out verses on an open canvas, tag words in
+colour, write notes and draw arrows from a note to the exact word it's about.
+Margin works offline and saves each study as a plain JSON file on your Mac.
 
 - KJV, Berean Standard Bible (BSB), World English Bible (WEB), and ASV (1901)
   are bundled in full, alongside JPS 1917 (Tanakh)
-- Word-level highlights, tags, and arrows that stay attached as text reflows
-- Reading focus for one passage or verse
-- Offline Strong's lookup for KJV words
-- Autosave with recovery, conflict copies, and external-change detection
+- Add verses by reference, or type words or an exact phrase in the same field to
+  search offline (**⌘⇧F**). Narrow by translation, testament or book, then add
+  one or several matching verses to the canvas.
+- Highlights, tags and arrows that stay on their words when the text rewraps
+- Freeform ink and small diagrams with rectangles, ellipses, lines and text labels
+- Focus on one block of verses or a single verse
+- Offline Strong's and Brown-Driver-Briggs lookup for words in the KJV
+- Saves as you go, with recovery copies, and keeps your edits in a conflict copy
+  if a study changes outside Margin
 
-Download: [margin-bible.pages.dev](https://margin-bible.pages.dev)
+Public beta for Apple silicon Macs, running macOS 13 Ventura or later.
 
-The app is not yet notarized by Apple. On first launch macOS says it cannot verify
-Margin. Open System Settings → Privacy & Security, click **Open Anyway** next to
-Margin, and confirm. You only need to do this once.
+Press **D** to draw freehand; a stroke between two words can become a bound arrow.
+Open **Shapes** or press **R** for rectangle, **O** for ellipse, **L** for line or
+**Y** for text label. To recolour shapes, select them and open **Shapes** again.
+
+Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
+([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
+More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
+
+The beta is unsigned and not notarized by Apple. The first time you open it, macOS says
+it can't verify Margin. Open System Settings → Privacy & Security, click **Open Anyway**
+next to the message about Margin, then confirm. You only need to do this once.
+
+Choose **Margin → Check for Updates…** to look for a new beta. Margin never checks
+on its own. Download the new version and drag it into Applications to replace the old
+one. Your study files stay where they are.
+Choose **Help → Send Feedback…** to report a problem, or **Help → Show Logs in Finder**
+to find the error log. Margin collects no usage data, and the log holds no study text.
 
 ## About this project
 
@@ -25,22 +44,26 @@ results against end-to-end tests. Forks are welcome; replies to issues may be sl
 
 ## Building from source
 
-Requirements: macOS, Node 25, Yarn 1.
+Requirements: macOS, Node 25, pnpm 11.
 
 ```sh
-yarn install          # also rebuilds native modules for Electron
-yarn import:bible     # downloads pinned KJV, BSB, WEB, ASV, and JPS 1917 sources, builds resources/bible/margin-bible.sqlite
-yarn import:lexicon   # downloads pinned Open Scriptures Strong's data, builds resources/lexicon/margin-lexicon.sqlite
-yarn dev              # run the app
+pnpm install          # also rebuilds native modules for Electron
+pnpm import:bible     # downloads pinned KJV, BSB, WEB, ASV, and JPS 1917 sources, builds apps/desktop/resources/bible/margin-bible.sqlite
+pnpm import:lexicon   # downloads pinned Strong's and BDB sources, builds apps/desktop/resources/lexicon/margin-lexicon.sqlite
+pnpm dev              # run the app
 ```
 
 Both importers check every downloaded file against the SHA-256 recorded in
-`data/sources.json`; a mismatch fails rather than accepting changed text. The
+`apps/desktop/data/sources.json`; a mismatch fails rather than accepting changed text. The
 generated databases are gitignored.
 
-Other commands: `yarn typecheck`, `yarn lint`, `yarn test` (unit), `yarn test:e2e`
-(Playwright against the built app), `yarn dist` (unsigned macOS `.app`, DMG, and ZIP
-in `release/`).
+Other commands: `pnpm typecheck`, `pnpm lint`, `pnpm test` (unit), `pnpm test:e2e`
+(Playwright against the built app), `pnpm dist` (unsigned macOS `.app`, DMG, and ZIP
+in `apps/desktop/release/`). `pnpm dist` and the signed `dist:release` first check that
+both imported databases open with the current schema and answer a search and a dictionary
+lookup, and that a tldraw licence key is set; they stop before building if not. Both
+leave Node's inspector disabled. `pnpm dist:test` builds a separate, inspectable `.app` in
+`apps/desktop/release/test/` that the packaged Playwright test drives; never distribute it.
 
 ### tldraw licence key
 
@@ -68,15 +91,21 @@ permitted; contact me if you want a commercial licence.
 That licence covers only Margin's own work. Bundled content keeps its own terms,
 which take precedence for that content:
 
-- **KJV**: from [eBible.org](https://ebible.org); see `resources/bible/kjv-rights.html`
+- **KJV**: from [eBible.org](https://ebible.org); see `apps/desktop/resources/bible/kjv-rights.html`
 - **BSB, WEB, and ASV 1901**: public-domain texts from [eBible.org](https://ebible.org);
-  notices are in `resources/bible/{bsb,web,asv}-rights.html`. “World English Bible”
+  notices are in `apps/desktop/resources/bible/{bsb,web,asv}-rights.html`. “World English Bible”
   is a trademark of eBible.org; modified text must use a different name.
-- **JPS 1917**: from [Sefaria](https://www.sefaria.org); see `resources/bible/jps1917-rights.txt`
+- **JPS 1917**: from [Sefaria](https://www.sefaria.org); see `apps/desktop/resources/bible/jps1917-rights.txt`
 - **Strong's dictionaries**: [Open Scriptures](https://github.com/openscriptures/strongs),
   CC BY-SA 3.0. The generated lexicon data is an adaptation under the same licence;
-  attribution and checksums are in `resources/lexicon/lexicon.manifest.json`
-- **Versification data**: see `resources/bible/versification-license.txt`
+  attribution and checksums are in `apps/desktop/resources/lexicon/lexicon.manifest.json`
+- **Brown-Driver-Briggs (1906)**: Digital edition and lexical indexes by the
+  [Open Scriptures Hebrew Bible Project](https://github.com/openscriptures/HebrewLexicon/tree/21c9add13bc727d3a951361778e97e3ff7afd1ce),
+  under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The original text
+  is public domain. Margin converts the XML to structured definitions, expands
+  grammatical abbreviations, and links entries to Strong's numbers using the supplied indexes.
+  Attribution, checksums, and coverage are in the bundled lexicon manifest.
+- **Versification data**: see `apps/desktop/resources/bible/versification-license.txt`
 - **Fonts**: Gochi Hand, IBM Plex, and Shantell Sans under the SIL Open Font
-  Licence (`resources/fonts/`)
+  Licence (`apps/desktop/resources/fonts/`)
 - **tldraw SDK**: under the [tldraw licence](https://github.com/tldraw/tldraw/blob/main/LICENSE.md)

@@ -1,0 +1,292 @@
+.insert-dialog {
+	width: min(var(--insert-dialog-w), calc(100% - var(--sheet-inset) * 2));
+	padding: var(--space-6);
+	font-size: var(--text-md);
+}
+/* On the Mac, results read better wide: verses wrap to two lines instead of four. The width eases
+   out alongside the list's height. iPad sheets keep their size. */
+:root:not([data-platform='ipad']) .insert-dialog {
+	transition: width var(--duration-slow) var(--ease-out);
+}
+:root:not([data-platform='ipad']) .insert-dialog[data-wide='true'] {
+	width: min(680px, calc(100% - var(--sheet-inset) * 2));
+}
+@media (prefers-reduced-motion: reduce) {
+	:root:not([data-platform='ipad']) .insert-dialog {
+		transition: none;
+	}
+}
+.insert-dialog form {
+	display: grid;
+	gap: var(--space-5);
+}
+.insert-title {
+	margin: 0 0 var(--space-5);
+	font-size: var(--text-lg);
+	font-weight: 600;
+	line-height: 1.3;
+}
+/* The field takes the width; the translation pop-up sits at its end, on the field's baseline. */
+.insert-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: baseline;
+	min-width: 0;
+	gap: var(--space-3);
+}
+.insert-row input {
+	width: 100%;
+	min-width: 0;
+	height: var(--row-h);
+	padding: 0 var(--space-4);
+	color: var(--ink);
+	background: var(--chrome-bg);
+	border: var(--stroke-hairline) solid var(--border);
+	border-radius: var(--radius-sm);
+}
+@media (hover: hover) and (pointer: fine) {
+	.insert-candidates button:hover {
+		color: var(--ink);
+		background: var(--hover);
+	}
+}
+.insert-feedback {
+	min-width: 0;
+	min-height: calc(var(--row-h) + var(--space-5));
+	overflow-wrap: anywhere;
+}
+.insert-preview {
+	display: grid;
+	gap: var(--space-2);
+}
+.insert-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var(--row-h);
+}
+.insert-preview span,
+.insert-hint,
+.insert-equivalent {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.insert-hint,
+.insert-error {
+	margin: 0;
+}
+.insert-error {
+	color: var(--coral);
+}
+.insert-preview strong {
+	overflow-wrap: anywhere;
+}
+.insert-notice {
+	margin: var(--space-2) 0 0;
+	color: var(--accent);
+}
+.insert-candidates {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	margin: var(--space-4) 0 0;
+	padding: 0;
+	list-style: none;
+}
+.insert-candidates button {
+	min-height: var(--control-h-sm);
+	max-width: 100%;
+	padding: var(--space-1) var(--space-4);
+	border: var(--stroke-hairline) solid var(--border);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: inherit;
+	transition: background-color var(--duration-fast) ease;
+}
+.insert-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--space-4);
+}
+
+/* Search: the same field searches when its text isn't a reference. */
+.search-status {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+	min-height: var(--row-h);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.search-status p {
+	margin: 0;
+	min-width: 0;
+}
+/* A borderless pop-up (search scope, translation) drawn with its own down chevron. */
+.plain-popup {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.plain-popup select {
+	appearance: none;
+	max-width: 180px;
+	min-height: var(--control-h-sm);
+	padding: 0 calc(var(--space-4) + 12px) 0 var(--space-4);
+	color: inherit;
+	font: inherit;
+	text-overflow: ellipsis;
+	background: transparent;
+	border: none;
+	border-radius: var(--radius-sm);
+	transition:
+		background-color var(--duration-fast) ease,
+		color var(--duration-fast) ease;
+}
+/* Its own chevron replaces the one every pop-up draws, which the light appearance re-applies with
+   a more specific rule. */
+:root[data-appearance] .plain-popup select {
+	background-image: none;
+}
+.plain-popup svg {
+	position: absolute;
+	right: var(--space-3);
+	pointer-events: none;
+}
+/* It answers the press, not the hover, like the other menus. */
+.plain-popup select:active {
+	color: var(--ink);
+	background: var(--pressed);
+}
+/* Beside the field, the translation pop-up takes the field's height. */
+.insert-translation select {
+	height: var(--row-h);
+}
+/* Grows only while results are shown; the dialog keeps the Add verses size otherwise. It opens
+   with the widening and closes faster, as exits do. */
+.search-results {
+	max-height: 0;
+	margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-6)) 0;
+	padding: 0 var(--space-4);
+	overflow: hidden auto;
+	overscroll-behavior: contain;
+	transition: max-height var(--duration-fast) var(--ease-out);
+}
+.search-results[data-open='true'] {
+	transition-duration: var(--duration-slow);
+	max-height: min(320px, max(140px, calc(80dvh - 340px)));
+	margin-block-end: calc(-1 * var(--space-2));
+	padding-block-end: var(--space-3);
+	border-block: var(--stroke-hairline) solid var(--hairline);
+}
+.search-results:focus-visible {
+	/* Like a macOS list, the keyboard row's wash shows focus; the list itself takes no ring. */
+	outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+	.search-results {
+		transition: none;
+	}
+}
+.search-rows {
+	position: relative;
+	width: 100%;
+}
+/* Rows are virtualized: each is placed by the list and measured as it renders. */
+.search-row {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+.search-group-heading {
+	display: flex;
+	justify-content: space-between;
+	padding: var(--space-4) var(--space-3) var(--space-2);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	background: var(--dialog-bg);
+}
+.search-group-heading span {
+	font-weight: 400;
+	font-variant-numeric: tabular-nums;
+}
+/* The row keeps the heading's place; the visible heading is the sticky one in its book's box,
+   which spans the book's rows so the next heading pushes it off the top. */
+.search-row.search-group-heading {
+	visibility: hidden;
+}
+.search-section {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	pointer-events: none;
+}
+.search-section .search-group-heading {
+	position: sticky;
+	top: 0;
+	pointer-events: auto;
+}
+.search-end {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var(--row-h);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+.search-end p {
+	margin: 0;
+}
+.search-end .text-button {
+	padding: 0;
+	font: inherit;
+}
+.search-hit {
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-sm);
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+	cursor: default;
+}
+.search-hit[aria-selected='true'] {
+	background: var(--selected);
+}
+/* The keyboard row takes a menu-style wash rather than a ring, over the selection when it's
+   one of the selected rows. */
+.search-results:focus-visible .search-hit[data-active='true'] {
+	background: var(--hover);
+}
+.search-results:focus-visible .search-hit[data-active='true'][aria-selected='true'] {
+	background: linear-gradient(var(--hover), var(--hover)), var(--selected);
+}
+@media (hover: hover) and (pointer: fine) {
+	.search-hit[aria-selected='false']:hover {
+		background: var(--hover);
+	}
+}
+.search-hit-ref {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.search-hit-ref span {
+	color: var(--text-muted);
+	font-weight: 400;
+}
+.search-hit-text {
+	color: var(--text-scripture);
+}
+/* Matched words get the canvas's ink wash; a phrase is one continuous wash. */
+.search-hit mark {
+	color: inherit;
+	background: var(--ink-wash-strong);
+	border-radius: var(--radius-xs);
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
+}

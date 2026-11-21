@@ -1,0 +1,137 @@
+{
+	"name": "@margin/desktop",
+	"version": "0.9.0-beta.1",
+	"author": "Josh Billington",
+	"main": "./out/main/index.js",
+	"license": "PolyForm-Noncommercial-1.0.0",
+	"dependencies": {
+		"better-sqlite3": "13.0.3",
+		"chokidar": "6.0.0",
+		"electron-liquid-glass": "1.1.1",
+		"ulid": "3.0.2",
+		"zod": "4.6.7"
+	},
+	"private": true,
+	"description": "A quiet canvas for visual Bible study",
+	"scripts": {
+		"dev": "electron-vite dev",
+		"build": "electron-vite build",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run --config ../../vitest.config.mts",
+		"test:css": "pnpm build && node scripts/check-production-css.mjs",
+		"test:e2e": "electron-vite build && playwright test",
+		"import:bible": "tsx scripts/import-bible/index.ts",
+		"postinstall": "electron-builder install-app-deps",
+		"dist": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
+		"dist:test": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --dir --config.directories.output=release/test --config.electronFuses.enableNodeCliInspectArguments=true --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",
+		"import:lexicon": "tsx scripts/import-lexicon/index.ts",
+		"dist:release": "tsx scripts/release-preflight.mts --signed && pnpm build && electron-builder --mac --config.forceCodeSigning=true"
+	},
+	"build": {
+		"copyright": "© 2026 Josh Billington",
+		"appId": "com.margin.app",
+		"productName": "Margin",
+		"directories": {
+			"output": "release"
+		},
+		"files": [
+			"out/**/*",
+			"package.json",
+			"!**/node_modules/better-sqlite3/{deps,src}/**",
+			"!**/node_modules/better-sqlite3/prebuilds/{win32,linux,linuxmusl}-*.node",
+			"!**/*.map"
+		],
+		"extraResources": [
+			{
+				"from": "resources",
+				"to": "resources",
+				"filter": [
+					"**/*",
+					"!**/*.sqlite-{wal,shm}"
+				]
+			}
+		],
+		"asarUnpack": [
+			"**/*.node"
+		],
+		"mac": {
+			"artifactName": "Margin-arm64-mac.zip",
+			"minimumSystemVersion": "13.0",
+			"category": "public.app-category.productivity",
+			"icon": "resources/icon/margin-dark.icns",
+			"hardenedRuntime": true,
+			"target": [
+				{
+					"target": "dmg",
+					"arch": [
+						"arm64"
+					]
+				},
+				{
+					"target": "zip",
+					"arch": [
+						"arm64"
+					]
+				}
+			],
+			"entitlements": "build/entitlements.mac.plist",
+			"entitlementsInherit": "build/entitlements.mac.inherit.plist",
+			"notarize": true,
+			"type": "distribution"
+		},
+		"dmg": {
+			"artifactName": "Margin-arm64.dmg"
+		},
+		"electronFuses": {
+			"runAsNode": false,
+			"enableCookieEncryption": true,
+			"enableNodeOptionsEnvironmentVariable": false,
+			"enableNodeCliInspectArguments": false,
+			"enableEmbeddedAsarIntegrityValidation": true,
+			"onlyLoadAppFromAsar": true
+		}
+	},
+	"devDependencies": {
+		"@margin/contract": "workspace:*",
+		"@margin/core": "workspace:*",
+		"@margin/services": "workspace:*",
+		"@playwright/test": "1.60.0",
+		"@types/better-sqlite3": "9.6.0",
+		"@types/node": "25.9.9",
+		"@xmldom/xmldom": "0.9.12",
+		"electron": "45.2.1",
+		"electron-builder": "26.18.0",
+		"electron-vite": "6.0.0",
+		"postcss": "8.5.32",
+		"tsx": "4.23.15",
+		"vite": "7.3.7"
+	},
+	"nx": {
+		"targets": {
+			"build": {
+				"inputs": [
+					"default",
+					"^default",
+					{
+						"fileset": "{workspaceRoot}/.env",
+						"includeIgnored": true
+					},
+					{
+						"fileset": "{projectRoot}/resources/**/*",
+						"includeIgnored": true
+					}
+				]
+			},
+			"test": {
+				"inputs": [
+					"default",
+					"^default",
+					{
+						"fileset": "{projectRoot}/resources/**/*",
+						"includeIgnored": true
+					}
+				]
+			}
+		}
+	}
+}

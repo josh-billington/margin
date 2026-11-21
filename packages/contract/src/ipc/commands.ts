@@ -1,0 +1,26 @@
+import { z } from 'zod'
+
+/** Commands the native menu can ask the renderer to run (the renderer's registry owns the behavior). */
+export const appCommandSchema = z.enum([
+	'study.new',
+	'word.lookup',
+	'passage.add',
+	'bible.search',
+	'sidebar.toggle',
+	'palette.toggle',
+	'settings.open',
+	'edit.undo',
+	'edit.redo',
+	'view.fit',
+	'view.actualSize',
+	'view.zoomIn',
+	'view.zoomOut',
+	'appearance.system',
+	'appearance.light',
+	'appearance.dark',
+	'intro.show',
+])
+export type AppCommandId = z.infer<typeof appCommandSchema>
+export const COMMAND_CHANNEL = 'margin:command'
+/** Renderer → main: whether the sidebar is shown, so the View menu can say Show or Hide Sidebar. */
+export const SIDEBAR_CHANNEL = 'margin:menu:sidebar'

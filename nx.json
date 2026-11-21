@@ -1,0 +1,44 @@
+{
+	"$schema": "./node_modules/nx/schemas/nx-schema.json",
+	"namedInputs": {
+		"default": ["{projectRoot}/**/*", "sharedGlobals"],
+		"sharedGlobals": [
+			"{workspaceRoot}/package.json",
+			"{workspaceRoot}/pnpm-lock.yaml",
+			"{workspaceRoot}/pnpm-workspace.yaml",
+			"{workspaceRoot}/tsconfig*.json",
+			"{workspaceRoot}/vitest.config.mts",
+			"{workspaceRoot}/eslint.config.*"
+		]
+	},
+	"targetDefaults": {
+		"build": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"outputs": ["{projectRoot}/out"]
+		},
+		"test": {
+			"cache": true,
+			"inputs": ["default", "^default"]
+		},
+		"typecheck": {
+			"cache": true,
+			"dependsOn": ["^typecheck"]
+		},
+		"lint": {
+			"cache": true
+		},
+		"dist": {
+			"cache": false
+		},
+		"dist:release": {
+			"cache": false
+		},
+		"test:e2e": {
+			"cache": false
+		},
+		"dev": {
+			"cache": false
+		}
+	}
+}

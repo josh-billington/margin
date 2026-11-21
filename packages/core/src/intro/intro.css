@@ -1,0 +1,339 @@
+/* The welcome intro. Injected while the intro is mounted and removed with it, so the app's own
+   stylesheet stays exactly as it is (extra rules there slow Chromium's restyle when zooming). */
+
+.intro {
+	position: fixed;
+	inset: 0;
+	z-index: 2000;
+	display: grid;
+	color: var(--ink);
+	font-family: var(--font-ui);
+	user-select: none;
+	-webkit-user-select: none;
+	outline: none;
+}
+/* On a glass window the app is hidden underneath, so this tint over the glass is all there is. */
+.intro-backdrop {
+	position: absolute;
+	inset: 0;
+	background: var(--chrome-bg);
+}
+:root[data-glass='native'] .intro-backdrop,
+:root[data-glass='vibrancy'] .intro-backdrop {
+	background: var(--glass-scrim);
+}
+:root[data-glass='native'] .intro,
+:root[data-glass='vibrancy'] .intro {
+	--text-muted: var(--text-muted-on-glass);
+}
+/* Reduce Transparency normally turns the glass off before launch; if it changes while the intro is
+   up, the tint becomes solid too. */
+@media (prefers-reduced-transparency: reduce) {
+	:root[data-glass] .intro-backdrop {
+		background: var(--chrome-bg);
+	}
+}
+
+.intro-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The title-bar strip stays draggable, like the window it covers. */
+.intro-chrome {
+	position: absolute;
+	inset: 0 0 auto;
+	height: var(--titlebar-h);
+	-webkit-app-region: drag;
+}
+
+/* Glass capsule buttons: smoked glass with ivory text in dark, frosted white with ink in light, each
+   with a faint accent tint (more on the last page, the one prominent moment). Text contrast is over
+   7:1 on either tile. */
+.intro {
+	--intro-capsule: color-mix(in srgb, var(--accent) 12%, rgb(60 55 64 / 0.62));
+	--intro-capsule-prominent: color-mix(in srgb, var(--accent) 28%, rgb(60 55 64 / 0.64));
+	--intro-capsule-ink: #f6f0e4;
+	--intro-capsule-edge: rgb(255 255 255 / 0.14);
+	--intro-capsule-rim: rgb(255 255 255 / 0.08);
+	--intro-capsule-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 20px rgb(0 0 0 / 0.18);
+}
+:root[data-appearance='light'] .intro {
+	--intro-capsule: color-mix(in srgb, var(--accent) 8%, rgb(255 255 255 / 0.72));
+	--intro-capsule-prominent: color-mix(in srgb, var(--accent) 18%, rgb(255 255 255 / 0.74));
+	--intro-capsule-ink: var(--ink);
+	--intro-capsule-edge: rgb(255 255 255 / 0.9);
+	--intro-capsule-rim: rgb(28 25 29 / 0.09);
+	--intro-capsule-shadow: 0 1px 2px rgb(40 30 20 / 0.08), 0 8px 20px rgb(40 30 20 / 0.08);
+}
+.intro-next {
+	min-width: 196px;
+	height: 36px;
+	padding: 0 24px;
+	border: 0;
+	border-radius: 999px;
+	background: var(--intro-capsule);
+	box-shadow:
+		inset 0 1px 0 var(--intro-capsule-edge),
+		inset 0 0 0 1px var(--intro-capsule-rim),
+		var(--intro-capsule-shadow);
+	-webkit-backdrop-filter: blur(18px) saturate(170%);
+	backdrop-filter: blur(18px) saturate(170%);
+	color: var(--intro-capsule-ink);
+	font: 600 var(--text-md) / 1 var(--font-ui);
+	letter-spacing: -0.005em;
+	transition:
+		transform 140ms var(--ease-out),
+		background-color 200ms ease;
+}
+.intro-next[data-prominent] {
+	background: var(--intro-capsule-prominent);
+}
+.intro-next:active {
+	transform: scale(0.97);
+}
+.intro-skip {
+	padding: 4px 8px;
+	border: 0;
+	border-radius: var(--radius-xs);
+	background: none;
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+@media (hover: hover) and (pointer: fine) {
+	.intro-next:hover {
+		background: var(--intro-capsule-prominent);
+	}
+	.intro-skip:hover {
+		color: var(--ink);
+	}
+}
+/* Focus rings only once the keyboard is in use: not for the focus the intro gives Continue itself. */
+.intro button:focus-visible {
+	outline: none;
+}
+:root[data-input='keyboard'] .intro button:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}
+@media (prefers-reduced-transparency: reduce) {
+	.intro-next {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+	}
+}
+
+.intro-scene {
+	position: relative;
+	display: grid;
+	place-items: center;
+	grid-area: 1 / 1;
+}
+.intro-hero,
+.intro-pages {
+	grid-area: 1 / 1;
+}
+
+/* The mark sits a little above centre, where the eye takes the middle of a window to be. */
+.intro-hero {
+	position: relative;
+	translate: 0 -28px;
+}
+.intro-mark {
+	position: relative;
+	width: 132px;
+	height: 132px;
+}
+/* Dark appearance: a very soft light behind the night tile, so the opening is not an empty dark. */
+:root[data-appearance='dark'] .intro-mark::before {
+	content: '';
+	position: absolute;
+	inset: -70%;
+	z-index: -1;
+	background: radial-gradient(
+		closest-side,
+		rgb(30 155 255 / 0.13),
+		rgb(246 240 228 / 0.04) 55%,
+		transparent
+	);
+}
+.intro-mark svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	filter: drop-shadow(0 12px 28px rgb(0 0 0 / 0.16)) drop-shadow(0 2px 4px rgb(0 0 0 / 0.08));
+}
+.intro-mark [data-layer] {
+	transform-box: fill-box;
+	transform-origin: 50% 50%;
+}
+.intro-mark [data-layer='ribbon'] {
+	transform-origin: 50% 0;
+}
+.intro-welcome {
+	position: absolute;
+	top: calc(100% + 30px);
+	left: 50%;
+	translate: -50% 0;
+	display: flex;
+	gap: 0.26em;
+	margin: 0;
+	white-space: nowrap;
+	font-size: 30px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -0.022em;
+}
+.intro-welcome-word {
+	display: inline-block;
+	transform-origin: 50% 100%;
+	opacity: 0;
+}
+
+.intro-pages {
+	display: grid;
+	justify-items: center;
+	width: min(726px, 100vw - 32px);
+	opacity: 0;
+}
+/* The card's place is kept on every page; on the first, "hello" is written on the glass there. */
+.intro-stage {
+	position: relative;
+	display: grid;
+	justify-items: center;
+	width: 100%;
+}
+/* A piece of the canvas, in the canvas's own colour, as tall as the verse and its note. */
+.intro-sheet {
+	position: relative;
+	min-height: 150px;
+	border-radius: var(--radius-xl);
+	background: var(--canvas-bg);
+	box-shadow:
+		var(--shadow-dialog),
+		inset 0 0 0 1px var(--hairline);
+	opacity: 0;
+}
+.intro-hello {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 380px;
+	translate: -50% -54%;
+	overflow: visible;
+	fill: var(--pen);
+}
+.intro-study {
+	position: relative;
+	display: grid;
+	/* Room on the right for the tag's name beside the line-ending "transformed". */
+	padding: 0 64px 14px 0;
+	pointer-events: none;
+}
+/* 662px puts "conformed" and "transformed" on the first line with "transformed" ending it, with
+   about 14px to spare either way, so the arrow arcs over the line and the tag's name sits in the
+   margin. */
+.intro-study .passage-block {
+	width: 662px;
+	opacity: 0;
+}
+.intro-study .passage-text {
+	font-size: 24px;
+	cursor: default;
+}
+.intro-study .passage-header {
+	cursor: default;
+}
+/* As the canvas labels a tagged word (canvas.css, .word[data-tag-name]::after). */
+.intro-tag-name {
+	position: absolute;
+	margin-left: var(--space-4);
+	padding: var(--space-1) var(--space-4);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-xs);
+	background: var(--surface);
+	color: var(--ink);
+	font: 400 var(--text-sm) / 1.4 var(--font-ui);
+	white-space: nowrap;
+	opacity: 0;
+}
+.intro-ink {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+.intro-ink polygon {
+	transform-box: view-box;
+}
+.intro-study .margin-note {
+	justify-self: end;
+	margin: -10px 0 0 0;
+	padding: 0;
+	font-family: var(--font-hand);
+	font-size: 22px;
+	color: var(--pen);
+	cursor: default;
+	opacity: 0;
+}
+.intro-note-word {
+	display: inline-block;
+}
+
+.intro-text {
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+	max-width: 440px;
+	margin-top: 36px;
+	text-align: center;
+}
+.intro-text h2 {
+	margin: 0;
+	font-size: 26px;
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -0.022em;
+}
+.intro-text p {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.45;
+	letter-spacing: -0.006em;
+	color: var(--text-muted);
+	text-wrap: balance;
+}
+
+/* Dots just under the copy, then Continue, then the quiet way out. */
+.intro-footer {
+	display: grid;
+	justify-items: center;
+	margin-top: 18px;
+}
+.intro-dots {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 26px;
+}
+.intro-dots span {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--ink);
+	opacity: 0.2;
+	transition: opacity 420ms var(--ease-out);
+}
+.intro-dots span[data-current] {
+	opacity: 0.8;
+}
+.intro-skip {
+	margin-top: 12px;
+}

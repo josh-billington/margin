@@ -13,15 +13,19 @@ export const metadata: Metadata = {
 const sections: { title: string; body: React.ReactNode }[] = [
 	{
 		title: 'The app collects nothing',
-		body: 'Margin has no account, no sign-in, no analytics, no crash reporting and no advertising. It doesn’t send your studies, your notes, or anything about how you use it anywhere.',
+		body: 'Margin has no account, no sign-in, no analytics, no crash reporting and no advertising. It doesn’t send your studies, your notes or anything about how you use it anywhere.',
 	},
 	{
 		title: 'It works offline',
-		body: 'The Bible text, fonts and everything else the app needs are installed with it. Margin doesn’t need the network to open, edit or save a study.',
+		body: 'The Bible text, fonts and everything else the app needs are installed with it. Margin doesn’t need the internet to open, edit or save a study.',
 	},
 	{
 		title: 'Your studies stay on your Mac',
-		body: 'Each study is saved as a plain JSON file in a Margin folder in your Documents, or in another folder you choose. Margin also keeps a little local state, such as which study was open last, in its own app folder. If you sync or back up those folders with another service, that service’s own privacy terms apply.',
+		body: 'Each study is saved as a plain JSON file in a Margin folder in your Documents, or in another folder you choose. Margin also keeps a few things in its own app folder on your Mac: your settings, which study was open last, recovery copies of your studies and a short log of app errors that helps track down problems. The log holds no study text and stays on your Mac unless you share it. If you sync or back up those folders with another service, that service’s own privacy terms apply.',
+	},
+	{
+		title: 'Updates and feedback',
+		body: 'Margin connects to GitHub only when you ask it to. Check for Updates… reads the list of Margin releases from GitHub and sends nothing about you or your studies. Send Feedback… opens a new GitHub issue in your browser with your Margin version, macOS version and processor type filled in. You see the issue before anything is sent, and GitHub’s privacy terms apply to what you post.',
 	},
 	{
 		title: 'This website',
@@ -29,7 +33,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
 	},
 	{
 		title: 'Changes',
-		body: 'If any of this changes, for example if a future version adds an optional feature that uses the network, this page will say so before that version is released. Last updated 3 November 2026.',
+		body: 'If any of this changes, for example if a future version adds an optional feature that uses the internet, this page will say so before that version is released. Last updated 12 November 2026.',
 	},
 ]
 
@@ -43,8 +47,8 @@ export default function PrivacyPage() {
 						Privacy
 					</h1>
 					<p className="text-ink/85 mt-7 max-w-[36rem] text-xl leading-relaxed">
-						Margin is an offline app with no account. It collects nothing, and your studies never
-						leave your Mac unless you move them.
+						Margin works offline and has no account. It collects nothing, and your studies stay on
+						your Mac unless you keep them in a folder that syncs, such as iCloud Drive.
 					</p>
 					<p className="font-hand text-pen mt-6 -rotate-1 text-[24px]">
 						the short version: nothing to see here
@@ -73,7 +77,16 @@ export default function PrivacyPage() {
 										.
 									</>
 								) : (
-									'A contact address will be listed here before the first release.'
+									<>
+										Open an issue on{' '}
+										<a
+											className="text-sky underline-offset-4 hover:underline"
+											href={site.issuesUrl}
+										>
+											GitHub
+										</a>
+										, or choose Help › Send Feedback… in the app.
+									</>
 								)}
 							</p>
 						</section>
