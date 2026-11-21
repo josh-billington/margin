@@ -25,7 +25,8 @@ export const HeroHeader = () => {
 	}, [])
 	// The open phone menu floats too, so its links sit on glass rather than on the page.
 	const floating = scrolled || menuState
-	const lens = useGlassLens<HTMLDivElement>(floating)
+	// The glass layer keeps one size, so its lens is measured once, not on every frame of a change.
+	const lens = useGlassLens<HTMLDivElement>(true)
 	React.useEffect(() => {
 		if (!menuState) return
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -44,22 +45,17 @@ export const HeroHeader = () => {
 				className="relative z-20 flow-root w-full"
 			>
 				{lens.defs}
-				<div
-					className={cn(
-						'header-bar mx-auto px-6',
-						floating && 'glass px-3 md:pr-2.5 md:pl-4',
-						floating && 'rounded-2xl',
-					)}
-					ref={lens.ref}
-					data-scrolled={floating ? '' : undefined}
-					{...(floating ? lens.props : {})}
-				>
+				{/* The bar never changes size or position; scrolling only fades its glass in, so nothing
+				    reflows and the blur, rim and shadow arrive together. */}
+				<div className="header-bar relative mx-auto mt-3 px-3 md:pr-2.5 md:pl-4">
 					<div
-						className={cn(
-							'relative flex flex-wrap items-center justify-between gap-6 md:gap-0',
-							floating ? 'py-2' : 'py-5',
-						)}
-					>
+						aria-hidden
+						ref={lens.ref}
+						data-on={floating ? '' : undefined}
+						className="header-glass glass pointer-events-none absolute inset-0 rounded-2xl"
+						{...lens.props}
+					/>
+					<div className="relative flex flex-wrap items-center justify-between gap-6 py-2 md:gap-0">
 						<div className="flex w-full items-center justify-between gap-6 md:w-auto">
 							<Link href="/" aria-label="Margin home" className="pressable flex rounded-lg">
 								<Logo />
@@ -73,8 +69,8 @@ export const HeroHeader = () => {
 								aria-expanded={menuState}
 								className="relative z-20 -m-2.5 -mr-3 block cursor-pointer p-2.5 md:hidden"
 							>
-								<Menu className="in-data-[state=active]:scale-90 in-data-[state=active]:opacity-0 m-auto size-6" />
-								<X className="in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 scale-90 opacity-0" />
+								<Menu className="menu-icon in-data-[state=active]:scale-90 in-data-[state=active]:opacity-0 in-data-[state=active]:blur-[2px] m-auto size-6" />
+								<X className="menu-icon in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 in-data-[state=active]:blur-none absolute inset-0 m-auto size-6 scale-90 opacity-0 blur-[2px]" />
 							</button>
 						</div>
 

@@ -110,6 +110,7 @@ export function HillsShader() {
 		let visible = false
 		let ready = false
 		let disposed = false
+		let settle = 0
 		const start = performance.now()
 
 		const resize = () => {
@@ -152,6 +153,8 @@ export function HillsShader() {
 			gl.uniform1f(timeUniform, 0)
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 			host.dataset.live = ''
+			// The canvas fades in over 800ms (globals.css); drop the still underneath once it has.
+			settle = window.setTimeout(() => (host.dataset.settled = ''), 900)
 			run()
 		}
 
@@ -171,7 +174,9 @@ export function HillsShader() {
 			observer.disconnect()
 			resizeObserver.disconnect()
 			document.removeEventListener('visibilitychange', onVisibility)
+			window.clearTimeout(settle)
 			delete host.dataset.live
+			delete host.dataset.settled
 			// The context stays with the canvas: a remount reuses it, and losing it here would break that.
 			gl.deleteProgram(program)
 		}

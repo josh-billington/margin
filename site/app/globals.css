@@ -224,20 +224,77 @@
   background: linear-gradient(to bottom, var(--keycap-top-hover), var(--keycap-top));
 }
 
-/* The header bar narrows into its floating capsule. */
+/* The header bar keeps one size and place; once the page scrolls its glass layer fades in. */
 .header-bar {
-  max-width: 72rem;
-  transition: max-width 280ms var(--ease-out), margin-top 280ms var(--ease-out),
-    padding 280ms var(--ease-out), background-color 200ms ease;
-}
-.header-bar[data-scrolled] {
   max-width: min(72rem, calc(100% - 24px));
-  margin-top: 12px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .header-bar {
-    transition: none;
+.header-glass {
+  opacity: 0;
+  transition: opacity 240ms var(--ease-out);
+}
+.header-glass[data-on] {
+  opacity: 1;
+}
+
+/* Phone menu: the icons swap with a short scale and blur, and the panel grows from the button's
+   corner. display animates discretely so the panel can fade out before it is removed. */
+.menu-icon {
+  /* Tailwind's scale-* utilities set the scale property, not transform. */
+  transition:
+    opacity 200ms var(--ease-out),
+    scale 200ms var(--ease-out),
+    filter 200ms var(--ease-out);
+}
+@media (max-width: 767px) {
+  #main-menu {
+    opacity: 0;
+    transform: scale(0.97);
+    transform-origin: top right;
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out),
+      display 200ms allow-discrete;
   }
+  [data-state='active'] #main-menu {
+    opacity: 1;
+    transform: none;
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+}
+
+/* FAQ answers open to their measured height (Radix sets --radix-accordion-content-height); the +
+   turns into − as its upright bar rotates. */
+@keyframes faq-open {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+@keyframes faq-close {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+[data-slot='accordion-content'][data-state='open'] {
+  animation: faq-open 200ms var(--ease-out);
+}
+[data-slot='accordion-content'][data-state='closed'] {
+  animation: faq-close 200ms var(--ease-out);
+}
+.faq-plus-bar {
+  transition: transform 200ms var(--ease-out);
 }
 
 /* The hero stage: the page colour at the top, deepening into a wash of the app's blue at the bottom,
@@ -267,12 +324,17 @@
   opacity: var(--landscape-opacity);
   mix-blend-mode: var(--landscape-blend);
 }
-/* The live painting (components/hills-shader.tsx) sits exactly where the still one is drawn, and
-   replaces it once its first frame is up. */
-.hero-landscape[data-live] {
+/* The live painting (components/hills-shader.tsx) sits exactly where the still one is drawn. Once its
+   first frame is up it fades in over the still, so the mist rolls in, and then the still is dropped. */
+.hero-landscape[data-live] .hero-hills-canvas {
+  opacity: 1;
+}
+.hero-landscape[data-settled] {
   background-image: none;
 }
 .hero-hills-canvas {
+  opacity: 0;
+  transition: opacity 800ms var(--ease-out);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -323,12 +385,29 @@
   html {
     scroll-behavior: auto;
   }
+    /* Fewer, gentler: sections still fade in, they just don't rise. */
   .js [data-reveal] {
-    opacity: 1;
     transform: none;
-    transition: none;
+    transition: opacity 250ms ease;
   }
   .pressable:active:not(:focus-visible) {
     transform: none;
+  }
+  .menu-icon {
+    scale: none !important;
+  }
+  #main-menu {
+    transform: none !important;
+  }
+  @keyframes faq-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  [data-slot='accordion-content'][data-state='open'] {
+    animation: faq-fade 200ms ease;
+  }
+  [data-slot='accordion-content'][data-state='closed'] {
+    animation: none;
   }
 }
