@@ -6,21 +6,21 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL(site.url),
 	title: {
-		default: 'Margin: slow, visual Bible study for the Mac',
-		template: '%s · Margin',
+		default: 'make scripture your own',
+		template: '%s margin',
 	},
 	description: site.description,
-	applicationName: 'Margin',
+	applicationName: 'margin',
 	openGraph: {
 		type: 'website',
-		siteName: 'Margin',
-		title: 'Margin: slow, visual Bible study for the Mac',
+		siteName: 'margin',
+		title: 'make scripture your own',
 		description: site.description,
 		url: '/',
 	},
 	twitter: {
 		card: 'summary_large_image',
-		title: 'Margin: slow, visual Bible study for the Mac',
+		title: 'make scripture your own',
 		description: site.description,
 	},
 }
