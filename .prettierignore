@@ -1,5 +1,10 @@
 node_modules
-out
-release
-yarn.lock
-resources/fonts
+**/out
+apps/mcp/dist
+**/release
+pnpm-lock.yaml
+**/resources/fonts
+site
+docs
+video
+.audit

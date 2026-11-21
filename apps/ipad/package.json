@@ -1,0 +1,59 @@
+{
+	"name": "@margin/ipad",
+	"version": "0.9.0-beta.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build --config vite.web.config.ts",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run src/files.test.ts",
+		"ios:sync": "pnpm build && cap sync ios && sh capacitor/vendor-spm.sh",
+		"ios:run": "pnpm ios:sync && cap run ios --no-sync"
+	},
+	"dependencies": {
+		"@capacitor-community/sqlite": "8.1.1",
+		"@capacitor/app": "8.1.2",
+		"@capacitor/clipboard": "8.0.1",
+		"@capacitor/core": "8.6.2",
+		"@capacitor/filesystem": "8.1.5",
+		"@margin/contract": "workspace:*",
+		"@margin/core": "workspace:*",
+		"@margin/services": "workspace:*",
+		"zod": "4.6.7"
+	},
+	"devDependencies": {
+		"@capacitor/cli": "8.6.2",
+		"@capacitor/ios": "8.6.2"
+	},
+	"nx": {
+		"targets": {
+			"build": {
+				"inputs": [
+					"default",
+					"^default",
+					{
+						"env": "MARGIN_IPAD_PROBE"
+					},
+					{
+						"fileset": "{workspaceRoot}/.env",
+						"includeIgnored": true
+					},
+					{
+						"fileset": "{workspaceRoot}/apps/desktop/resources/**/*.sqlite",
+						"includeIgnored": true
+					},
+					"{workspaceRoot}/apps/desktop/resources/lexicon/lexicon.manifest.json"
+				],
+				"outputs": [
+					"{projectRoot}/www"
+				]
+			},
+			"ios:sync": {
+				"cache": false
+			},
+			"ios:run": {
+				"cache": false
+			}
+		}
+	}
+}

@@ -1,0 +1,189 @@
+import { useEffect, useId } from 'react'
+import { useEditor, useValue } from 'tldraw'
+import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { verseKey } from '../highlights/ranges'
+import { ToolButton } from '../../app/ToolButton'
+import { iconLg } from '../../lib/icons'
+import { platform, useCoarsePointer } from '../../lib/platform'
+import { exitFocusLevel, laidOutVerseBounds, stepVerse } from './actions'
+import { computeBrightSet } from './dimming'
+import { dimModel } from './model'
+import { focusFor, passageLayout, resetFocus, useFocus } from './store'
+
+const DIM = 'var(--focus-dim-opacity, 0.22)'
+const OTHER_VERSE = 0.25
+
+/**
+ * Runtime-only focus rendering (SPEC §5.2, §9.3): a stylesheet scoped to this canvas dims
+ * shapes and non-active verses, so no opacity or highlight prop is ever written. Also draws
+ * the faint pulled-out connectors, which are derived from `pulledFrom` and not stored shapes.
+ */
+export function FocusLayer() {
+	const editor = useEditor()
+	const scope = useId()
+	const target = useFocus((state) => (state.editor === editor ? state.target : null))
+	useEffect(() => {
+		const container = editor.getContainer()
+		container.setAttribute('data-focus-scope', scope)
+		// New input interrupts a camera move (SPEC §5.1).
+		const interrupt = () => editor.stopCameraAnimation()
+		container.addEventListener('wheel', interrupt, { capture: true, passive: true })
+		container.addEventListener('pointerdown', interrupt, true)
+		return () => {
+			container.removeAttribute('data-focus-scope')
+			container.removeEventListener('wheel', interrupt, true)
+			container.removeEventListener('pointerdown', interrupt, true)
+		}
+	}, [editor, scope])
+	const gone = useValue(
+		'focused passage gone',
+		() => !!target && editor.getShape(target.passageId as never)?.type !== 'passage',
+		[editor, target],
+	)
+	useEffect(() => {
+		if (gone && focusFor(editor)) resetFocus()
+	}, [gone, editor])
+
+	const rules = useValue(
+		'focus rules',
+		() => {
+			const prefix = `[data-focus-scope="${scope}"]`
+			// The dim is an opacity fade, which Reduce Motion keeps (only the camera goes immediate), so
+			// it is !important over the global rule that shortens every transition under that setting.
+			// Kept after focus ends so the undim fades too, a little faster than the dim.
+			if (!target || gone)
+				return `${prefix} .tl-shape,${prefix} .scripture-verse{transition:opacity 150ms ease-out !important}`
+			const bright = computeBrightSet(dimModel(editor), target)
+			const out = [`${prefix} .tl-shape{transition:opacity 200ms ease-out !important}`]
+			// Reading chrome: while only the focused block is selected (focus selects it), its selection
+			// outline and header menu step away from the text. They return on Esc, or as soon as the
+			// reader selects something else.
+			const selected = editor.getSelectedShapeIds()
+			if (selected.length === 1 && selected[0] === target.passageId)
+				out.push(
+					`${prefix} .tl-canvas-overlays{visibility:hidden}`,
+					`${prefix} [data-shape-id="${target.passageId}"] .passage-header-actions{visibility:hidden}`,
+				)
+			for (const shape of editor.getCurrentPageShapes())
+				if (!bright.has(shape.id))
+					out.push(`${prefix} [data-shape-id="${shape.id}"]{opacity:${DIM} !important}`)
+			if (target.level === 'verse')
+				out.push(
+					`${prefix} [data-shape-id="${target.passageId}"] .scripture-verse:not([data-verse-key="${verseKey(target.verse)}"]){opacity:${OTHER_VERSE}}`,
+				)
+			return out.join('\n')
+		},
+		[editor, target, gone, scope],
+	)
+	const connectors = useValue(
+		'pull-out connectors',
+		() => {
+			passageLayout.get() // Re-measure source verses after any block lays out.
+			const bright = target && !gone ? computeBrightSet(dimModel(editor), target) : null
+			return editor.getCurrentPageShapes().flatMap((shape) => {
+				if (shape.type !== 'passage' || !shape.props.pulledFrom) return []
+				const source = editor.getShape(shape.props.pulledFrom.passageId as never)
+				if (source?.type !== 'passage') return []
+				const from = laidOutVerseBounds(editor, source, shape.props.pulledFrom.verse)
+				const x1 = source.x + source.props.width,
+					y1 = from.y + from.h / 2,
+					x2 = shape.x,
+					y2 = shape.y + 28
+				const dx = Math.max(24, Math.abs(x2 - x1) / 2)
+				return [
+					{
+						id: shape.id as string,
+						d: `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`,
+						dim: !!bright && !bright.has(shape.id) && !bright.has(source.id),
+					},
+				]
+			})
+		},
+		[editor, target, gone],
+	)
+	return (
+		<>
+			<style>{rules}</style>
+			{connectors.length > 0 && (
+				<svg
+					className="pull-out-connectors"
+					aria-hidden="true"
+					style={{
+						position: 'absolute',
+						left: 0,
+						top: 0,
+						width: 1,
+						height: 1,
+						overflow: 'visible',
+						pointerEvents: 'none',
+					}}
+				>
+					{connectors.map((c) => (
+						<path
+							key={c.id}
+							d={c.d}
+							fill="none"
+							stroke="var(--pen)"
+							strokeWidth={1.5}
+							strokeDasharray="4 6"
+							strokeLinecap="round"
+							opacity={c.dim ? 0.08 : 0.3}
+						/>
+					))}
+				</svg>
+			)}
+		</>
+	)
+}
+
+/**
+ * ↑ ↓ and Esc on screen, for reading focus without a keyboard: a finger, or a host whose menu bar
+ * does not carry them.
+ */
+export function FocusControls() {
+	const editor = useEditor()
+	const coarse = useCoarsePointer()
+	const target = useFocus((state) => (state.editor === editor ? state.target : null))
+	const position = useValue(
+		'focused verse position',
+		() => {
+			if (!target) return null
+			const shape = editor.getCurrentPageShapes().find((shape) => shape.id === target.passageId)
+			if (shape?.type !== 'passage') return null
+			const verses = shape.props.text.verses
+			const index =
+				target.level === 'verse'
+					? verses.findIndex((verse) => verseKey(verse.ref) === verseKey(target.verse))
+					: -1
+			return { index, count: verses.length }
+		},
+		[editor, target],
+	)
+	if (!target || !position || !(coarse || !platform.nativeMenu)) return null
+	const inVerse = target.level === 'verse'
+	return (
+		<div className="focus-controls" role="toolbar" aria-label="Reading focus">
+			<ToolButton
+				label="Previous verse"
+				disabled={inVerse && position.index <= 0}
+				onClick={() => stepVerse(editor, -1)}
+			>
+				<ChevronUp {...iconLg} />
+			</ToolButton>
+			<ToolButton
+				label="Next verse"
+				disabled={inVerse && position.index >= position.count - 1}
+				onClick={() => stepVerse(editor, 1)}
+			>
+				<ChevronDown {...iconLg} />
+			</ToolButton>
+			<span className="toolbar-divider" aria-hidden="true" />
+			<ToolButton
+				label={inVerse ? 'Show all verses' : 'Leave focus'}
+				onClick={() => exitFocusLevel(editor)}
+			>
+				<X {...iconLg} />
+			</ToolButton>
+		</div>
+	)
+}

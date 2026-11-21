@@ -14,23 +14,22 @@ export default function AnchorsSection() {
 						data-reveal
 						className="text-ink text-[clamp(32px,3.8vw,52px)] font-semibold leading-[1.05] tracking-[-0.03em] text-balance"
 					>
-					  Connect ideas to verses
+						Arrows that stay on the word
 					</h2>
 					<p
 						data-reveal
 						style={{ '--d': '80ms' } as React.CSSProperties}
 						className="text-ink/85 mt-6 max-w-[30rem] text-[17px] leading-relaxed"
 					>
-						In Margin an arrow is bound to the word you drew it to, not to a spot on the screen.
-						Resize the verses, change the text size, close the app and come back next year: it still
-						points at the same word.
+						In Margin, an arrow stays attached to the word you drew it to. Resize the verses, change
+						the text size or come back next year, and it still points at the same word.
 					</p>
 					<p
 						data-reveal
 						style={{ '--d': '140ms' } as React.CSSProperties}
 						className="text-muted-foreground mt-4 max-w-[30rem] text-[15px] leading-relaxed"
 					>
-						Try it. Drag the width and watch the verse rewrap.
+						Try it: drag the Verse width slider and watch the verse rewrap.
 					</p>
 				</div>
 				<div

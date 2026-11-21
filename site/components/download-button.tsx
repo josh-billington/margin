@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Button, type ButtonProps } from '@/components/ui/button'
 import { site } from '@/lib/site'
 import { FaApple, FaGithub } from 'react-icons/fa'
@@ -14,7 +13,9 @@ export function DownloadButton({
 	if (site.downloadUrl)
 		return (
 			<Button asChild size={size} className={className}>
-				<Link href={site.downloadUrl}>Download for Mac</Link>
+				<a href={site.downloadUrl}>
+					Download for macOS <FaApple />
+				</a>
 			</Button>
 		)
 	return (

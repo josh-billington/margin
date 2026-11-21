@@ -1,0 +1,129 @@
+import { z } from 'zod'
+import { books, findBooks, referenceBookName } from './books'
+import { passageRangeSchema, textEditionSchema, translationIdSchema } from './types'
+import type { BookId, TranslationId } from './types'
+
+export const referenceErrorSchema = z.object({
+	kind: z.literal('error'),
+	code: z.enum(['INVALID_SYNTAX', 'UNKNOWN_BOOK', 'AMBIGUOUS_BOOK', 'INVALID_RANGE']),
+	message: z.string(),
+	candidates: z.array(z.string()),
+})
+export const insertionPreviewSchema = z.union([
+	z.object({
+		kind: z.literal('resolved'),
+		edition: textEditionSchema,
+		ranges: z.array(passageRangeSchema).min(1),
+		label: z.string(),
+		translation: translationIdSchema,
+		numberingSystem: z.string(),
+		notice: z.string().nullable(),
+	}),
+	referenceErrorSchema,
+])
+export type ReferenceError = z.infer<typeof referenceErrorSchema>
+export type InsertionPreview = z.infer<typeof insertionPreviewSchema>
+export type VerseBoundaries = (
+	translation: TranslationId,
+	book: BookId,
+	chapter: number,
+) => readonly number[]
+
+const qualifierPattern = /^(KJV|JPS(?:\s*1917)?|BSB|WEB|ASV)\s+/i
+
+/**
+ * Whether input reads as a reference, possibly half-typed: a known book name followed by a
+ * chapter ("John 3", "Amos 1:3–"). Anything else is words to search for.
+ */
+export function looksLikeReference(input: string) {
+	const match = /^(.*?)\s+(\d[\d:\s–-]*)$/.exec(input.trim().replace(qualifierPattern, ''))
+	return !!match && findBooks(match[1] ?? '').length > 0
+}
+
+export function parseReference(
+	reference: string,
+	defaultTranslation: TranslationId,
+	boundaries: VerseBoundaries,
+	oldTestamentTranslation?: TranslationId,
+) {
+	const fail = (
+		code: ReferenceError['code'],
+		message: string,
+		candidates: string[] = [],
+	): ReferenceError => ({ kind: 'error', code, message, candidates })
+	const qualifier = qualifierPattern.exec(reference.trim())
+	let translation: TranslationId = qualifier
+		? /^jps/i.test(qualifier[1] ?? '')
+			? 'jps1917'
+			: translationIdSchema.parse(qualifier[1]?.toLowerCase())
+		: defaultTranslation
+	const input = reference.trim().slice(qualifier?.[0].length ?? 0)
+	const match = /^(.*?)\s+(\d+)(?::(\d+))?(?:\s*[-–]\s*(?:(\d+):)?(\d+))?$/.exec(input)
+	if (!match)
+		return fail(
+			'INVALID_SYNTAX',
+			'Enter a book and chapter. Choose verses from one book at a time.',
+		)
+	const candidates = findBooks(match[1] ?? '')
+	if (!candidates.length)
+		return fail(
+			'UNKNOWN_BOOK',
+			'Margin doesn’t recognize this book name. Check the name and try again.',
+			books
+				.filter((book) => book.name.toLowerCase().startsWith((match[1] ?? '').toLowerCase()))
+				.map((book) => book.name),
+		)
+	if (candidates.length !== 1)
+		return fail(
+			'AMBIGUOUS_BOOK',
+			'Choose a book.',
+			candidates.map((book) => book.name),
+		)
+	const book = candidates[0]
+	if (!book)
+		return fail(
+			'UNKNOWN_BOOK',
+			'Margin doesn’t recognize this book name. Check the name and try again.',
+		)
+	// An unqualified Old Testament reference uses the separate OT default when one is set.
+	if (!qualifier && book.testament === 'old' && oldTestamentTranslation)
+		translation = oldTestamentTranslation
+	const notice =
+		translation === 'jps1917' && book.testament === 'new'
+			? 'JPS 1917 contains only the Tanakh. To add these New Testament verses, use KJV.'
+			: null
+	if (notice) translation = 'kjv'
+	const startChapter = Number(match[2])
+	const startVerses = boundaries(translation, book.id, startChapter)
+	const endChapter = match[4] ? Number(match[4]) : startChapter
+	const endVerses = boundaries(translation, book.id, endChapter)
+	const startVerse = match[3] ? Number(match[3]) : startVerses[0]
+	const endVerse = match[5] ? Number(match[5]) : match[3] ? startVerse : endVerses.at(-1)
+	if (
+		(!match[3] && match[5]) ||
+		startVerse === undefined ||
+		endVerse === undefined ||
+		!startVerses.includes(startVerse) ||
+		!endVerses.includes(endVerse) ||
+		endChapter < startChapter ||
+		(endChapter === startChapter && endVerse < startVerse)
+	)
+		return fail(
+			'INVALID_RANGE',
+			'This translation does not contain these chapters or verses. Check the reference or choose another translation.',
+		)
+	for (let chapter = startChapter; chapter <= endChapter; chapter++) {
+		if (!boundaries(translation, book.id, chapter).length)
+			return fail(
+				'INVALID_RANGE',
+				'This translation does not contain every chapter in this range. Choose another reference or translation.',
+			)
+	}
+	const range = {
+		start: { book: book.id, chapter: startChapter, verse: startVerse },
+		end: { book: book.id, chapter: endChapter, verse: endVerse },
+	}
+	const name = referenceBookName({ id: book.id, oneChapter: startChapter === endChapter })
+	const label = `${name} ${startChapter}:${startVerse}${startChapter !== endChapter ? `–${endChapter}:${endVerse}` : startVerse !== endVerse ? `–${endVerse}` : ''}`
+	return { kind: 'resolved' as const, ranges: [range], label, translation, notice }
+}

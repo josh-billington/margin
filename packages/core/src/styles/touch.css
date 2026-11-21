@@ -1,0 +1,272 @@
+/*
+ * Touch routes: loaded only on a host without the Mac's menu bar or with a finger for a pointer
+ * (main.tsx), so the Mac's stylesheet stays as it is.
+ */
+
+/* Dynamic Type: the iPad's text-size setting arrives as the system body size (17px by default).
+   The UI type scale is expressed against it, so the default reads exactly as the fixed scale and a
+   larger setting grows the chrome with it, up to half again so the sidebar still holds a title.
+   Canvas shapes keep their own scale below; scripture follows each passage's text size. */
+:root[data-platform='ipad'] {
+	/* Where the system style isn't understood (the Mac renderer with MARGIN_PLATFORM=ipad). */
+	font: 400 17px / 1.4 var(--font-ui);
+	font: -apple-system-body;
+	--text-2xs: min(calc(10rem / 17), 15px);
+	--text-xs: min(calc(11rem / 17), 16.5px);
+	--text-sm: min(calc(12rem / 17), 18px);
+	--text-md: min(calc(13rem / 17), 19.5px);
+	--text-lg: min(calc(15rem / 17), 22.5px);
+}
+:root[data-platform='ipad'] body {
+	font: 400 var(--text-sm) / 1.4 var(--font-ui);
+}
+/* Labels set in a fixed column (a lookup's KJV, Origin, Compare) widen with the text. */
+:root[data-platform='ipad'] .lookup-facts {
+	grid-template-columns: minmax(56px, max-content) 1fr;
+}
+
+/* Search results are 44pt rows; the field and its pop-ups grow with --row-h and --control-h-sm. */
+@media (pointer: coarse) {
+	.search-hit {
+		min-height: var(--touch-target);
+		padding-block: var(--space-3);
+	}
+}
+
+/* Shapes are laid out in canvas units with the Mac's sizes (tokens.css), whatever the text-size
+   setting; their controls grow by hit area instead. */
+.tl-shape {
+	--text-2xs: 10px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-lg: 15px;
+	--control-h-sm: 22px;
+	--control-h: 26px;
+	--row-h: 28px;
+}
+
+/* A fingertip needs 44pt (Apple HIG). Rows and fields grow to it, and with the text after that;
+   icons keep their size, only the box around them grows. */
+@media (pointer: coarse) {
+	:root {
+		--touch-target: 44px;
+		--control-h-sm: clamp(var(--touch-target), calc(44rem / 17), 66px);
+		--control-h: var(--control-h-sm);
+		--row-h: var(--control-h-sm);
+	}
+	/* An invisible 44pt square centred on a control smaller than that, leaving its layout alone. */
+	.passage-header button,
+	.note-options-trigger,
+	.color-choices button,
+	.slider-thumb,
+	.text-button,
+	.segmented > button,
+	.margin-popover .lookup-ref {
+		position: relative;
+	}
+	.note-options-trigger::before,
+	.color-choices button::before,
+	.slider-thumb::before,
+	.text-button::before,
+	.margin-popover .lookup-ref::before {
+		content: '';
+		position: absolute;
+		inset: min(0px, calc(50% - var(--touch-target) / 2));
+	}
+	/* Up into the block's padding rather than down over the first line of scripture. */
+	.passage-header button::before {
+		content: '';
+		position: absolute;
+		inset: -14px -11px -8px;
+	}
+	.margin-popover .translation-control > .translation-change {
+		min-height: var(--touch-target);
+	}
+	/* Segments meet edge to edge; each one reaches over the track's inset to the full height.
+	   (They never shrink below their label, so nothing needs clipping.) */
+	.segmented > button {
+		overflow: visible;
+	}
+	.segmented > button::before {
+		content: '';
+		position: absolute;
+		inset: min(0px, calc(50% - var(--touch-target) / 2)) 0;
+	}
+	/* The 18px dots keep their look; the spacing makes room for a 44pt target around each, and the
+	   first dot still lines up with the label above. */
+	.color-choices {
+		flex-wrap: wrap;
+		gap: calc(var(--touch-target) - 18px);
+		padding: calc((var(--touch-target) - 18px) / 2);
+		margin-inline: calc((18px - var(--touch-target)) / 2);
+	}
+	/* Room for a note's seven colours on one line. */
+	.margin-popover:has(.color-choices) {
+		width: 320px;
+		max-width: calc(100vw - 2 * var(--space-6));
+	}
+	/* The tag popover's highlight dots: the same 44pt spacing, on the row's text inset, with room for
+	   all six on one line. Its rows, field and Add button take the 44pt control height. */
+	.margin-popover.tag-popover {
+		width: 320px;
+	}
+	.tag-popover .color-choices {
+		gap: calc(var(--touch-target) - 18px);
+	}
+	.margin-popover.tag-popover > div.color-choices {
+		gap: calc(var(--touch-target) - 18px);
+		padding: calc((var(--touch-target) - 18px) / 2) var(--space-4);
+		margin-inline: 0;
+	}
+	/* The search field fills its bar, not just its line of text. */
+	[cmdk-input] {
+		align-self: stretch;
+	}
+	.check-row,
+	.margin-popover label:has(input[type='checkbox']) {
+		min-height: var(--touch-target);
+	}
+	.canvas-toolbar {
+		/* Buttons meet edge to edge so the full set fits a portrait iPad beside the sidebar; anything
+		   narrower scrolls sideways instead of spilling off the canvas. */
+		gap: 0;
+		max-width: calc(100% - 2 * var(--space-4));
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.canvas-toolbar::-webkit-scrollbar {
+		display: none;
+	}
+	.canvas-toolbar .icon-button {
+		flex: none;
+		width: var(--touch-target);
+		height: var(--touch-target);
+	}
+	.canvas-toolbar .zoom-button {
+		width: auto;
+		min-width: var(--touch-target);
+		padding: 0 var(--space-3);
+	}
+	.canvas-toolbar .toolbar-divider {
+		flex: none;
+		margin: 0 var(--space-1);
+	}
+	/* A finger pinches to zoom; the percentage still returns to actual size. */
+	.canvas-toolbar .zoom-step {
+		display: none;
+	}
+	.diagram-choices button {
+		min-height: var(--touch-target);
+	}
+	/* A fingertip needs more than the 14px a cursor does; the visible edge stays where it is. The
+	   handles start below the header so its options button keeps its whole target. */
+	.passage-resize {
+		top: calc(var(--space-5) + var(--control-h-sm) + var(--space-4));
+		width: var(--touch-target);
+	}
+	.passage-resize-left {
+		left: -30px;
+	}
+	.passage-resize-right {
+		right: -30px;
+	}
+}
+
+/* Without hover (a finger): row actions stay in view instead of waiting for it, a tap leaves no
+   hover styling behind, and every control answers the touch itself, on the way down. */
+@media (hover: none) {
+	.library-study-row .row-actions,
+	.passage-list-row > .row-icon-button,
+	.tag-row > .row-icon-button {
+		opacity: 1;
+	}
+	.library-study-row .row-button {
+		padding-right: calc(2 * var(--control-h-sm) + var(--space-1) + var(--space-3));
+	}
+	.row-icon-button:not(:disabled):active,
+	.icon-button:not(:disabled):active,
+	.menu-button:not(:disabled):active,
+	.passage-header button:active,
+	.note-options-trigger:active,
+	:where(.margin-popover button):not(:disabled):active,
+	.margin-menu-item:not([data-disabled]):active,
+	.segmented > button:not(:disabled):active,
+	.insert-candidates button:active,
+	[cmdk-item]:active {
+		background: var(--pressed);
+	}
+}
+:root[data-platform='ipad'] {
+	/* Every control above draws its own press; WebKit's grey tap flash would double it. */
+	-webkit-tap-highlight-color: transparent;
+}
+/* WebKit sizes a grid dialog's `fit-content` height to its maximum. Here it takes its content's
+   height and is centred by `translate`, which composes with the entry scale instead of replacing it. */
+.dialog-panel {
+	top: 50%;
+	bottom: auto;
+	height: auto;
+	translate: 0 -50%;
+}
+/* A dialog closes on a tap outside it once that tap clicks, but WebKit only clicks what it takes to
+   be clickable, and the overlay sits outside the app's root. */
+.dialog-overlay {
+	cursor: pointer;
+}
+
+/* The long-press word menu is the callout here; the system's would sit on top of it. */
+.passage-text {
+	-webkit-touch-callout: none;
+}
+/* A held word shows the press at once, as iOS does, until the finger lifts or moves (lookup/store.ts).
+   Layered over any tag wash rather than replacing it. */
+.passage-text [data-word][data-pressed] {
+	background-image: linear-gradient(var(--ink-wash), var(--ink-wash));
+	box-shadow: 0 0 0 2px var(--ink-wash);
+	border-radius: 3px;
+}
+.word-menu-anchor {
+	position: fixed;
+	pointer-events: none;
+}
+
+/* Reading focus on screen (FocusLayer.tsx): ↑ ↓ and Esc for a finger, at the right edge. Centred
+   by margins, not a transform, so the entry scale has the transform to itself. */
+.focus-controls {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: var(--space-6);
+	height: fit-content;
+	margin-block: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-1);
+	padding: var(--space-2);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: calc(var(--radius-sm) + var(--space-2) + var(--stroke-hairline));
+	box-shadow: var(--shadow-toolbar);
+	pointer-events: all;
+	user-select: none;
+	-webkit-user-select: none;
+	transform-origin: right center;
+	animation: pop-in var(--duration-base) var(--ease-out);
+}
+.focus-controls .icon-button {
+	width: var(--row-h);
+	height: var(--row-h);
+}
+.focus-controls .toolbar-divider {
+	width: 16px;
+	height: 1px;
+	margin: var(--space-2) 0;
+}
+@media (pointer: coarse) {
+	.focus-controls .icon-button {
+		width: var(--touch-target);
+		height: var(--touch-target);
+	}
+}
