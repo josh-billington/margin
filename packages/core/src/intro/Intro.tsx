@@ -113,7 +113,7 @@ export function Intro({ restoreFocus }: { restoreFocus: boolean }) {
 					<button
 						ref={start}
 						type="button"
-						className="intro-start"
+						className="button button-primary intro-start"
 						onClick={() => leave('finished')}
 					>
 						{introCopy.start}
