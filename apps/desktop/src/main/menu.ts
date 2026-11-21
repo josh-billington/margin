@@ -127,8 +127,6 @@ export function installAppMenu(
 		{
 			role: 'help',
 			submenu: [
-				command('Show Welcome', 'intro.show'),
-				{ type: 'separator' },
 				{
 					label: 'Send Feedback…',
 					click: () =>

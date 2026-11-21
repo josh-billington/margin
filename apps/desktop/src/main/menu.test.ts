@@ -41,13 +41,12 @@ it('places explicit updates under About and never checks while installing the me
 	expect(mocks.check).toHaveBeenCalledOnce()
 })
 
-it('exposes the welcome, feedback, local logs, the website, and the privacy policy in Help', () => {
+it('exposes feedback, local logs, the website, and the privacy policy in Help', () => {
 	installAppMenu(() => null)
 	const template = mocks.build.mock.calls[0]?.[0] ?? []
 	const submenu = template.find((item) => item.role === 'help')?.submenu
 	if (!Array.isArray(submenu)) throw new Error('Missing Help submenu')
 	expect(submenu.map((item) => item.label).filter(Boolean)).toEqual([
-		'Show Welcome',
 		'Send Feedback…',
 		'Show Logs in Finder',
 		'Margin Website',
@@ -64,7 +63,6 @@ it('exposes the welcome, feedback, local logs, the website, and the privacy poli
 	expect(mocks.reveal).toHaveBeenCalledOnce()
 	expect(mocks.open).toHaveBeenCalledWith('https://margin-bible.pages.dev')
 	expect(mocks.open).toHaveBeenCalledWith('https://margin-bible.pages.dev/privacy/')
-	expect(submenu.find((item) => item.label === 'Show Welcome')?.id).toBe('intro.show')
 })
 
 it('hides the update action in Mac App Store builds', () => {

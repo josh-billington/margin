@@ -112,11 +112,7 @@ test('malformed preferences are kept aside while setup remains usable', async ()
 		await mkdir(dirs.userData, { recursive: true })
 		await writeFile(join(dirs.userData, 'prefs.json'), '{broken')
 		running = await launch(dirs, {}, { firstRun: true })
-		// Defaults again, as for a new install: the welcome plays, then setup.
-		await running.page
-			.getByRole('dialog', { name: 'Make scripture your own' })
-			.getByRole('button', { name: 'Get started' })
-			.click()
+		// Defaults again, as for a new install: setup opens.
 		const setup = running.page.getByRole('dialog', { name: 'Set up Margin' })
 		await expect(setup).toBeVisible()
 		const backup = (await readdir(dirs.userData)).find((name) => name.startsWith('prefs.json.bad-'))
