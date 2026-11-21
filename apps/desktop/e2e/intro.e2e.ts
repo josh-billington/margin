@@ -18,13 +18,13 @@ test('the welcome plays once on first launch before setup, and Help › Show Wel
 	try {
 		running = await launch(dirs, {}, { firstRun: true, intro: true })
 		let { page, app } = running
-		const intro = page.getByRole('dialog', { name: 'Welcome to Margin' })
+		const intro = page.getByRole('dialog', { name: 'Make scripture your own' })
 		const setup = page.getByRole('dialog', { name: 'Set up Margin' })
 		await expect(intro).toBeVisible()
 		await expect(setup).toHaveCount(0)
-		await expect(intro.getByRole('button', { name: 'Continue' })).toBeEnabled({ timeout: 10_000 })
-		await expect(intro).toHaveAccessibleDescription(/Study with a pen in hand\./)
-		await intro.getByRole('button', { name: 'Skip intro' }).click()
+		await expect(intro.getByRole('button', { name: 'Get started' })).toBeFocused({ timeout: 10_000 })
+		// Escape skips it.
+		await page.keyboard.press('Escape')
 		await expect(intro).toHaveCount(0)
 		await expect(setup).toBeVisible()
 		await expect(setup).toBeFocused()
@@ -45,23 +45,12 @@ test('the welcome plays once on first launch before setup, and Help › Show Wel
 		await app.evaluate(({ Menu }) =>
 			Menu.getApplicationMenu()?.getMenuItemById('intro.show')?.click(),
 		)
-		const replay = page.getByRole('dialog', { name: 'Welcome to Margin' })
+		const replay = page.getByRole('dialog', { name: 'Make scripture your own' })
 		await expect(replay).toBeVisible()
-		const next = replay.getByRole('button', { name: 'Continue' })
-		await expect(next).toBeEnabled({ timeout: 10_000 })
-		await expect(next).toBeFocused()
-		for (const title of [
-			'Mark what you see.',
-			'Connect the verses.',
-			'Keep your thoughts beside the text.',
-		]) {
-			await page.keyboard.press('Enter')
-			await expect(replay).toHaveAccessibleDescription(new RegExp(title.replace('.', '\\.')))
-		}
-		await expect(replay.locator('[data-intro-word="transformed"]')).toBeAttached()
-		await expect(replay.locator('.passage-header')).toHaveText('Romans 12:2 · KJV')
+		const start = replay.getByRole('button', { name: 'Get started' })
+		await expect(start).toBeFocused({ timeout: 10_000 })
 		await page.keyboard.press('Enter')
-		// The ending plays by itself and dissolves into the study.
+		// Get started dissolves it into the study.
 		await expect(replay).toHaveCount(0, { timeout: 15_000 })
 		expect(await stylesheets(page)).toEqual(afterIntro)
 	} finally {
