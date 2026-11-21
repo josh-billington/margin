@@ -4,29 +4,15 @@ A Bible study canvas for macOS. Lay out verses on an open canvas, tag words in
 colour, write notes and draw arrows from a note to the exact word it's about.
 Margin works offline and saves each study as a plain JSON file on your Mac.
 
-- KJV, Berean Standard Bible (BSB), World English Bible (WEB), and ASV (1901)
-  are bundled in full, alongside JPS 1917 (Tanakh)
-- Add verses by reference, or type words or an exact phrase in the same field to
-  search offline (**⌘⇧F**). Narrow by translation, testament or book, then add
-  one or several matching verses to the canvas.
-- Highlights, tags and arrows that stay on their words when the text rewraps
-- Freeform ink and small diagrams with rectangles, ellipses, lines and text labels
-- Focus on one block of verses or a single verse
-- Offline Strong's and Brown-Driver-Briggs lookup for words in the KJV
-- Saves as you go, with recovery copies, and keeps your edits in a conflict copy
-  if a study changes outside Margin
+<img width="2462" height="1385" alt="mockup-1795225615125" src="https://github.com/user-attachments/assets/1c1b2bb8-963d-4dc7-a39a-63661c0e824d" />
 
-Public beta for Apple silicon Macs, running macOS 13 Ventura or later.
-
-Press **D** to draw freehand; a stroke between two words can become a bound arrow.
-Open **Shapes** or press **R** for rectangle, **O** for ellipse, **L** for line or
-**Y** for text label. To recolour shapes, select them and open **Shapes** again.
+Margin is availabe as a public beta for macOS 13 and later, on Apple Silicon.
 
 Download: [Margin-arm64.dmg](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg)
 ([ZIP](https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64-mac.zip)).
 More at [margin-bible.pages.dev](https://margin-bible.pages.dev).
 
-The beta is unsigned and not notarized by Apple. The first time you open it, macOS says
+The beta is unsigned and not notarized by Apple (it will be once Margin is out of beta). The first time you open it, macOS says
 it can't verify Margin. Open System Settings → Privacy & Security, click **Open Anyway**
 next to the message about Margin, then confirm. You only need to do this once.
 
@@ -35,12 +21,6 @@ on its own. Download the new version and drag it into Applications to replace th
 one. Your study files stay where they are.
 Choose **Help → Send Feedback…** to report a problem, or **Help → Show Logs in Finder**
 to find the error log. Margin collects no usage data, and the log holds no study text.
-
-## About this project
-
-Margin is a side project I designed and directed, built mostly with AI coding agents.
-I wrote the spec, made the product and architecture decisions, and reviewed the
-results against end-to-end tests. Forks are welcome; replies to issues may be slow.
 
 ## Building from source
 
