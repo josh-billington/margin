@@ -5,17 +5,27 @@ import { Menu, X } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { DownloadButton } from '@/components/download-button'
 import { cn } from '@/lib/utils'
+import { useGlassLens } from '@/components/glass-lens'
 
-// Tailark Mist hero header, restyled: a plain bar (wordmark, three links, one action), no blur.
+// A plain bar at the top of the page. Once the page scrolls it floats as a glass capsule, like the
+// app's canvas toolbar, over whatever scrolls beneath it.
 const menuItems = [
-	{ name: 'How it works', href: '/#anchors' },
-	{ name: 'Features', href: '/#features' },
 	{ name: 'Questions', href: '/#faq' },
 ]
 
 export const HeroHeader = () => {
 	const [menuState, setMenuState] = React.useState(false)
 	const menuButton = React.useRef<HTMLButtonElement>(null)
+	const [scrolled, setScrolled] = React.useState(false)
+	React.useEffect(() => {
+		const onScroll = () => setScrolled(window.scrollY > 24)
+		onScroll()
+		window.addEventListener('scroll', onScroll, { passive: true })
+		return () => window.removeEventListener('scroll', onScroll)
+	}, [])
+	// The open phone menu floats too, so its links sit on glass rather than on the page.
+	const floating = scrolled || menuState
+	const lens = useGlassLens<HTMLDivElement>(floating)
 	React.useEffect(() => {
 		if (!menuState) return
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -27,16 +37,31 @@ export const HeroHeader = () => {
 		return () => document.removeEventListener('keydown', onKeyDown)
 	}, [menuState])
 	return (
-		<header>
+		<header className="sticky top-0 z-30">
 			<nav
 				aria-label="Main"
 				data-state={menuState ? 'active' : undefined}
-				className="relative z-20 w-full"
+				className="relative z-20 flow-root w-full"
 			>
-				<div className="mx-auto max-w-6xl px-6">
-					<div className="relative flex flex-wrap items-center justify-between gap-6 py-5 md:gap-0">
+				{lens.defs}
+				<div
+					className={cn(
+						'header-bar mx-auto px-6',
+						floating && 'glass px-3 md:pr-2.5 md:pl-4',
+						floating && 'rounded-2xl',
+					)}
+					ref={lens.ref}
+					data-scrolled={floating ? '' : undefined}
+					{...(floating ? lens.props : {})}
+				>
+					<div
+						className={cn(
+							'relative flex flex-wrap items-center justify-between gap-6 md:gap-0',
+							floating ? 'py-2' : 'py-5',
+						)}
+					>
 						<div className="flex w-full items-center justify-between gap-6 md:w-auto">
-							<Link href="/" aria-label="Margin home" className="pressable rounded-lg">
+							<Link href="/" aria-label="Margin home" className="pressable flex rounded-lg">
 								<Logo />
 							</Link>
 
@@ -55,7 +80,7 @@ export const HeroHeader = () => {
 
 						<div
 							id="main-menu"
-							className="bg-chrome in-data-[state=active]:block md:in-data-[state=active]:flex hidden w-full flex-wrap items-center justify-end gap-6 rounded-2xl p-6 md:flex md:w-fit md:flex-nowrap md:bg-transparent md:p-0"
+							className="in-data-[state=active]:block md:in-data-[state=active]:flex hidden w-full flex-wrap items-center justify-end gap-6 rounded-2xl p-6 md:flex md:w-fit md:flex-nowrap md:bg-transparent md:p-0"
 						>
 							<ul className="flex flex-col gap-5 md:flex-row md:gap-1">
 								{menuItems.map((item) => (
@@ -64,7 +89,7 @@ export const HeroHeader = () => {
 											href={item.href}
 											onClick={() => setMenuState(false)}
 											className={cn(
-												'pressable text-ink/75 hover:text-ink flex min-h-11 items-center rounded-full text-[15px] md:px-3.5 md:py-1.5 md:hover:bg-chrome',
+												'pressable text-ink/75 hover:text-ink flex min-h-11 items-center rounded-lg text-[15px] md:px-3.5 md:py-1.5 md:hover:bg-[var(--glass-fill-hover)]',
 											)}
 										>
 											{item.name}

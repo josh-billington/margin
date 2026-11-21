@@ -14,14 +14,14 @@ export function DownloadButton({
 		return (
 			<Button asChild size={size} className={className}>
 				<a href={site.downloadUrl}>
-					Download for macOS <FaApple />
+					<FaApple /> Download for macOS
 				</a>
 			</Button>
 		)
 	return (
 		<Button asChild size={size} variant="pending" className={className}>
 			<a href="#follow" aria-label="Download for macOS">
-				Download for macOS <FaApple />
+				<FaApple /> Download for macOS
 			</a>
 		</Button>
 	)

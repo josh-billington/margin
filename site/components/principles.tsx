@@ -8,9 +8,9 @@ const principles = [
 		body: 'There is nothing to sign up for, and nothing reports back.',
 	},
 	{
-		title: 'If you don\'t like something, fork it',
-		body: 'Steal our code (legally ). Change anything and everything to make it perfect for you.',
-  },
+		title: 'If you don’t like something, fork it',
+		body: 'Steal our code (legally). Change anything and everything to make it perfect for you.',
+	},
  	/* {
 		title: 'Your studies are files',
 		body: 'Each study is a JSON file in a folder in your documents. Back it up, sync it with iCloud, or open it with the other tools you already use.',

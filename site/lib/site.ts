@@ -8,17 +8,16 @@ export const site = {
 	url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://margin-bible.pages.dev',
 	description:
 		'Make it your own. Map out your study, find connections between verses, notes, and ideas.',
-	/** Direct link to the newest .dmg. */
+	/** Direct .dmg download. Pre-releases are skipped by GitHub's releases/latest, so this names the
+	 * tag: update it with each release. */
 	downloadUrl:
-		'https://github.com/josh-billington/margin/releases/latest/download/Margin-arm64.dmg' as
+		'https://github.com/josh-billington/margin/releases/download/v0.9.0-beta.1/margin-arm64.dmg' as
 			| string
 			| null,
 	/** Public repository, for "Follow along". */
 	githubUrl: 'https://github.com/josh-billington/margin' as string | null,
 	/** Where testers report problems. */
 	issuesUrl: 'https://github.com/josh-billington/margin/issues',
-	/** Shown under the download button. */
-	requirements: 'Free beta for Apple silicon Macs, macOS 13 or later.',
 	/** Contact address for privacy questions. */
 	contactEmail: null as string | null,
 }

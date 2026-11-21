@@ -69,18 +69,6 @@ const faqItems = [
 		answer:
 			'Not for now. Margin is a Mac app, designed for a large screen, a trackpad and a keyboard.',
 	},
-	{
-		id: 'ink',
-		question: 'Can I draw freehand?',
-		answer:
-			'No. You type your notes, in a handwritten-style font if you like, and draw arrows from them to words. Freehand drawing isn’t included.',
-	},
-	{
-		id: 'tldraw',
-		question: 'Why is there a tldraw mark on the canvas?',
-		answer:
-			'Margin’s canvas is built on the tldraw SDK. Its licence asks for a small “made with tldraw” mark in the corner, and Margin keeps it there.',
-	},
 ]
 
 export default function FAQs() {

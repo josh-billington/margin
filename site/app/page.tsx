@@ -1,6 +1,4 @@
 import HeroSection from '@/components/hero-section-2'
-import AnchorsSection from '@/components/anchors-section'
-import Features from '@/components/features-5'
 import Principles from '@/components/principles'
 import FAQs from '@/components/faqs-2'
 import CallToAction from '@/components/call-to-action-3'
@@ -11,10 +9,8 @@ export default function Home() {
 		<>
 			<HeroSection />
 			<main id="main">
-        {/* <AnchorsSection /> */}
-        <Features />
-				<FAQs />
 				<Principles />
+				<FAQs />
 				<CallToAction />
 			</main>
 			<Footer />
