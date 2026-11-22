@@ -1,10 +1,14 @@
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { z } from 'zod'
 import { expect, it } from 'vitest'
 
-it('reads real offline entries and spans, refusing changed study snapshots', () => {
+// Reads the generated lexicon, which a fresh checkout (CI) does not have: `pnpm import:lexicon`.
+const lexicon = resolve('resources/lexicon/margin-lexicon.sqlite')
+
+it.skipIf(!existsSync(lexicon))('reads real offline entries and spans, refusing changed study snapshots', () => {
 	const electron: unknown = createRequire(resolve('package.json'))('electron')
 	const output = execFileSync(
 		z.string().parse(electron),

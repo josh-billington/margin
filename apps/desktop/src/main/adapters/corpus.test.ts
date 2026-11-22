@@ -30,7 +30,10 @@ it.skipIf(missing.length > 0)(
 	60_000,
 )
 
-it('matches the original whole-corpus algorithm for every edition pair and chapter, including partial split/merge groups', () => {
+// The mapping check reads the generated database, which a fresh checkout (CI) does not have.
+const bible = resolve('resources/bible/margin-bible.sqlite')
+
+it.skipIf(!existsSync(bible))('matches the original whole-corpus algorithm for every edition pair and chapter, including partial split/merge groups', () => {
 	const electron: unknown = createRequire(resolve('package.json'))('electron')
 	const result = execFileSync(
 		z.string().parse(electron),
