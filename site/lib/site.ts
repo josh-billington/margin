@@ -11,7 +11,7 @@ export const site = {
 	/** Direct .dmg download. Pre-releases are skipped by GitHub's releases/latest, so this names the
 	 * tag: update it with each release. */
 	downloadUrl:
-		'https://github.com/josh-billington/margin/releases/download/v0.9.0-beta.1/margin-arm64.dmg' as
+		'https://github.com/josh-billington/margin/releases/download/v0.9.0-beta.2/margin-arm64.dmg' as
 			| string
 			| null,
 	/** Public repository, for "Follow along". */

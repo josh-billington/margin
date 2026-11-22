@@ -1,6 +1,6 @@
 {
 	"name": "@margin/desktop",
-	"version": "0.9.0-beta.1",
+	"version": "0.9.0-beta.2",
 	"author": "Josh Billington",
 	"main": "./out/main/index.js",
 	"license": "PolyForm-Noncommercial-1.0.0",
