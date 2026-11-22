@@ -1,11 +1,43 @@
 import { app, dialog, clipboard, Menu } from 'electron'
 import type { BrowserWindow } from 'electron'
+import { stat, readdir } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { COMMAND_CHANNEL } from '@shared/ipc/commands'
 import type { FlushReport, LibraryFolder, Preferences } from '@shared/ipc/contract'
+import { ulidSchema } from '@shared/study/types'
 import type { HostUi } from '@margin/services/ports'
 import { onRendererFlushed } from '../ipc/boundary'
+
+const studyFileName = /^([0-9A-HJKMNP-TV-Z]{26})\.study\.json$/
+
+/**
+ * A directory dialog greys study files out, and Electron then drops a file the panel still returns.
+ * Choosing a study, or the studies folder that holds one, means that study's library.
+ */
+export async function libraryPathFromSelection(
+	selected: string,
+): Promise<{ path: string; studyId?: string } | null> {
+	try {
+		const info = await stat(selected)
+		if (info.isDirectory()) {
+			if (basename(selected) !== 'studies') return { path: selected }
+			const names = await readdir(selected).catch(() => [] as string[])
+			return names.some((name) => studyFileName.test(name))
+				? { path: dirname(selected) }
+				: { path: selected }
+		}
+	} catch (error) {
+		// Choosing a new folder returns its path before anything has created it.
+		return (error as NodeJS.ErrnoException).code === 'ENOENT' ? { path: selected } : null
+	}
+	const name = basename(selected)
+	if (name === 'library.json') return { path: dirname(selected) }
+	const id = studyFileName.exec(name)?.[1]
+	const studyId = id ? ulidSchema.safeParse(id) : undefined
+	if (!studyId?.success || basename(dirname(selected)) !== 'studies') return null
+	return { path: dirname(dirname(selected)), studyId: studyId.data }
+}
 
 export function describeFolder(path: string, home = homedir()): LibraryFolder {
 	const cloud = join(home, 'Library/Mobile Documents/com~apple~CloudDocs')
@@ -35,11 +67,21 @@ export function createHostUi({
 		appearanceChanged: onAppearanceChange,
 		emit: (event) => getWindow()?.webContents.send('margin:library:event', event),
 		pickFolder: async (current) => {
-			const result = await dialog.showOpenDialog({
-				properties: ['openDirectory', 'createDirectory'],
+			const window = getWindow()
+			const options = {
+				title: 'Library folder',
+				buttonLabel: 'Choose',
+				message: 'Choose the folder for your studies, or a study file inside it.',
 				defaultPath: current,
-			})
-			return result.canceled ? null : (result.filePaths[0] ?? null)
+				properties: ['openFile', 'openDirectory', 'createDirectory'],
+				filters: [{ name: 'Margin study', extensions: ['json'] }],
+			} satisfies Electron.OpenDialogOptions
+			const result =
+				window && !window.isDestroyed()
+					? await dialog.showOpenDialog(window, options)
+					: await dialog.showOpenDialog(options)
+			const selected = result.canceled ? null : (result.filePaths[0] ?? null)
+			return selected ? libraryPathFromSelection(selected) : null
 		},
 		confirmDiscard: async ({ message, detail, quit, loseChanges }) => {
 			const window = getWindow()

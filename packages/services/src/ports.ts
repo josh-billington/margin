@@ -66,7 +66,7 @@ export interface Codec {
 	inflateRaw(data: Uint8Array): Uint8Array
 }
 export interface HostUi {
-	pickFolder(current: string): Promise<string | null>
+	pickFolder(current: string): Promise<{ path: string; studyId?: string } | null>
 	confirmDiscard(args: {
 		message: string
 		detail: string

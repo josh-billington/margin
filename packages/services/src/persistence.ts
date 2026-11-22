@@ -137,14 +137,23 @@ export async function createPersistence({
 		[ipcContract.library.chooseLibraryFolder.channel]: handle(
 			ipcContract.library.chooseLibraryFolder,
 			async () => {
-				const path = await ui.pickFolder(library.path)
-				if (!path || path === library.path) return null
+				const picked = await ui.pickFolder(library.path)
+				if (!picked) return null
+				const { path, studyId } = picked
+				if (path === library.path) {
+					if (!studyId) return null
+					await data.update((settings) => {
+						settings.preferences.lastOpenedStudyId = studyId
+					})
+					return describe()
+				}
 				await library.flush()
 				const next = openLibrary(path)
 				if (initialized) await next.initialize()
 				try {
 					await data.update((settings) => {
 						settings.libraryPath = path
+						if (studyId) settings.preferences.lastOpenedStudyId = studyId
 					})
 				} catch (error) {
 					await next.close()

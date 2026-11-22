@@ -52,7 +52,7 @@ it('defers the default folder and creates no study when switching during setup',
 	vi.stubEnv('MARGIN_LIBRARY_DIR', undefined)
 	vi.stubEnv('MARGIN_DEFAULT_LIBRARY_DIR', join(root, 'default'))
 	const webContents = { mainFrame: {}, send: vi.fn(), isDestroyed: () => true }
-	const window = { webContents }
+	const window = { webContents, isDestroyed: () => false }
 	const initialize = Library.prototype.initialize
 	vi.spyOn(Library.prototype, 'initialize').mockImplementation(function (this: Library) {
 		closeLibrary = () => this.close()
@@ -102,6 +102,32 @@ it.each([
 	['/', { name: '/', location: '' }],
 ])('describes folder %s', (path, folder) => {
 	expect(describeFolder(path, home)).toEqual(folder)
+})
+
+it('uses the library that contains a chosen study file', async () => {
+	root = await mkdtemp(join(tmpdir(), 'margin-study-pick-'))
+	electron.paths = { userData: join(root, 'userData'), documents: root }
+	const library = join(root, 'Margin')
+	const studyId = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
+	await mkdir(join(library, 'studies'), { recursive: true })
+	await writeFile(join(library, 'studies', `${studyId}.study.json`), '{}')
+	electron.selected = join(library, 'studies', `${studyId}.study.json`)
+	vi.stubEnv('MARGIN_DEFAULT_LIBRARY_DIR', join(root, 'default'))
+	const webContents = { mainFrame: {}, send: vi.fn(), isDestroyed: () => true }
+	const data = await registerPersistence(
+		() => ({ webContents, isDestroyed: () => false }) as unknown as Electron.BrowserWindow,
+	)
+	async function invoke(operation: { channel: string }, payload?: unknown) {
+		const handler = electron.handlers.get(operation.channel)
+		if (!handler) throw new Error('Missing handler')
+		return handler({ sender: webContents, senderFrame: webContents.mainFrame }, payload)
+	}
+	await expect(invoke(ipcContract.library.chooseLibraryFolder)).resolves.toMatchObject({
+		ok: true,
+		data: { path: library },
+	})
+	expect(data.libraryPath).toBe(library)
+	expect(data.preferences.lastOpenedStudyId).toBe(studyId)
 })
 
 it('words file-system failures for the reader and keeps other messages', () => {
