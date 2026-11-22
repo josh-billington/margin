@@ -16,6 +16,9 @@ release/
 test-results
 playwright-report
 .claude/worktrees/
+.claude/skills/
+.agents/
+skills-lock.json
 **/resources/lexicon/*.sqlite
 /docs/
 /video/
