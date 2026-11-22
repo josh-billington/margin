@@ -34,7 +34,8 @@ jobs:
       - run: pnpm lint
       # Corpus tests skip here: the Bible and lexicon databases are generated locally, not committed.
       - run: pnpm test
-      - run: pnpm build
+      # The iPad bundle embeds the generated Bible database, so it only builds where the corpora exist.
+      - run: pnpm exec nx run-many -t build --exclude=@margin/ipad
 
   site:
     name: site (build)
