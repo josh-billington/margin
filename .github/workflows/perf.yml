@@ -1,0 +1,68 @@
+name: perf
+
+# Builds the pull request and its base on the same runner, then alternates launches of each on the
+# heavy study (apps/desktop/perf). Runner timings differ from a real Mac, so the check compares
+# the two builds rather than holding either to fixed numbers.
+on:
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/perf.yml'
+
+concurrency:
+  group: perf-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NX_DAEMON: 'false'
+  NX_NO_CLOUD: 'true'
+
+jobs:
+  compare:
+    name: perf (heavy study, base vs head)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: head
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: head/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+          cache-dependency-path: |
+            head/pnpm-lock.yaml
+            base/pnpm-lock.yaml
+      - name: build head
+        working-directory: head
+        run: |
+          pnpm install --frozen-lockfile
+          node apps/desktop/node_modules/electron/install.js
+          pnpm --filter @margin/desktop build
+      - name: build base
+        working-directory: base
+        run: |
+          pnpm install --frozen-lockfile
+          node apps/desktop/node_modules/electron/install.js
+          pnpm --filter @margin/desktop build
+      - name: compare
+        working-directory: head/apps/desktop
+        run: pnpm exec tsx perf/run.mts --base ../../../base/apps/desktop --rounds 5
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-samples
+          path: head/apps/desktop/test-results/perf.json
+          if-no-files-found: ignore
