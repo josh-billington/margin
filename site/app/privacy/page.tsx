@@ -29,11 +29,11 @@ const sections: { title: string; body: React.ReactNode }[] = [
 	},
 	{
 		title: 'This website',
-		body: 'This site is a set of static pages. It sets no cookies and runs no analytics or tracking scripts, and it loads no fonts or scripts from other companies. The host that serves the pages may keep ordinary server logs, such as IP addresses and request times, as every web server does.',
+		body: 'This site is a set of static pages. It uses PostHog to count visits and see which pages and links people use, such as the download button. It sets no cookies and stores nothing on your device, so one visit isn’t linked to the next. PostHog receives the details any website sees, such as your IP address and browser, which it uses to estimate your country and device type. The site doesn’t record what you type or replay your visit, and it loads no fonts or other scripts from other companies. The host that serves the pages may keep ordinary server logs, such as IP addresses and request times, as every web server does. The Margin app itself has no analytics.',
 	},
 	{
 		title: 'Changes',
-		body: 'If any of this changes, for example if a future version adds an optional feature that uses the internet, this page will say so before that version is released. Last updated 12 November 2026.',
+		body: 'If any of this changes, for example if a future version adds an optional feature that uses the internet, this page will say so before that version is released. Last updated 21 November 2026.',
 	},
 ]
 

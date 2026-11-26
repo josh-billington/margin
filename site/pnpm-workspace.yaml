@@ -1,1 +1,4 @@
 # The site is its own pnpm workspace, separate from the app workspace at the repo root.
+allowBuilds:
+  # posthog-js pulls in core-js, whose install script only prints a donation message.
+  core-js: false

@@ -18,6 +18,11 @@ export const site = {
 	githubUrl: 'https://github.com/josh-billington/margin' as string | null,
 	/** Where testers report problems. */
 	issuesUrl: 'https://github.com/josh-billington/margin/issues',
+	/** PostHog web analytics (US cloud). A project key is public by design: it only sends events. */
+	posthog: {
+		key: 'phc_mrPjtjYk5ETTZUxTbWLRBdkofNVxUpiF2QygTf5HHqUx',
+		host: 'https://us.i.posthog.com',
+	},
 	/** Contact address for privacy questions. */
 	contactEmail: null as string | null,
 }
