@@ -291,6 +291,10 @@ async function run(build: Sample['build'], round: number, rendererUrl: string, f
 			() => !document.querySelector('.passage-block[data-arrival="pending"]'),
 		)
 		await page.waitForTimeout(1500)
+		// tsx compiles with keepNames, which wraps named functions inside evaluate callbacks in
+		// __name(); the page and main process don't have it.
+		await page.evaluate('globalThis.__name = (fn) => fn')
+		await app.evaluate('globalThis.__name = (fn) => fn')
 		const read = await cpu(page)
 		const sample: Sample = {
 			build,
