@@ -18,8 +18,11 @@ permissions:
 
 jobs:
   deploy:
-    # Forks get no secrets, so their PRs skip the preview.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Forks and Dependabot get no secrets, so their PRs skip the preview; CI still builds the site.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
