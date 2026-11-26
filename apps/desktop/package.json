@@ -20,6 +20,7 @@
 		"test": "vitest run --config ../../vitest.config.mts",
 		"test:css": "pnpm build && node scripts/check-production-css.mjs",
 		"test:e2e": "electron-vite build && playwright test",
+		"test:perf": "electron-vite build && tsx perf/run.mts",
 		"import:bible": "tsx scripts/import-bible/index.ts",
 		"postinstall": "electron-builder install-app-deps",
 		"dist": "tsx scripts/release-preflight.mts && pnpm build && electron-builder --mac --config.mac.identity=- --config.mac.notarize=false --config.mac.entitlements=build/entitlements.mac.adhoc.plist --config.mac.entitlementsInherit=build/entitlements.mac.adhoc.plist",

@@ -4,6 +4,7 @@
 		"src",
 		"scripts",
 		"e2e",
+		"perf",
 		"playwright.config.ts",
 		"electron.vite.config.ts",
 		"../../packages/core/src",

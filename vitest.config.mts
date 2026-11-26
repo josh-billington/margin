@@ -13,6 +13,7 @@ export default defineConfig({
 		include: [
 			'src/**/*.test.ts',
 			'scripts/**/*.test.ts',
+			'perf/**/*.test.ts',
 			'../../packages/core/src/**/*.test.ts',
 			'../../packages/contract/src/**/*.test.ts',
 			'../../packages/services/src/**/*.test.ts',
