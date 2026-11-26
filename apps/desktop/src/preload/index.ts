@@ -7,7 +7,6 @@ import {
 	GLASS_ARGUMENT,
 	GLASS_CHANNEL,
 	glassModeSchema,
-	INTRO_ARGUMENT,
 	ipcContract,
 	PLATFORM_ARGUMENT,
 	TOOLBAR_GLASS_ARGUMENT,
@@ -46,7 +45,6 @@ const api = {
 				nativeContextMenu: false,
 				freehandInk: true,
 				libraryFolderPicker: false,
-				welcomeIntro: false,
 			}
 		: {
 				kind: 'mac',
@@ -54,10 +52,7 @@ const api = {
 				nativeContextMenu: true,
 				freehandInk: true,
 				libraryFolderPicker: true,
-				// Off until the new icon and branding: the app opens straight to setup or the study.
-				welcomeIntro: false,
 			},
-	introAtLaunch: process.argv.includes(INTRO_ARGUMENT),
 	toolbarGlass: process.argv
 		.find((arg) => arg.startsWith(TOOLBAR_GLASS_ARGUMENT))
 		?.slice(TOOLBAR_GLASS_ARGUMENT.length),

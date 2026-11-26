@@ -5,7 +5,6 @@ import {
 	APPEARANCE_ARGUMENT,
 	APPEARANCE_CHANNEL,
 	GLASS_ARGUMENT,
-	INTRO_ARGUMENT,
 	PLATFORM_ARGUMENT,
 	TOOLBAR_GLASS_ARGUMENT,
 } from '@shared/ipc/contract'
@@ -16,7 +15,7 @@ import { resolvedAppearance, windowBackground } from './appearance'
 const SHOW_FALLBACK_MS = 4000
 
 /** Read from the preferences as each window opens. */
-export type MainWindowOptions = { liquidGlass?: boolean; intro?: boolean }
+export type MainWindowOptions = { liquidGlass?: boolean }
 
 export function createMainWindow(
 	onClosed: () => void,
@@ -46,7 +45,6 @@ export function createMainWindow(
 			additionalArguments: [
 				`${GLASS_ARGUMENT}${glass}`,
 				`${APPEARANCE_ARGUMENT}${resolvedAppearance()}`,
-				...(options.intro ? [INTRO_ARGUMENT] : []),
 				...(!app.isPackaged && process.env.MARGIN_PLATFORM === 'ipad' ? [PLATFORM_ARGUMENT] : []),
 				...(process.env.MARGIN_TOOLBAR_GLASS
 					? [`${TOOLBAR_GLASS_ARGUMENT}${process.env.MARGIN_TOOLBAR_GLASS}`]

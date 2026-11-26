@@ -7,13 +7,10 @@ import { InsertPassageDialog } from '../insertion/InsertPassageDialog'
 import { usePrefs } from '../lib/usePrefs'
 import { useEditorStore } from './editorStore'
 import { useUiStore } from './uiStore'
-import { IntroHost } from '../intro/IntroHost'
-import { useIntro } from '../intro/introStore'
 import type { TranslationId } from '@shared/bible/types'
 
 export function DialogsHost() {
 	const setup = useStudySession((state) => state.setup)
-	const introOpen = useIntro((state) => state.open)
 	const editor = useEditorStore((state) => state.editor)
 	const paletteOpen = useUiStore((state) => state.paletteOpen)
 	const settingsOpen = useUiStore((state) => state.settingsOpen)
@@ -24,9 +21,7 @@ export function DialogsHost() {
 	const translation: TranslationId = prefs?.defaultTranslation ?? 'kjv'
 	return (
 		<>
-			<IntroHost />
-			{/* First-run setup waits for the welcome intro to finish. */}
-			{setup === 'pending' && !introOpen && <SetupDialog />}
+			{setup === 'pending' && <SetupDialog />}
 			<CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 			<SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
 			<DeleteConfirm />

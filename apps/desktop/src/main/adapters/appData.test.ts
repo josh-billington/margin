@@ -34,8 +34,7 @@ it('keeps setup pending when prefs.json is missing', async () => {
 	const data = await new AppDataStore(root).open()
 	expect(data.setup).toBe('pending')
 })
-it('plays the welcome intro for a new install but not for preferences saved before it existed', async () => {
-	expect((await new AppDataStore(root).open()).preferences.introSeen).toBe(false)
+it('opens preferences saved with the retired welcome intro flag and drops it', async () => {
 	await writeFile(
 		join(root, 'prefs.json'),
 		JSON.stringify({
@@ -43,17 +42,21 @@ it('plays the welcome intro for a new install but not for preferences saved befo
 			preferences: {
 				defaultTranslation: 'kjv',
 				oldTestamentTranslation: 'kjv',
-				defaultNoteFont: 'handwritten',
+				defaultNoteFont: 'plain',
 				displayNotesInPlainFont: false,
+				introSeen: true,
 			},
 		}),
 	)
 	const existing = await new AppDataStore(root).open()
-	expect(existing.preferences.introSeen).toBeUndefined()
-	await existing.update((settings) => {
-		settings.preferences.introSeen = true
-	})
-	expect((await new AppDataStore(root).open()).preferences.introSeen).toBe(true)
+	expect(existing.setup).toBe('done')
+	expect(existing.preferences.defaultNoteFont).toBe('plain')
+	expect(existing.preferences).not.toHaveProperty('introSeen')
+	expect((await readdir(root)).some((name) => name.startsWith('prefs.json.bad-'))).toBe(false)
+	await existing.update(() => {})
+	expect(
+		JSON.parse(await readFile(join(root, 'prefs.json'), 'utf8')).preferences,
+	).not.toHaveProperty('introSeen')
 })
 it('skips setup for existing preferences without a setup field', async () => {
 	await writeFile(join(root, 'prefs.json'), '{}')

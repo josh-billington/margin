@@ -2,7 +2,7 @@ import { _electron as electron, expect } from '@playwright/test'
 import type { ElectronApplication, Page } from '@playwright/test'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
-import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join, resolve } from 'node:path'
 
@@ -37,9 +37,9 @@ const MIME: Record<string, string> = {
 let rendererServer: Promise<string> | undefined
 /**
  * Serves out/renderer over loopback http. Production tldraw gates an unlicensed editor off five
- * seconds after mount (it is the release blocker in docs/STATUS.md), but treats an http origin as
- * development, so a file:// renderer would blank mid-test. The app loads this URL through its
- * unpackaged ELECTRON_RENDERER_URL path; the packaged test still runs the real file:// build.
+ * seconds after mount, but treats an http origin as development, so a file:// renderer would blank
+ * mid-test. The app loads this URL through its unpackaged ELECTRON_RENDERER_URL path; the packaged
+ * test still runs the real file:// build.
  */
 function serveRenderer(): Promise<string> {
 	rendererServer ??= new Promise((resolveUrl) => {
@@ -65,36 +65,6 @@ function serveRenderer(): Promise<string> {
 	return rendererServer
 }
 
-/**
- * A fresh profile opens on the welcome intro. Tests that are not about it start from preferences
- * as a launch after the intro would leave them (setup still pending for first-run tests); a
- * profile the test has already written is left alone.
- */
-async function seedIntroSeen(dirs: Dirs, firstRun: boolean) {
-	const path = join(dirs.userData, 'prefs.json')
-	if (
-		await access(path).then(
-			() => true,
-			() => false,
-		)
-	)
-		return
-	await mkdir(dirs.userData, { recursive: true })
-	await writeFile(
-		path,
-		JSON.stringify({
-			setup: firstRun ? 'pending' : 'done',
-			preferences: {
-				defaultTranslation: 'kjv',
-				oldTestamentTranslation: 'kjv',
-				defaultNoteFont: 'handwritten',
-				displayNotesInPlainFont: false,
-				introSeen: true,
-			},
-		}),
-	)
-}
-
 function withFluidFlag(url: string, extraEnv: Record<string, string>) {
 	const flag = extraEnv.MARGIN_E2E_FLUID_POPOVERS ?? process.env.MARGIN_E2E_FLUID_POPOVERS
 	return flag === '1' || flag === '0' ? `${url}?fluidPopovers=${flag}` : url
@@ -104,9 +74,8 @@ function withFluidFlag(url: string, extraEnv: Record<string, string>) {
 export async function launch(
 	dirs: Dirs,
 	extraEnv: Record<string, string> = {},
-	options: { executablePath?: string; args?: string[]; firstRun?: boolean; intro?: boolean } = {},
+	options: { executablePath?: string; args?: string[]; firstRun?: boolean } = {},
 ): Promise<Launched> {
-	if (!options.intro) await seedIntroSeen(dirs, options.firstRun ?? false)
 	const env: Record<string, string> = {}
 	for (const [key, value] of Object.entries(process.env))
 		if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE' && key !== 'MARGIN_LIBRARY_DIR')

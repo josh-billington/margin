@@ -1,13 +1,11 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import type { MainWindowOptions } from './window/create'
 
 const fake = vi.hoisted(() => ({
 	events: new Map<string, () => void>(),
 	closed: () => {},
 	window: { isMinimized: vi.fn(() => true), restore: vi.fn(), focus: vi.fn() },
 	create: vi.fn(),
-	options: new Array<MainWindowOptions>(),
-	preferences: { liquidGlass: false, appearance: 'system', introSeen: false },
+	preferences: { liquidGlass: false, appearance: 'system' },
 }))
 vi.mock('electron', () => ({
 	app: {
@@ -23,9 +21,8 @@ vi.mock('electron', () => ({
 	BrowserWindow: { getAllWindows: () => [] },
 }))
 vi.mock('./window/create', () => ({
-	createMainWindow: (closed: () => void, options: MainWindowOptions) => {
+	createMainWindow: (closed: () => void) => {
 		fake.closed = closed
-		fake.options.push(options)
 		fake.create()
 		return fake.window
 	},
@@ -71,22 +68,4 @@ it('reopens, restores and focuses the main window on second instance and activat
 	fake.events.get('activate')?.()
 	expect(fake.create).toHaveBeenCalledTimes(3)
 	expect(fake.window.focus).toHaveBeenCalledTimes(3)
-})
-
-it('opens on the welcome intro until it has been seen, read afresh for each new window', async () => {
-	vi.stubGlobal(
-		'process',
-		Object.assign(Object.create(process), { getSystemVersion: () => 'test' }),
-	)
-	const { runApp } = await import('./lifecycle')
-	fake.options.length = 0
-	fake.create.mockClear()
-	fake.preferences.introSeen = false
-	runApp()
-	await vi.waitFor(() => expect(fake.create).toHaveBeenCalledTimes(1))
-	expect(fake.options.at(-1)).toEqual({ liquidGlass: false, intro: true })
-	fake.preferences.introSeen = true
-	fake.closed()
-	fake.events.get('activate')?.()
-	expect(fake.options.at(-1)).toEqual({ liquidGlass: false, intro: false })
 })

@@ -54,11 +54,6 @@ export const preferencesSchema = z.object({
 	highlightColor: paletteColorSchema.optional(),
 	/** The study to reopen on the next launch. */
 	lastOpenedStudyId: ulidSchema.optional(),
-	/**
-	 * Whether the welcome intro has played. A new install starts at false; preferences saved before
-	 * the intro existed have no value, which counts as seen, so existing users are not shown it.
-	 */
-	introSeen: z.boolean().optional(),
 })
 export type Preferences = z.infer<typeof preferencesSchema>
 export const cameraSchema = z.object({
@@ -259,8 +254,6 @@ export const GLASS_ARGUMENT = '--margin-glass='
 export const PLATFORM_ARGUMENT = '--margin-platform=ipad'
 /** Experiment: MARGIN_TOOLBAR_GLASS at launch (`1` or `0`). See core app/toolbarGlass. */
 export const TOOLBAR_GLASS_ARGUMENT = '--margin-toolbar-glass='
-/** The window opens on the welcome intro (first launch), so the renderer never paints the app first. */
-export const INTRO_ARGUMENT = '--margin-intro'
 export const platformSchema = z.discriminatedUnion('kind', [
 	z.object({
 		kind: z.literal('mac'),
@@ -268,8 +261,6 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		nativeContextMenu: z.literal(true),
 		freehandInk: z.literal(true),
 		libraryFolderPicker: z.literal(true),
-		/** Whether the renderer's welcome intro plays on first launch (off until the new branding). */
-		welcomeIntro: z.boolean(),
 	}),
 	z.object({
 		kind: z.literal('ipad'),
@@ -278,15 +269,11 @@ export const platformSchema = z.discriminatedUnion('kind', [
 		freehandInk: z.literal(true),
 		/** The library lives in the app's Documents folder; there is no folder to choose. */
 		libraryFolderPicker: z.literal(false),
-		/** The iPad shows its welcome natively, so the renderer's intro stays off. */
-		welcomeIntro: z.literal(false),
 	}),
 ])
 export type Platform = z.infer<typeof platformSchema>
 export type MarginApi = ContractApi<typeof ipcContract> & {
 	platform: Platform
-	/** The welcome intro has not played yet, so the window opens on it. */
-	introAtLaunch: boolean
 	/** Experiment: MARGIN_TOOLBAR_GLASS as the window opened; absent when unset. */
 	toolbarGlass?: string
 	/** Window material behind the title bar and sidebar: the mode at launch, and later changes. */

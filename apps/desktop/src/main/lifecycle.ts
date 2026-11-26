@@ -19,11 +19,7 @@ function openWindow() {
 		() => {
 			mainWindow = null
 		},
-		{
-			liquidGlass: preferences?.().liquidGlass,
-			// Read when each window opens, so a window reopened after the intro played skips it.
-			intro: preferences?.().introSeen === false,
-		},
+		{ liquidGlass: preferences?.().liquidGlass },
 	)
 }
 

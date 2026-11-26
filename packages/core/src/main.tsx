@@ -5,7 +5,6 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { syncAppearance, syncGlassMode, trackInputModality } from './app/glass'
 import { platform } from './lib/platform'
-import { initializeIntro } from './intro/introStore'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Margin root element is missing')
@@ -17,7 +16,6 @@ if (!platform.nativeMenu || matchMedia('(pointer: coarse), (hover: none)').match
 	style.textContent = touchStyles
 	document.head.append(style)
 }
-initializeIntro({ platform, atLaunch: window.margin.introAtLaunch })
 syncAppearance()
 syncGlassMode()
 trackInputModality()
