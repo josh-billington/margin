@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { expect, it } from 'vitest'
 
 // verify-corpus parses data/raw; with a file missing the loader would try to download it, and
-// tests must not touch the network. Restore sources with `yarn import:bible` (see docs/status/bible.md).
+// tests must not touch the network. Restore sources with `pnpm import:bible`.
 const pins = z
 	.object({ sources: z.array(z.object({ filename: z.string() })) })
 	.parse(JSON.parse(readFileSync(resolve('data/sources.json'), 'utf8')))

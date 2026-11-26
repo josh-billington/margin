@@ -11,7 +11,6 @@ const settingsSchema = z.object({
 		oldTestamentTranslation: 'kjv',
 		defaultNoteFont: 'handwritten',
 		displayNotesInPlainFont: false,
-		introSeen: false,
 	}),
 	cameras: z.record(z.string(), cameraSchema).default({}),
 })

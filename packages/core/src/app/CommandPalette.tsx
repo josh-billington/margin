@@ -4,7 +4,6 @@ import { Command } from 'cmdk'
 import {
 	BookA,
 	BookOpen,
-	CirclePlay,
 	Copy,
 	Droplet,
 	Maximize,
@@ -57,7 +56,6 @@ const icons: Record<Exclude<CommandId, 'palette.toggle'>, LucideIcon> = {
 	'appearance.system': SunMoon,
 	'appearance.light': Sun,
 	'appearance.dark': Moon,
-	'intro.show': CirclePlay,
 	'dev.fluidPopoverMotion': Spline,
 	'dev.toolbarGlass': Droplet,
 }

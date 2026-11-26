@@ -15,7 +15,6 @@ import { KEYBOARD_ZOOM, fitAll, zoomTo100 } from '../canvas/focus/shortcuts'
 import { getActiveEditor } from './editorStore'
 import { updatePrefs } from '../lib/usePrefs'
 import { useUiStore } from './uiStore'
-import { isIntroOpen, showIntro } from '../intro/introStore'
 import { toggleFluidPopoverMotion } from './popoverMotion'
 import { toggleToolbarGlass, toolbarGlassListed } from './toolbarGlass'
 
@@ -247,13 +246,6 @@ export const commands: AppCommand[] = [
 		palette: toolbarGlassListed,
 		run: toggleToolbarGlass,
 	},
-	{
-		id: 'intro.show',
-		title: 'Show welcome',
-		group: 'Workspace',
-		palette: (host) => host.welcomeIntro,
-		run: showIntro,
-	},
 	// Temporary, development builds only: compares the prototype popover motion with the current one.
 	{
 		id: 'dev.fluidPopoverMotion',
@@ -275,8 +267,6 @@ export const titleFor = (id: CommandId) => {
 }
 
 export function runCommand(id: CommandId) {
-	// The welcome intro covers the app; only appearance changes reach past it.
-	if (isIntroOpen() && !id.startsWith('appearance.')) return
 	const command = byId.get(id)
 	if (command && (command.enabled?.() ?? true)) command.run()
 }
