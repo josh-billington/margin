@@ -7,7 +7,8 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"deploy": "pnpm build && pnpm dlx wrangler@4.157.0 pages deploy out --branch main --commit-dirty=true"
+		"deploy": "pnpm build && pnpm pages --branch main",
+		"pages": "pnpm dlx wrangler@4.157.0 pages deploy out --commit-dirty=true"
 	},
 	"dependencies": {
 		"@fontsource/gochi-hand": "^5.3.0",

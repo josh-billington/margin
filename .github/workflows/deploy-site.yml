@@ -1,0 +1,53 @@
+name: deploy site
+
+# main deploys to production (margin-bible.pages.dev); a PR gets a Cloudflare preview of its branch.
+on:
+  push:
+    branches: [main]
+    paths: [site/**, .github/workflows/deploy-site.yml]
+  pull_request:
+    paths: [site/**, .github/workflows/deploy-site.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # Forks and Dependabot get no secrets, so their PRs skip the preview; CI still builds the site.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'site-preview' || 'site' }}
+      url: ${{ steps.deploy.outputs.url }}
+    defaults:
+      run:
+        working-directory: site
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - id: deploy
+        run: |
+          pnpm pages --branch "$BRANCH" | tee deploy.log
+          echo "url=$(grep -oE 'https://[^ ]+\.pages\.dev' deploy.log | tail -1)" >> "$GITHUB_OUTPUT"
