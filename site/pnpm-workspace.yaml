@@ -1,0 +1,1 @@
+# The site is its own pnpm workspace, separate from the app workspace at the repo root.
