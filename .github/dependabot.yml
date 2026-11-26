@@ -1,0 +1,37 @@
+# Dependency update PRs. Each release must be 7 days old before it's proposed (cooldown), so a
+# compromised or broken release has time to be caught and pulled first.
+version: 2
+
+updates:
+  # The app workspace (apps/*, packages/*) and the site, which is its own pnpm workspace.
+  - package-ecosystem: npm
+    directories: [/, /site]
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: America/Los_Angeles
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: deps
+    groups:
+      # One PR per workspace for minor and patch updates; each major update gets its own PR.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: America/Los_Angeles
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
