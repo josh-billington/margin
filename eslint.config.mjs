@@ -10,6 +10,7 @@ export default tseslint.config(
 			'**/release/**',
 			'**/test-results/**',
 			'**/playwright-report/**',
+			'**/storybook-static/**',
 			'**/node_modules/**',
 			'apps/ipad/www/**',
 			'apps/ipad/ios/**',

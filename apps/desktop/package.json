@@ -19,6 +19,8 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run --config ../../vitest.config.mts",
 		"test:css": "pnpm build && node scripts/check-production-css.mjs",
+		"styles:snapshot": "playwright test e2e/style-snapshot.e2e.ts",
+		"styles:diff": "node scripts/style-diff.mjs",
 		"test:e2e": "electron-vite build && playwright test",
 		"import:bible": "tsx scripts/import-bible/index.ts",
 		"postinstall": "electron-builder install-app-deps",

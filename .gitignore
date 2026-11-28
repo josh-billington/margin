@@ -15,6 +15,7 @@ release/
 *.tsbuildinfo
 test-results
 playwright-report
+storybook-static
 .claude/worktrees/
 .claude/skills/
 .agents/

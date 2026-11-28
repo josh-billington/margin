@@ -1,7 +1,7 @@
 @import './fonts.css';
 @import 'tailwindcss' source(none);
 @import 'tldraw/tldraw.css';
-@import './tokens.css';
+@import '@margin/ui/styles/tokens.css';
 @import './shell.css';
 
 @source inline('sr-only');
